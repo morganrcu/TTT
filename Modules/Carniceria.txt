@@ -1,0 +1,3681 @@
+std::vector<
+	itk::SmartPointer<
+		giaa::TemplateTissueDescriptor<
+			boost::adjacency_list<
+				boost::vecS, 
+				boost::vecS, 
+				boost::undirectedS, 
+				boost::property<
+					giaa::SkeletonPointPropertyTag, 
+					giaa::SkeletonPoint, 
+					boost::property<
+						boost::vertex_index_t, 
+						int
+					> 
+				>, 
+				boost::property<
+					boost::edge_index_t, 
+					int
+				> 
+			>,
+			boost::adjacency_list<
+				boost::vecS,
+				boost::vecS, 
+				boost::undirectedS,
+				boost::property<
+					giaa::TrackedCellPropertyTag,
+					giaa::TrackedCell,
+					boost::property <
+						boost::vertex_index_t,
+						int
+					>
+				>,
+				boost::property<
+					boost::edge_index_t,
+					int
+				> 
+			> 
+		> 
+	> 
+>
+std::vector<
+	itk::SmartPointer<
+		giaa::TemplateTissueDescriptor<
+			boost::adjacency_list<
+				boost::vecS, 
+					boost::vecS, 
+					boost::undirectedS, 
+					boost::property<
+						giaa::SkeletonPointPropertyTag, 
+						giaa::SkeletonPoint, 
+						boost::property<
+							boost::vertex_index_t, 
+							int
+						>
+					>, 
+					boost::property<
+						boost::edge_index_t, 
+						int
+					> 
+				>, 
+				boost::adjacency_list<
+					boost::vecS, 
+					boost::vecS, 
+					boost::undirectedS, 
+					boost::property<
+						giaa::CellPropertyTag, 
+						giaa::Cell, boost::property<boost::vertex_index_t, int> >, boost::property<boost::edge_index_t, int> > > > >
+
+/**
+ * Class to represent a Cell in a Tissue
+ */
+class Cell {
+public:
+	/**
+	 * Position of the centroid of the cell, in Real World? Coordinates
+	 */
+	typedef itk::Point<double, 3> PointIdx;
+	typedef itk::Vector<double, 3> VectorIdx;
+	/**
+	 *  Default constructor. Sets m_Centroid to zero.
+	 */
+
+	Cell() {
+		m_Centroid.Fill(0);
+#if 0
+		for (int i = 0; i < 3; i++) {
+			m_Color.push_back(0);
+		}
+		m_Area=-1;
+#endif
+	}
+	/**
+	 * Copy constructor. Initializates the attributes with the values in other
+	 */
+	Cell(const Cell & other) {
+		this->m_SkeletonNodes = other.m_SkeletonNodes;
+		this->m_Centroid = other.m_Centroid;
+#if 0
+		this->m_defpts = other.m_defpts;
+		this->trackID = other.trackID;
+		this->domainID = other.domainID;
+		this->m_Color = other.m_Color;
+		this->fft = other.fft;
+		this->m_area = other.m_area;
+#endif
+	}
+
+	/**
+	 * Cell centroid location
+	 */
+	PointIdx m_Centroid;
+
+	/**
+	 * Returns the number of SkeletonPoints in the border of the cell
+	 */
+	int GetNumSkeletonPoints() {
+		return m_SkeletonNodes.size();
+	}
+	/**
+	 * Adds a new SkeletonPoint to the border of the cell
+	 * @param vertex the descriptor of the point to add, represented by the vertex descriptor of the SkeletonGraph where it is stored
+	 */
+	inline void AddSkeletonPoint(const SkeletonVertexType & vertex) {
+		m_SkeletonNodes.push_back(vertex);
+	}
+
+#if 0
+	/**
+	 * Returns an iterator pointing to the first skeltonpoint
+	 */
+
+	int GetNumDefinitionPoints() {
+		return m_defpts.size();
+	}
+
+	inline void GetCellDefinitionPoints(const SkeletonGraph & graph) {
+
+		if (m_defpts.size() == 0) {
+
+			for (std::vector<SkeletonVertexType>::iterator i =
+					m_SkeletonNodes.begin(); i != m_SkeletonNodes.end(); ++i) {
+
+				int degree = boost::out_degree(*i, graph);
+				if (degree > 2) {
+					//std::cout<<"GetCellDefPoints "<< *i << " " << degree << std::endl;
+					m_defpts.push_back(*i);
+				}
+			}
+		}
+	}
+#endif
+	inline std::vector<SkeletonVertexType>::iterator Begin() {
+		return m_SkeletonNodes.begin();
+	}
+	/**
+	 * Returns an iterator pointing to the last skeletonpoint
+	 */
+	inline std::vector<SkeletonVertexType>::iterator End() {
+		return m_SkeletonNodes.end();
+	}
+#if 0
+	inline std::vector<SkeletonVertexType> GetNodes() const {
+		return m_SkeletonNodes;
+	}
+#endif
+#if 0
+	void GetFourierTransform(const SkeletonGraph & graph) {
+
+		std::vector<double> distances = this->GetDistanceToCentroid(graph);
+		double sum = std::accumulate(distances.begin(), distances.end(), 0);
+		std::vector<double> diff_distmean;
+		for (std::vector<double>::iterator itr = distances.begin();
+				itr != distances.end(); ++itr) {
+			double diff = *itr - sum;
+			diff_distmean.push_back(diff);
+		}
+		int N = diff_distmean.size();
+		fftw_complex * out = new fftw_complex[diff_distmean.size()];
+		fftw_plan p = fftw_plan_dft_r2c_1d(N, diff_distmean.data(), out,
+				FFTW_ESTIMATE);
+
+		fftw_execute(p);
+
+		fftw_destroy_plan(p);
+
+		fft = out;
+	}
+
+
+	// should be a vector
+	//NOT AN INLINE!
+		std::vector<double> GetDistanceToCentroid(const SkeletonGraph & graph) {
+
+		PointIdx pos;
+		PointIdx center;
+
+		std::vector<double> distances;
+		center = this->m_Centroid;
+
+		for (std::vector<SkeletonVertexType>::iterator i =
+				m_SkeletonNodes.begin(); i != m_SkeletonNodes.end(); ++i) {
+
+			pos = boost::get(SkeletonPointPropertyTag(), graph, *i).position;
+			itk::Vector<double, 3> diff = pos - center;
+			double distance = sqrt(
+					pow(diff[0], 2) + pow(diff[1], 2) + pow(diff[2], 2));
+			//std::cout<< "Distance: " << *i << " " << distance << std::endl;
+
+			distances.push_back(distance);
+
+		}
+
+		return distances;
+	}
+
+	void GetArea(SkeletonGraph & graph) {
+
+		PointIdx T0;
+		PointIdx T1;
+		PointIdx T2;
+
+		VectorIdx x0;
+		VectorIdx x1;
+		VectorIdx x2;
+		VectorIdx cmp1;
+		VectorIdx cmp2;
+		VectorIdx cp;
+
+		SkeletonVertexType pt1;
+		SkeletonVertexType pt2;
+
+		m_area = 0.0;
+		double current_area;
+		int goneThrough = 0;
+
+		//std::cout<<"num skeleton nodes: "<< m_SkeletonNodes.size()<<std::endl;
+		for (int i = 0; i < m_SkeletonNodes.size(); i++) {
+
+			pt1 = m_SkeletonNodes[i];
+			pt2 = m_SkeletonNodes[i + 1];
+
+			if (i == m_SkeletonNodes.size() - 1) {
+				pt2 = m_SkeletonNodes[0];
+			}
+
+			//std::cout<< "Coordinate: " << pt1 << " " << pt2 << " " << m_SkeletonNodes.size() << std::endl;
+
+			T0 = boost::get(SkeletonPointPropertyTag(), graph, pt1).position;
+			T1 = boost::get(SkeletonPointPropertyTag(), graph, pt2).position;
+			T2 = this->m_Centroid;
+
+			x0 = this->fillVector(T0);
+			x1 = this->fillVector(T1);
+			x2 = this->fillVector(T2);
+
+			/*std::cout<< "Point coordinates: " << T0[0] << " " << T0[1] << " " << T0[2] << std::endl;
+			 std::cout<< "Point coordinates: " << T1[0] << " " << T1[1] << " " << T1[2] << std::endl;
+			 std::cout<< "Point coordinates: " << T2[0] << " " << T2[1] << " " << T2[2] << std::endl;
+			 std::cout<< "Vector coordinates: " << x0[0] << " " << x0[1] << " " << x0[2] << std::endl;
+			 std::cout<< "Vector coordinates: " << x1[0] << " " << x1[1] << " " << x1[2] << std::endl;
+			 std::cout<< "Vector coordinates: " << x2[0] << " " << x2[1] << " " << x2[2] << std::endl;*/
+
+			cmp1 = x2 - x0;
+			cmp2 = x2 - x1;
+
+			cp = itk::CrossProduct(cmp1, cmp2);
+			//std::cout<<"Cross Product "<< cp<<std::endl;
+
+			current_area = 0.5 * sqrt(DotProduct(cp, cp));
+			//std::cout<<"Current Area "<< current_area<<std::endl;
+			this->m_area += current_area;
+		}
+	}
+
+	inline VectorIdx fillVector(PointIdx & pt) {
+
+		VectorIdx v;
+
+		v[0] = pt[0];
+		v[1] = pt[1];
+		v[2] = pt[2];
+
+		return v;
+	}
+
+	inline double DotProduct(VectorIdx & pt1, VectorIdx & pt2) {
+
+		double sum;
+		for (int i = 0; i < 3; i++) {
+			sum += pt1[i] * pt2[i];
+		}
+
+		return sum;
+	}
+
+#if 0
+	double m_M000;
+	double m_M100;
+	double m_M010;
+	double m_M001;
+	double m_M200;
+	double m_M020;
+	double m_M002;
+#endif
+#endif
+	/**
+	 * Auxiliary function for data serialization with boost
+	 */
+	template<typename Archive>
+	void serialize(Archive& ar, const unsigned version) {
+		ar & m_SkeletonNodes;  // Simply serialize the data members of Obj
+		ar & m_Centroid;
+#if 0
+		ar & trackID;
+		ar & m_Color;
+		ar & domainID;
+		ar & m_defpts;
+		ar & m_area;
+#endif
+	}
+	/**
+	 * Container with the points in the Cellular Border
+	 */
+
+	std::vector<SkeletonVertexType> m_SkeletonNodes;
+#if 0
+	std::vector<SkeletonVertexType> m_defpts;
+	int m_TrackID = -1;
+	int m_DomainID = -1;
+	std::vector<double> m_Color;
+	fftw_complex * fft;
+	double m_Area = -1;
+#endif
+};
+
+
+
+
+
+
+#ifdef OUT_OF_CONTROL
+
+#include "itkIndex.h"
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkLineIterator.h>
+#include <itkImage.h>
+
+#include <vtkSmartVolumeMapper.h>
+#include <vtkImageActor.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkVolumeProperty.h>
+#include <vtkAxesActor.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageWriter.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkTextSource.h>
+#include <vtkVectorText.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkParametricEllipsoid.h>
+#include <vtkParametricFunctionSource.h>
+#include <vtkRegularPolygonSource.h>
+#include <vtkActor.h>
+#include <vtkMatrix4x4.h>
+#include <vtkSphereSource.h>
+#include <vtkTriangle.h>
+#include <vtkCellArray.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <itkImageFileReader.h>
+#include <itkImage.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkExtractImageFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkTIFFImageIO.h>
+#include <vtkInteractorStyle.h>
+#include <vtkPointPicker.h>
+#include <vtkPropPicker.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkObjectFactory.h>
+#include <QFileDialog>
+#include <QVector>
+
+#include <sstream>
+#include "giaaCellGraph2.h"
+#include <vtkProperty.h>
+#include <vtkCellPicker.h>
+#include <vtkArrowSource.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include <vtkInteractorStyleSwitch.h>
+#include <boost/graph/iteration_macros.hpp>
+#include <vtkInteractorStyleImage.h>
+#include "../../src/giaaCellGraph2.h"
+#include "boost/graph/iteration_macros.hpp"
+#include "boost/graph/adjacency_list.hpp"
+#include <vtkEventQtSlotConnect.h>
+#include "vtkActorCollection.h"
+#include "tectonics.h"
+
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+typedef std::vector<double> IndexType;
+typedef itk::Vector<double,3> VectorIdx;
+typedef float   PixelType;
+typedef itk::Image< PixelType, 2 >  InputImageType;
+InputImageType::Pointer img;
+
+
+vtkSmartPointer<vtkRenderer> m_CurrentRenderer2 = vtkSmartPointer<vtkRenderer>::New();
+vtkSmartPointer<vtkRenderWindow>  m_RenderWindow2 = vtkSmartPointer<vtkRenderWindow>::New();
+
+// seperate vtk interactors, one for m_vtkview and one for m_vtkview2
+vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor2 = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+
+std::map<vtkActor*, SkeletonVertexType_lS> vtkTogiaaVertex; // map from actor to svt in listS graph used for validation of primal
+std::map<vtkActor*, CellVertexType> actorTogiaavertexDual;// map for actor to cvt in ves of graph used for Dual in m_vtkview
+std::map<vtkActor*, CellVertexType> actorTogiaavertexDual2;// / map for actor to cvt in ves of graph used for Dual in m_vtkview2
+
+
+
+std::map<vtkActor*, IndexType> actor_pos;
+std::map<IndexType, SkeletonVertexType_lS> pos_svt;
+std::map<IndexType, SkeletonVertexType_lS> pos_svt_edge;
+std::map<tuple<IndexType,IndexType>, vtkActor*> edge_pos_actor;
+
+std::map<CellVertexType, vtkActor*> giaaTovktVertexToDual;
+std::map<CellVertexType, vtkActor*> giaaTovktVertexToDual2;
+
+std::map<SkeletonVertexType_lS, vtkActor*> giaaTovtkVertexToPrimal_ls;
+std::map<SkeletonVertexType_lS, vtkActor*> giaaTovtkVertexToPrimal_def;
+std::map<tuple<CellVertexType, CellVertexType>, vtkActor*> svtToactor_edge_dual;
+
+
+std::map<SkeletonVertexType, int> skeletonVertexTypeSpacing;
+std::map<SkeletonVertexType, std::vector<SkeletonVertexType> > dualVertexToEdge;
+
+
+std::vector<TissueDescriptor::Pointer> observations;
+std::vector<TrackedTissueDescriptor::Pointer> tracks;
+std::vector<int> selectedCells; 
+std::vector<Domain> Domains;
+
+vtkSmartPointer<vtkActorCollection> valVertex = vtkSmartPointer<vtkActorCollection>::New();
+vtkSmartPointer<vtkActorCollection> valEdge = vtkSmartPointer<vtkActorCollection>::New();
+vtkSmartPointer<vtkActorCollection> dualVertex = vtkSmartPointer<vtkActorCollection>::New();
+vtkSmartPointer<vtkActorCollection> dualEdge = vtkSmartPointer<vtkActorCollection>::New();
+
+
+
+
+vtkSmartPointer<vtkInteractorStyleImage> Imagestyle =  vtkSmartPointer<vtkInteractorStyleImage>::New();
+
+giaa::TissueDescriptor::Pointer descriptor = giaa::TissueDescriptor::New();
+giaa::TissueDescriptor::Pointer descriptor2 = giaa::TissueDescriptor::New();
+giaa::TissueDescriptor::Pointer tmpdescriptor = giaa::TissueDescriptor::New();
+
+
+
+QStandardItemModel * domainModel;
+QStandardItemModel * cellModel;
+QModelIndex indexRC;
+
+SkeletonVertexType_lS chosen1;
+SkeletonVertexType_lS chosen2;
+SkeletonVertexType_lS c1;
+SkeletonVertexType_lS c2;
+int* clusterid;
+
+double spacing[3];
+
+// predefined colors use to color domains, bins,
+double r_color[10] = {0, .5, 1, 0, 0, .5, .5,  .2,  1,  0};
+double g_color[10] = {0, .5, 0, 1, 0, .5,  0,  .8, .5, .5}; 
+double b_color[10] = {0, .5, 0, 0, 1,  0, .5,  .6,  0,  1};
+
+int DoneTracking = 0;
+int DomainID = 0;
+
+
+int DomainSelected = 0;
+
+
+#endif
+
+
+#if 0
+void TissueTracker::ImportFrames(){
+
+
+    QDir directory=QDir::currentPath();
+
+    m_Files = QFileDialog::getOpenFileNames(this,"Select files To Import", "directory", "");
+
+    std::vector<std::string> files;
+
+    files.clear();
+
+    int currentFrame=0;
+    foreach (QString str, m_Files) {
+
+        typedef itk::ImageFileReader<giaa::TissueSegmentation::RawImageType> ReaderType;
+
+        ReaderType::Pointer reader = ReaderType::New();
+
+        reader->SetFileName(str.toStdString());
+        reader->Update();
+        giaa::TissueSegmentation::RawImageType::SpacingType spacing;
+        spacing[0] = 0.3107403;
+        spacing[1] = 0.3107403;
+        spacing[2] = 0.4859442;
+        reader->GetOutput()->SetSpacing(spacing);
+        m_Project.AddRaw(currentFrame,reader->GetOutput());
+        currentFrame++;
+      }
+
+    SetupInPolygonPlotation();
+    SetCurrentFrame();
+    std::cout << "HAY " << m_Project.GetNumFrames() << std::endl;
+}
+
+#endif
+
+#if 0
+
+void TissueTracker::SetFrame2( int frame){
+    std::cout << "Slot SetFrame activated. Frame: " << frame << std::endl;
+    m_CurrentFrame2=frame-1;
+    std::cout << "m_CurrentFrame2 is " << m_CurrentFrame2 << std::endl;
+    
+
+    //globalFrame = m_CurrentFrame;
+    SetupCurrentFrame2();
+
+}
+#endif
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::SetupCurrentFrame2(){
+    //this->m_pUI->timeSlider->setValue(m_CurrentFrame+1);
+
+
+    //QString currentFrame("%1");
+    //ffcurrentFrame=currentFrame.arg(m_CurrentFrame2+1);
+    //this->m_pUI->currentFrametxt->setText(currentFrame);
+    //descriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame);
+    std::cout<<"Got here"<<std::endl;
+    /*if(this->m_Project.IsTissueDescriptorReady(m_CurrentFrame)){
+      this->PopulateCellTable();
+    }*/
+    //this->UpdateControls();
+    this->UpdateDisplay2();
+}
+
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::RemoveMembrane(){
+
+    giaa::TissueSegmentation::RawImageType::Pointer image = m_Project.GetRawImage(m_CurrentFrame);
+
+    /*giaa::TissueSegmentation::PointsetType::Pointer locations = m_Project.GetVertexLocations(m_CurrentFrame);
+    ProjectType::SpacingType s = m_Project.GetSpacing();
+    typedef giaa::TissueSegmentation::PointsetType::PointsContainer PointsContainer;
+    PointsContainer::Pointer localMaxPoints = locations->GetPoints();
+    typedef  PointsContainer::Iterator PointIterator;
+    double pi = 3.14159;
+    double r = 7;
+    vtkSmartPointer<vtkRenderWindow> renWin = this->m_pUI->m_vtkview->GetRenderWindow();
+    double deg = 0.0;
+    double pixval = 0.0;
+    std::cout<<"deg is " << deg<<std::endl;
+    std::vector<double> pixvals;*/
+
+    giaa::TissueSegmentation::RawImageType::RegionType region = image->GetLargestPossibleRegion();
+    giaa::TissueSegmentation::RawImageType::IndexType index =image->GetLargestPossibleRegion().GetIndex();
+
+    itk::ImageRegionIterator< giaa::TissueSegmentation::RawImageType> imageIterator(image,region);
+    typedef unsigned char        InputPixelType3D;
+    typedef unsigned char        OutputPixelType2D;
+    typedef itk::Image< InputPixelType3D,  3 >    InputImageType3D;
+    typedef itk::Image< OutputPixelType2D, 2 >    OutputImageType2D;
+    typedef itk::ImageFileWriter< OutputImageType2D >  WriterType2D;
+    typedef unsigned char   PixelType;
+    typedef itk::Image< PixelType, 2 >  InputImageType;
+    InputImageType::Pointer img;
+
+
+    std::cout<<"converting image"<<std::endl;
+    InputImageType3D::Pointer imagevol = image;
+    
+
+    typedef itk::ExtractImageFilter< InputImageType3D, OutputImageType2D > FilterType2D;
+    FilterType2D::Pointer filter = FilterType2D::New();
+    std::cout<<"initialize filter"<<std::endl;
+    InputImageType3D::RegionType inputRegion = image->GetLargestPossibleRegion();
+    
+    InputImageType3D::SizeType size = inputRegion.GetSize();
+    for(int i = 0; i < 3; i++){
+        std::cout<<"Sizes: " << size[i] <<std::endl;
+    }
+    size[2] = 0;
+    
+    InputImageType3D::IndexType start = inputRegion.GetIndex();
+    const unsigned int sliceNumber = 0;
+    start[2] = sliceNumber;
+    
+    for(int i = 0; i < 3; i++){
+        std::cout<<"Sizes: " << size[i] <<std::endl;
+    }
+
+    for(int i = 0; i < 3; i++){
+        std::cout<<"Slices: " << start[i] <<std::endl;
+    }
+
+    InputImageType3D::RegionType desiredRegion;
+    desiredRegion.SetSize(  size  );
+    desiredRegion.SetIndex( start );
+    std::cout<<"about to extract"<<std::endl;    
+    filter->SetExtractionRegion( desiredRegion );
+    std::cout<<"setting input"<<std::endl;
+    filter->SetInput(image);
+    std::cout<<"applying filter"<<std::endl;
+    filter->SetDirectionCollapseToIdentity();
+    filter->Update();
+    img = filter->GetOutput();
+
+    std::cout<<"done"<<std::endl;
+    WriterType2D::Pointer writer = WriterType2D::New();
+    writer->SetFileName( "teste.png" );
+    writer->SetInput(img);
+    try
+    {
+    writer->Update();    
+    }
+    catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    }
+
+
+    /*while(!imageIterator.IsAtEnd())
+    {
+        pixval = imageIterator.Get();
+        if(pixval > 0){
+            pixvals.push_back(pixval);
+        }
+       ++imageIterator;
+    }*/
+
+
+  /*  double mean = this->GetMean(pixvals);
+    double stdev = this->GetStdDev(pixvals,mean);
+    double thresholdpix = mean-2*stdev;*/
+
+}
+
+double TissueTracker::GetMean(std::vector<double> vals){
+
+   double sum = 0.0;
+   for(std::vector<double>::iterator itr = vals.begin(); itr != vals.end(); ++itr){
+        sum+=*itr;
+   }
+
+   return sum/vals.size();
+}
+
+double TissueTracker::GetStdDev(std::vector<double> v, double ave)
+{
+       double E=0;
+       for(int i=0;i<v.size();i++)
+               E+=(v[i] - ave)*(v[i] - ave);
+       
+
+       return sqrt(E/v.size());
+}
+
+
+
+
+#endif
+#ifdef OUT_OF_CONTROL
+
+#endif
+
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::CellBoundaryReduction(){
+
+            double min_x = 1000000;
+            double min_y = 1000000;
+            double max_x = -1;
+            double max_y = -1;
+            typedef itk::Point<double, 3> itkpt;
+            std::map<SkeletonVertexType, SkeletonVertexType_sim> svtmap;
+
+            std::map<vtkActor*,SkeletonVertexType>::iterator itr;
+            for(itr = actorTogiaavertex.begin(); itr != actorTogiaavertex.end(); ++itr){
+                double color[3];
+                itr->first->GetProperty()->GetColor(color);
+                //std::cout<< itr->second <<std::endl;
+                if(color[0] == 0 && color[1] == 0){
+                    itkpt pos = boost::get(giaa::SkeletonPointPropertyTag(), descriptor->m_SkeletonGraph, itr->second).position;
+                    if(pos[0] < min_x){
+                        min_x = pos[0];
+                    }
+                    if(pos[0] > max_x){
+                        max_x = pos[0];
+                    }
+                    if(pos[1] < min_y){
+                        min_y = pos[1];
+                    }
+                    if(pos[1] > max_y){
+                        max_y = pos[1];
+                    }
+                    //SkeletonPoint pt = SkeletonPoint(pos);
+                    //boost::add_vertex(pt,descriptor->m_SkeletonGraph_listS);
+                }
+
+            }
+
+            std::vector<itkpt> linepts;
+            std::cout<< min_x << " " << max_x << " " << min_y << " " << " " << max_y <<std::endl;
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+
+                std::cout<<"looking at "<< v<<std::endl;
+                itkpt pos = boost::get(giaa::SkeletonPointPropertyTag(), descriptor->m_SkeletonGraph,v).position;
+                if(boost::degree(v,descriptor->m_SkeletonGraph) == 2){
+                    std::cout<< boost::degree(v,descriptor->m_SkeletonGraph) <<std::endl;
+                    std::cout<< pos[0] << " " << pos[1] << std::endl;
+                    if(pos[0] < min_x || pos[0] > max_x || pos[1] < min_y || pos[1] > max_y){
+                        //giaaTovtkVertexToPrimal[v]->GetProperty()->SetColor(0,1,0);
+                        BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                            SkeletonVertexType src = boost::source(e,descriptor->m_SkeletonGraph);
+                            SkeletonVertexType tgt = boost::target(e,descriptor->m_SkeletonGraph);
+                            itkpt srcpos = boost::get(giaa::SkeletonPointPropertyTag(), descriptor->m_SkeletonGraph, src).position;
+                            itkpt tgtpos = boost::get(giaa::SkeletonPointPropertyTag(), descriptor->m_SkeletonGraph, tgt).position;
+                            /*if(pos[0] == srcpos[0] && pos[1] == srcpos[1] && pos[2] == srcpos[2]){
+                                std::cout<< "match src " << tgtpos[0] << " " << tgtpos[1]<<std::endl;
+                                linepts.push_back(tgtpos);
+                            }
+                            else if(pos[0] == tgtpos[0] && pos[1] == tgtpos[1] && pos[2] == tgtpos[2]){
+                                std::cout<< "match tgt " << srcpos[0] << " " << srcpos[1]<<std::endl;
+                                linepts.push_back(srcpos);
+                            }*/
+
+                            if(pos[0] == srcpos[0] && pos[1] == srcpos[1] && pos[2] == srcpos[2]){
+                                double color[3];
+                                giaaTovtkVertexToPrimal[tgt]->GetProperty()->GetColor(color);
+                                if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                    BGL_FORALL_EDGES(e1, descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                                        SkeletonVertexType src_adj = boost::source(e1,descriptor->m_SkeletonGraph);
+                                        SkeletonVertexType tgt_adj = boost::target(e1,descriptor->m_SkeletonGraph);
+                                        itkpt src_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src_adj).position;
+                                        itkpt tgt_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt_adj).position;
+                                        
+                                        if((src_adj_pos[0] == tgtpos[0] && src_adj_pos[1] == tgtpos[1] && src_adj_pos[2] == tgtpos[2]) && (tgt_adj_pos[0] != pos[0] || tgt_adj_pos[1] != pos[1] || tgt_adj_pos[2] != pos[2])){
+                                            giaaTovtkVertexToPrimal[tgt_adj]->GetProperty()->GetColor(color);
+                                            if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                             linepts.push_back(tgt_adj_pos);
+                                            }
+                                            break;
+                                        }
+
+                                        else if((tgt_adj_pos[0] == tgtpos[0] && tgt_adj_pos[1] == tgtpos[1] && tgt_adj_pos[2] == tgtpos[2]) && (src_adj_pos[0] != pos[0] || src_adj_pos[1] != pos[1] || src_adj_pos[2] != pos[2])){
+                                            giaaTovtkVertexToPrimal[src_adj]->GetProperty()->GetColor(color);
+                                            if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                             linepts.push_back(src_adj_pos);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            else if(pos[0] == tgtpos[0] && pos[1] == tgtpos[1] && pos[2] == tgtpos[2]){ 
+                                 double color[3];
+                                 giaaTovtkVertexToPrimal[src]->GetProperty()->GetColor(color);
+                                 if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                    BGL_FORALL_EDGES(e1, descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                                        SkeletonVertexType src_adj = boost::source(e1,descriptor->m_SkeletonGraph);
+                                        SkeletonVertexType tgt_adj = boost::target(e1,descriptor->m_SkeletonGraph);
+                                        itkpt src_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src_adj).position;
+                                        itkpt tgt_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt_adj).position;
+                                       
+                                        if((src_adj_pos[0] == srcpos[0] && src_adj_pos[1] == srcpos[1] && src_adj_pos[2] == srcpos[2]) && (tgt_adj_pos[0] != pos[0] || tgt_adj_pos[1] != pos[1] || tgt_adj_pos[2] != pos[2])){
+                                            giaaTovtkVertexToPrimal[tgt_adj]->GetProperty()->GetColor(color);
+                                            if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                             linepts.push_back(tgt_adj_pos);
+                                            }
+                                            break;
+                                        }
+                                       
+                                        else if((tgt_adj_pos[0] == srcpos[0] && tgt_adj_pos[1] == srcpos[1] && tgt_adj_pos[2] == srcpos[2]) && (src_adj_pos[0] != pos[0] || src_adj_pos[1] != pos[1] || src_adj_pos[2] != pos[2])){
+                                            giaaTovtkVertexToPrimal[src_adj]->GetProperty()->GetColor(color);
+                                            if(!(color[0] == 0 && color[1] == 0 && color[2] == 1)){
+                                             linepts.push_back(src_adj_pos);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                 }
+                            }
+                        }
+                        std::cout<<"before calc ang"<<std::endl;
+                        if(linepts.size() == 2){
+                            double ang = angleBetween2Lines(pos,linepts);
+                            double color[3];
+                            giaaTovtkVertexToPrimal[v]->GetProperty()->GetColor(color);
+                            if(color[0] == 0 && color[1] == 1 && color[2] == 0){
+                               std::cout<<"********************"<<std::endl;
+                               std::cout<<"ANGLE: " << ang <<std::endl;
+                            }
+                            if(ang < 2.35 && ang > 0){
+                                std::cout<< "ang is: "<< ang <<std::endl;
+                                giaaTovtkVertexToPrimal[v]->GetProperty()->SetColor(0,0,1);
+                                SkeletonPoint pt = SkeletonPoint(pos);
+                                //boost::add_vertex(pt,descriptor->m_SkeletonGraph_listS);
+                            }
+                        }
+                        else{
+                            //giaaTovtkVertexToPrimal[v]->GetProperty()->SetColor(0,0,0);
+                            m_RenderWindow->Render();   
+                        }
+                    }
+
+                    linepts.clear();
+                }
+            }
+}
+#endif
+#ifdef OUT_OF_CONTROL
+
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoSelection(){
+
+    /*vtkSmartPointer<DualInteractor> style = vtkSmartPointer<DualInteractor>::New();
+    renderWindowInteractor->SetRenderWindow (m_RenderWindow);
+    renderWindowInteractor->SetInteractorStyle(style); 
+    renderWindowInteractor->Initialize();
+    std::cout << "Initialized" << std::endl;
+    renderWindowInteractor->Start();*/
+}
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoSelectTracking(){
+    this->DoSelectTracking1();
+    this->DoSelectTracking2();
+}
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoSelectTracking1(){
+
+    vtkSmartPointer<TrackInteractor> style = vtkSmartPointer<TrackInteractor>::New();
+    style->SetRenderer(m_CurrentRenderer);
+    renderWindowInteractor->SetRenderWindow (m_RenderWindow);
+    renderWindowInteractor->SetInteractorStyle(style); 
+    renderWindowInteractor->Initialize();
+    std::cout << "Initialized" << std::endl;
+    //renderWindowInteractor->Start();
+}
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoSelectTracking2(){
+
+    vtkSmartPointer<TrackInteractor> style2 = vtkSmartPointer<TrackInteractor>::New();
+    style2->SetRenderer(m_CurrentRenderer2);
+    renderWindowInteractor2->SetRenderWindow (m_RenderWindow2);
+    renderWindowInteractor2->SetInteractorStyle(style2); 
+    renderWindowInteractor2->Initialize();
+    std::cout << "Initialized again" << std::endl;
+    //renderWindowInteractor2->Start();
+}
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::GetTrackedCells(){
+
+    std::map<int,std::vector<giaa::CellVertexType> > trackedcells;
+    giaa::TissueDescriptor::Pointer tmpdes; 
+    int maxcells = m_Project.GetTissueDescriptor(0)->GetNumCells();
+
+    for(int i = 0; i < maxcells; i++){
+        std::vector<giaa::CellVertexType> cells;
+        for(int j = 0; j < 10; j++){
+            cells.push_back(0);
+        }
+        trackedcells[i] = cells;
+    }
+
+    for(int t=0;t< 10;t++){
+        tmpdes = m_Project.GetTissueDescriptor(t);
+        BGL_FORALL_VERTICES(v,tmpdes->m_CellGraph,giaa::CellGraph){
+            int trackID = boost::get(giaa::CellPropertyTag(),tmpdes->m_CellGraph,v).trackID;
+            if(trackID != -1){
+                trackedcells[trackID][t] = v;
+            }
+        }
+    }
+
+    for(std::map<int,std::vector<giaa::CellVertexType> >::iterator itr = trackedcells.begin(); itr != trackedcells.end(); ++itr){
+        std::cout<< itr->first << "\n" << std::endl;
+        std::vector<giaa::CellVertexType> cells = itr->second;
+        for(unsigned int i = 0; i < cells.size(); i++){
+            std::cout<< cells[i] <<std::endl;
+        }
+
+    }
+    std::map<giaa::CellVertexType, int> result;
+
+    this->Cluster(trackedcells);
+
+    //return trackedcells;
+    
+}
+#endif
+#ifdef OUT_OF_CONTROL
+
+ void TissueTracker::Cluster(std::map<int,std::vector<giaa::CellVertexType> > trackedcells){
+
+    std::cout<<"in clustering"<<std::endl;
+    int nclusters = 3;
+    int nrows = m_Project.GetTissueDescriptor(0)->GetNumCells()-1;
+    int ncols = m_Project.GetNumFrames();
+    giaa::TissueDescriptor::Pointer tmpdes;
+    double** data = new double*[nrows];
+    clusterid = new int[nrows];
+    int** mask = new int*[nrows];
+    double* weight = new double[nrows];
+    int npass = 1000;
+    const int transpose = 0;
+    const char dist = 'e';
+    const char method = 'a';
+    int ifound = 0;
+    double error;
+
+    std::map<giaa::CellVertexType, int> result;
+
+    for (int i = 0; i < nrows; i++)
+    {  
+        data[i] = new double[ncols];
+        mask[i] = new int[ncols];
+    }
+    std::cout<<"initialized"<<std::endl;
+    for(std::map<int,std::vector<giaa::CellVertexType> >::iterator itr = trackedcells.begin(); itr != trackedcells.end(); ++itr){
+        int row = itr->first;
+        std::cout<<"looking at row " << row << std::endl;
+        std::vector<giaa::CellVertexType> cells = itr->second;
+        std::cout<<cells.size()<<std::endl;
+        if(row != 380){
+            for(unsigned int i = 0; i < cells.size(); i++){
+                int col = i;
+                tmpdes = m_Project.GetTissueDescriptor(i);
+                double val = boost::get(giaa::CellPropertyTag(),tmpdes->m_CellGraph,cells[i]).m_area;
+                std::cout<<"area is "<<val<<std::endl;
+                if(boost::get(giaa::CellPropertyTag(),tmpdes->m_CellGraph,cells[i]).trackID == -1){
+                    mask[row][col] = 0;
+                }else{
+                    data[row][col] = val;
+                    mask[row][col] = 1;
+                }
+            } 
+        }  
+    }
+    std::cout<<"filled in data"<<std::endl;
+
+    kcluster(nclusters,nrows,ncols,data,mask,weight,transpose,npass,method,dist,clusterid, &error, &ifound);
+
+    printf ("Solution found %d times; within-cluster sum of distances is %f\n",ifound, error);
+    printf ("Cluster assignments:\n");
+    for (int i = 0; i < nrows; i++)
+        printf ("Gene %d: cluster %d\n", i, clusterid[i]);
+
+    /*BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+        if(v != 380){
+            Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+            ColorCell(a,clusterid[a.trackID]);
+        }
+    }*/
+
+}
+
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::ChangeColor(){
+     QModelIndexList selectedList = m_pUI->celltableView->selectionModel()->selectedRows();
+     for( int i=0; i<selectedList.count(); i+=7){
+        int idx = selectedList.at(i).row();
+        std::cout<< "Looking at " << idx << std::endl;
+     }
+     QColor color = QColorDialog::getColor(Qt::black, this, "Color",  QColorDialog::DontUseNativeDialog);
+}
+#endif
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::DeleteDomain(){
+
+    std::cout<<"activated delete domain " << indexRC.row() << std::endl;
+    int chosenID = indexRC.row();
+    Domains.erase(Domains.begin()+chosenID);
+
+    int num_row = Domains.size();
+
+    domainModel = new QStandardItemModel(num_row,3,this);
+    domainModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Domain ID")));
+    domainModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Number of Cells")));
+
+    for(std::vector<Domain>::iterator d = Domains.begin(); d != Domains.end(); ++d){
+        Domain currD = *d;
+        std::cout<< chosenID << " " << currD.DomainID << std::endl;
+        if(chosenID<currD.DomainID){
+            currD.DomainID = currD.DomainID-1;
+            std::cout << "new DomainID: " << currD.DomainID << std::endl;
+        }
+        int dID = currD.DomainID;
+        std::cout<<"new dID "<< dID << std::endl;
+        QString domainIDstr;
+        domainIDstr.append(QString(QString("%1").arg(dID)));
+        QStandardItem *domainID = new QStandardItem(domainIDstr);
+        QStandardItem* checkbox = new QStandardItem();
+        checkbox->setCheckable(true);
+        checkbox->setCheckState(Qt::Checked);
+        domainModel->setItem(dID,0,checkbox);
+        domainModel->setItem(dID,1,domainID);
+        QString size = QString::number(currD.GetSize());
+        QStandardItem *sizeval = new QStandardItem(size);
+        domainModel->setItem(dID,2,sizeval);
+    }
+
+    m_pUI->domaintableView->setModel(domainModel);
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+/*void TissueTracker::contextMenuEvent(QContextMenuEvent *event)
+ {
+     QMenu menu(this);
+     QAction * rightClick2 = new QAction(tr("&Delete"), this);
+     menu.addAction(rightClick2);
+     indexRC = m_pUI->domaintableView->indexAt(event->pos());
+     std::cout<< indexRC.row() << " " << indexRC.column() << std::endl;
+     //connect(rightClick2, SIGNAL(triggered()), this, SLOT(DeleteDomain()));
+     menu.exec(event->globalPos());
+     //connect(rightClick2, SIG
+
+     //connect(m_pUI->domaintableView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(DomainContextMenu(const QPoint &)));
+ }*/
+#endif
+#ifdef OUT_OF_CONTROL
+ void TissueTracker::DomainContextMenu(const QPoint &pos){
+    QMenu *menu = new QMenu;
+    indexRC = m_pUI->domaintableView->indexAt(pos);
+    if(indexRC.isValid()){
+        std::cout<<" valid "<<indexRC.row() << " " << indexRC.column() << std::endl;
+        menu->addAction("Delete",this,SLOT(DeleteDomain()));
+        menu->exec(m_pUI->domaintableView->mapToGlobal(pos));
+    }
+    else{
+        std::cout<<" cell not valid"<<std::endl;
+    }
+ }
+
+#endif
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::AddCellsToDomain(){
+
+    std::cout <<"In Add cells"<< std::endl;
+    int rows = domainModel->rowCount();
+    int domainRow;
+    for(int i = 0; i < rows; i++){
+        QStandardItem* standardItem  = domainModel->item(i,0);
+        Qt::CheckState checkState = standardItem->checkState();   
+        if(checkState == Qt::Checked){
+            domainRow = i;
+            break; 
+        }
+    }
+
+    std::cout << "Domain selected " << domainRow << std::endl;
+    
+    std::vector<CellVertexType> cellsToAdd;
+    rows = cellModel->rowCount();
+    int domain_idx = 0;
+    Domain selectedDomain;
+    for(std::vector<Domain>::iterator d = Domains.begin(); d!= Domains.end(); ++d){
+        if(domain_idx == domainRow){
+           std::cout<< "Size of Domain " << d->GetSize() <<std::endl; 
+           for(int i = 0; i < rows; i++){
+              QStandardItem* standardItem  = cellModel->item(i,0);
+              Qt::CheckState checkState = standardItem->checkState();   
+              if(checkState == Qt::Checked){
+                d->AddCell(i);
+              }    
+            }
+            std::cout<< "Size after cells added " << d->GetSize() << std::endl;
+            break;
+        }
+        domain_idx++;
+    }
+
+    this->PopulateDomainTable();   
+}
+
+/*
+void TissueTracker::AddCellsToDomain(){
+
+    std::cout <<"In Add cells"<< std::endl;
+    int rows = domainModel->rowCount();
+    int domainRow;
+    for(int i = 0; i < rows; i++){
+        QStandardItem* standardItem  = domainModel->item(i,0);
+        Qt::CheckState checkState = standardItem->checkState();   
+        if(checkState == Qt::Checked){
+            domainRow = i;
+            break; 
+        }
+    }
+
+    std::cout << "Domain selected " << domainRow << std::endl;
+    
+    std::vector<CellVertexType> cellsToAdd;
+    rows = cellModel->rowCount();
+    int domain_idx = 0;
+    Domain selectedDomain;
+    for(std::vector<Domain>::iterator d = Domains.begin(); d!= Domains.end(); ++d){
+        if(domain_idx == domainRow){
+           std::cout<< "Size of Domain " << d->GetSize() <<std::endl; 
+           for(int i = 0; i < rows; i++){
+              QStandardItem* standardItem  = cellModel->item(i,0);
+              Qt::CheckState checkState = standardItem->checkState();   
+              if(checkState == Qt::Checked){
+                d->AddCell(i);
+              }    
+            }
+            std::cout<< "Size after cells added " << d->GetSize() << std::endl;
+            break;
+        }
+        domain_idx++;
+    }
+
+    this->PopulateDomainTable();   
+}*/
+#endif
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::GetTectonics(Domain d){
+
+
+    /*
+
+        1)go thorough ids in m_cellNodes and collect cells from this descriptor and next descriptor
+        2)put in centroids and ellipse
+        3)get output
+
+    */
+    
+
+    std::vector<int> tid = d.m_cellNodes;
+    std::vector<itk::Point<double,2> > centroid0;
+    std::vector<itk::Point<double,2> > centroid1;
+    std::vector<Ellipse> ellipse0;
+    std::vector<Ellipse> ellipse1;
+
+    typedef itk::Point<double,3> PointIdx;
+    tmpdescriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame+1);
+    
+    for(int i = 0; i < tid.size(); i++){
+        BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+            Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+            EllipseG e = boost::get(giaa::EllipsePropertyTag(),descriptor->m_CellGraph,v);
+            PointIdx aid =  boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).m_Centroid;
+            if (a.trackID == tid[i]){
+                if(!isnan(e.xrad)){
+                    itk::Point<double,2> pt;
+                    pt[0] = aid[0];
+                    pt[1] = aid[1];
+                    centroid0.push_back(pt);
+                    vnl_matrix_fixed<double,2,2> result;
+                    parametricEllipseToMatrixEllipse(e.xrad, e.yrad, e.theta, result);
+                    ellipse0.push_back(result);
+                    break;
+                }
+            }
+        }
+
+         BGL_FORALL_VERTICES(v,tmpdescriptor->m_CellGraph,giaa::CellGraph){
+            Cell a =  boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,v);
+            EllipseG e = boost::get(giaa::EllipsePropertyTag(),tmpdescriptor->m_CellGraph,v);
+            PointIdx aid =  boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,v).m_Centroid;        
+            if (a.trackID == tid[i]){
+                if(!isnan(e.xrad)){
+                    itk::Point<double,2> pt;
+                    pt[0] = aid[0];
+                    pt[1] = aid[1];
+                    centroid1.push_back(pt);
+                    vnl_matrix_fixed<double,2,2> result;
+                    parametricEllipseToMatrixEllipse(e.xrad, e.yrad, e.theta, result);
+                    ellipse1.push_back(result);
+                    break;
+                }
+            }
+        }
+
+    }
+
+
+    /*vnl_matrix<double> a0(2, 2);
+    a0(0, 0) = 3.66930;
+    a0(0, 1) = -0.757964;
+    a0(1, 0) = -0.757964;
+    a0(1, 1) = 6.12269;
+    vnl_matrix<double> a1(2, 2);
+    a1(0, 0) = 3.56877;
+    a1(0, 1) = 0.122487;
+    a1(1, 0) = 0.122488;
+    a1(1, 1) = 6.02515;
+    vnl_matrix<double> a2(2, 2);
+    a2(0, 0) = 4.67563;
+    a2(0, 1) = 1.48467;
+    a2(1, 0) = 1.48467;
+    a2(1, 1) = 6.29152;
+    vnl_matrix<double> a3(2, 2);
+    a3(0, 0) = 3.75063;
+    a3(0, 1) = 0.0691266;
+    a3(1, 0) = 0.0691264;
+    a3(1, 1) = 3.93438;
+    vnl_matrix<double> a4(2, 2);
+    a4(0, 0) = 3.10386;
+    a4(0, 1) = -0.231607;
+    a4(1, 0) = -0.231607;
+    a4(1, 1) = 5.98518;
+    vnl_matrix<double> a5(2, 2);
+    a5(0, 0) = 2.88924;
+    a5(0, 1) = -0.0887103;
+    a5(1, 0) = -0.0887103;
+    a5(1, 1) = 4.43233;
+    vnl_matrix<double> a6(2, 2);
+    a6(0, 0) = 3.61653;
+    a6(0, 1) = -0.622872;
+    a6(1, 0) = -0.622873;
+    a6(1, 1) = 3.88820;
+
+    std::vector<Ellipse> ellipses0, ellipses1;
+    ellipses0.push_back(a0);
+    ellipses0.push_back(a1);
+    ellipses0.push_back(a2);
+    ellipses0.push_back(a3);
+    ellipses0.push_back(a4);
+    ellipses0.push_back(a5);
+    ellipses0.push_back(a6);
+
+    vnl_matrix<double> b0(2, 2);
+    b0(0, 0) = 3.58847;
+    b0(0, 1) = -0.404760;
+    b0(1, 0) = -0.404760;
+    b0(1, 1) = 6.14627;
+    vnl_matrix<double> b1(2, 2);
+    b1(0, 0) = 3.48517;
+    b1(0, 1) = -0.0674718;
+    b1(1, 0) = -0.0674718;
+    b1(1, 1) = 5.93491;
+    vnl_matrix<double> b2(2, 2);
+    b2(0, 0) = 4.83835;
+    b2(0, 1) = 1.53995;
+    b2(1, 0) = 1.53995;
+    b2(1, 1) = 5.91973;
+    vnl_matrix<double> b3(2, 2);
+    b3(0, 0) = 3.65555;
+    b3(0, 1) = 0.213053;
+    b3(1, 0) = 0.213053;
+    b3(1, 1) = 4.26899;
+    vnl_matrix<double> b4(2, 2);
+    b4(0, 0) = 2.67217;
+    b4(0, 1) = -0.182167;
+    b4(1, 0) = -0.182167;
+    b4(1, 1) = 5.91113;
+    vnl_matrix<double> b5(2, 2);
+    b5(0, 0) = 2.96638;
+    b5(0, 1) = 0.532873;
+    b5(1, 0) = 0.532873;
+    b5(1, 1) = 4.50105;
+    vnl_matrix<double> b6(2, 2);
+    b6(0, 0) = 3.22826;
+    b6(0, 1) = -0.603982;
+    b6(1, 0) = -0.603982;
+    b6(1, 1) = 3.91057;
+    ellipses1.push_back(b0);
+    ellipses1.push_back(b1);
+    ellipses1.push_back(b2);
+    ellipses1.push_back(b3);
+    ellipses1.push_back(b4);
+    ellipses1.push_back(b5);
+    ellipses1.push_back(b6);*/
+
+
+    double mins = 1;
+
+    vnl_matrix<double> tissueSRT;
+    vnl_matrix<double> cellShapeSRT;
+    vnl_matrix<double> intercalationSRT;
+    vnl_vector<double> majorDir;
+    double   majorLength;
+    vnl_vector<double> minorDir;
+    double   minorLength;
+    double   rotation;
+
+    domainStrainRates(centroid0, centroid1, ellipse0, ellipse1, mins,tissueSRT,cellShapeSRT,intercalationSRT);
+    tensorToPlot(intercalationSRT, majorDir, &majorLength, minorDir, &minorLength, &rotation);
+
+    std::cout<< majorLength << " " << minorLength << " " << rotation << std::endl;
+    //tensorToPlot(intercalationSRT, majorDir, majorLength, minorDir, minorLength, rotation);
+    //tensorToPlot(const vnl_matrix<double> & tensor, vnl_vector<double> & majorDir, double * majorLength, vnl_vector<double> & minorDir, double * minorLength,double * rotation);
+}
+
+#endif
+
+
+
+
+
+
+
+
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::UpdateDisplay2(){
+
+    //vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
+    vtkSmartPointer<vtkRenderWindow> renWin2 = this->m_pUI->m_vtkview2->GetRenderWindow();
+
+    //clean canvas
+
+    m_CurrentRenderer2->RemoveAllViewProps();
+
+    std::cout << "Renderer added" << std::endl;
+    m_pUI->m_vtkview2->SetRenderWindow(renWin2);
+    std::cout << "Renderer window set" << std::endl;
+    renWin2->Render();
+    std::cout << "Render" << std::endl;
+    if(this->m_pUI->showOriginal2CBox->isChecked() && this->m_Project.IsRawReady(m_CurrentFrame2)){
+        std::cout<<"in original"<<std::endl;
+        //this->RemoveMembrane();
+        typedef itk::ImageToVTKImageFilter<giaa::TissueSegmentation::RawImageType> ImageToVTKType;
+        //typedef itk::ImageToVTKImageFilter<InputImageType> ImageToVTKType;
+        ImageToVTKType::Pointer tovtk = ImageToVTKType::New();
+        tovtk->SetInput(m_Project.GetRawImage(m_CurrentFrame2));
+        std::cout<<"set input"<<std::endl;
+        //tovtk->SetInput(img);
+        std::cout<<"upadate"<<std::endl;
+        tovtk->Update();
+
+        std::cout<<"added slice"<<std::endl;
+        vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+        
+        //volumeMapper->SetBlendModeToComposite();
+
+        volumeMapper->SetInput(tovtk->GetOutput());
+        volumeMapper->Update();
+
+        
+        vtkSmartPointer<vtkVolumeProperty> volumeProperty =vtkSmartPointer<vtkVolumeProperty>::New();
+        //volumeProperty->ShadeOff();
+        volumeProperty->SetInterpolationType(VTK_LINEAR_INTERPOLATION);
+
+        
+        vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
+        compositeOpacity->AddPoint(0.0,0.0);
+        compositeOpacity->AddPoint(80.0,1.0);
+        compositeOpacity->AddPoint(80.1,0.0);
+        compositeOpacity->AddPoint(255.0,0.0);
+        volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.*/
+
+        vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
+        color->AddRGBPoint(0.0  ,0.0,0.0,1.0);
+        color->AddRGBPoint(40.0  ,1.0,0.0,0.0);
+        color->AddRGBPoint(255.0,1.0,1.0,1.0);
+        volumeProperty->SetColor(color);
+
+        vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
+        volume->SetMapper(volumeMapper);
+        volume->SetProperty(volumeProperty);
+        m_CurrentRenderer2->AddViewProp(volume);
+    }
+
+    if(this->m_pUI->showGraph2CBox->isChecked() && this->m_Project.IsTissueDescriptorReady(m_CurrentFrame2)){
+            std::cout<<"in primal cbox"<<std::endl;
+            descriptor2 = this->m_Project.GetTissueDescriptor(m_CurrentFrame2);
+            std::cout<< descriptor2 <<std::endl;
+            std::cout<<"got past desc"<<std::endl;
+            /*if(DoneTracking){
+                descriptor = observations[m_CurrentFrame];
+            }*/
+            typedef itk::Point<double,3> itkpt;
+            ProjectType::SpacingType s = m_Project.GetSpacing();
+            //std::vector<double> s (0.28,0.28,0.32);
+            std::cout<< "size of SG " << boost::num_vertices(descriptor2->m_SkeletonGraph)<<std::endl;
+            std::cout<< "size of SG edges" << boost::num_edges(descriptor2->m_SkeletonGraph)<<std::endl;
+            std::cout<<"num V in SListS "<< boost::num_vertices(descriptor2->m_SkeletonGraph_listS)<<std::endl;
+            std::cout<<"num E in SListS "<< boost::num_edges(descriptor2->m_SkeletonGraph_listS)<<std::endl;
+            //actorTogiaavertex.clear();
+            //svtToactor_edge.clear();
+            #if 0
+            BGL_FORALL_VERTICES(v,descriptor2->m_SkeletonGraph,giaa::SkeletonGraph) {
+                itkpt a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,v).position;
+                itkpt color = boost::get(giaa::SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,v).color;
+                vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+                newSphere->SetCenter(s[0]*a[0],s[1]*a[1],s[2]*a[2]);
+                //std::cout << v << " " << s[0]*a[0] << " " << s[1]*a[1] << " " << s[2]*a[2] << std::endl;
+                newSphere->SetRadius(0.5);
+
+                vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+                sphereMapper->ImmediateModeRenderingOn();
+                sphereMapper->SetInputConnection(newSphere->GetOutputPort());
+                sphereMapper->ImmediateModeRenderingOn();
+                vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+                //std::cout << "primal " << v << " " << color[0] << " " << color[1] << " " << color[2] << std::endl;
+                sphereActor->GetProperty()->SetColor(1,1,1);
+                /*if(boost::degree(v,descriptor->m_SkeletonGraph) == 1){
+                    sphereActor->GetProperty()->SetColor(1,0,0);
+                }
+                if(boost::degree(v,descriptor->m_SkeletonGraph) == 2){
+                    sphereActor->GetProperty()->SetColor(0,1,0);
+                }
+                if(boost::degree(v,descriptor->m_SkeletonGraph) == 3){
+                    sphereActor->GetProperty()->SetColor(0,0,1);
+                }
+                if(boost::degree(v,descriptor->m_SkeletonGraph) > 3){
+                    sphereActor->GetProperty()->SetColor(0,0,0);
+                }*/
+        
+                sphereActor->SetMapper(sphereMapper);
+                //actorTogiaavertex[sphereActor] = v;
+                //giaaTovtkVertexToPrimal[v] = sphereActor;
+               // giaaTovtkVertexToPrimal_ls[v] = sphereActor;
+                m_CurrentRenderer2->AddActor(sphereActor);
+
+            }
+ 
+            //this->CellBoundaryReduction();
+
+            BGL_FORALL_EDGES(e,descriptor2->m_SkeletonGraph,giaa::SkeletonGraph) {
+
+                typedef itk::Point<double,3> itkpt;
+                SkeletonVertexType src = boost::source(e,descriptor2->m_SkeletonGraph);
+                SkeletonVertexType tgt = boost::target(e,descriptor2->m_SkeletonGraph);
+                //std::cout<< "In edges " << src << " " << tgt << std::endl;
+                vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
+                itkpt a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,boost::source(e,descriptor2->m_SkeletonGraph)).position;
+                //std::cout<< a[0] << " " << a[1] << " " << a[2] << std::endl;
+                //IndexType a=m_SkeletonGraph[].position;
+                newLine->SetPoint1(a[0]*s[0],a[1]*s[1],a[2]*s[2]);
+                itkpt b= boost::get(giaa::SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,boost::target(e,descriptor2->m_SkeletonGraph)).position;
+                //IndexType b=m_SkeletonGraph[boost::target(e,)].position;
+                newLine->SetPoint2(b[0]*s[0],b[1]*s[1],b[2]*s[2]);                
+                vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+                mapper->ImmediateModeRenderingOn();
+                mapper->SetInputConnection(newLine->GetOutputPort());
+
+                vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
+                actor->SetMapper(mapper);
+                actor->GetProperty()->SetLineWidth(5); 
+                /*tuple<SkeletonVertexType,SkeletonVertexType> pts (src,tgt);
+                svtToactor_edge[pts] = actor;
+                //std::cout<< src << " " << tgt << " "<< actor <<std::endl;
+                tuple<SkeletonVertexType,SkeletonVertexType> ptt (tgt,src);
+                svtToactor_edge[ptt] = actor;*/
+                m_CurrentRenderer2->AddActor(actor);
+            }
+            #endif
+      
+             BGL_FORALL_VERTICES(v,descriptor2->m_CellGraph,giaa::CellGraph) {
+
+                itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,v).m_Centroid;
+                
+                vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+                //std::cout <<"loc " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;    
+                newSphere->SetCenter(s[0]*a[0],s[1]*a[1],s[2]*a[2]);
+                newSphere->SetRadius(0.4);
+
+                vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+                sphereMapper->SetInputConnection(newSphere->GetOutputPort());
+
+                vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+                sphereActor->GetProperty()->SetColor(0,0,0);
+                if(boost::degree(v,descriptor2->m_CellGraph) == 1){
+                    sphereActor->GetProperty()->SetColor(0,0,1);
+                }
+                if(boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,v).m_area < 1){
+                   sphereActor->GetProperty()->SetColor(1,0,0);
+                }  
+                sphereActor->SetMapper(sphereMapper);
+
+                std::vector<double> col = boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,v).m_Color;
+                sphereActor->GetProperty()->SetColor(col[0],col[1],col[2]);
+                m_CurrentRenderer2->AddActor(sphereActor);
+
+                int trackID = boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,v).trackID;
+                //std::cout << "In Dual Graph: Vertex Pt: " << v << " " << sphereActor << " " << trackID << std::endl;
+                //fftw_complex * fft = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).GetFourierTransPolygonPlot(descriptor->m_SkeletonGraph);
+                //vtkTogiaaVertex[sphereActor] = v;
+                //vtkTogiaaVertexDual2[sphereActor] = v;
+                actorTogiaavertexDual2[sphereActor] = v;
+                giaaTovktVertexToDual2[v] = sphereActor;
+                Cell cell = boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,v);
+                //ColorCell(cell,-1,2);
+                /*vtkSmartPointer<vtkEventQtSlotConnect> connect = vtkSmartPointer<vtkEventQtSlotConnect>::New();
+                connect->Connect(renderWindowInteractor,vtkCommand::LeftButtonPressEvent,this,
+                SLOT(slot_clicked()));*/
+            }
+
+            BGL_FORALL_EDGES(e,descriptor2->m_CellGraph,giaa::CellGraph) {
+
+
+                vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
+
+                itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,boost::source(e,descriptor2->m_CellGraph)).m_Centroid;
+
+                //IndexType a=m_SkeletonGraph[].position;
+                newLine->SetPoint1(s[0]*a[0],s[1]*a[1],s[2]*a[2]);
+
+
+                itk::Point<double,3> b= boost::get(giaa::CellPropertyTag(),descriptor2->m_CellGraph,boost::target(e,descriptor2->m_CellGraph)).m_Centroid;
+
+                //IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
+                newLine->SetPoint2(s[0]*b[0],s[1]*b[1],s[2]*a[2]);
+
+                vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+                mapper->SetInputConnection(newLine->GetOutputPort());
+
+                vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(mapper);
+                actor->GetProperty()->SetColor(0,0,0);
+                actor->GetProperty()->SetLineWidth(3);
+                m_CurrentRenderer2->AddActor(actor);
+
+                
+                CellVertexType src = boost::source(e,descriptor2->m_CellGraph);
+                CellVertexType tgt = boost::target(e,descriptor2->m_CellGraph);
+            }
+    }
+
+    renWin2->Render();
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::SelectCell(Cell a, vtkActor* actor, std::vector<double> color){
+       std::cout<<"In Select Cell " << std::endl;     
+       actor->GetProperty()->SetColor(color[0],color[1],color[2]);  
+       std::cout<<"colored actor " << actor << std::endl;   
+       for(std::vector<SkeletonVertexType>::iterator i = a.Begin(); i!=a.End(); ++i){
+            giaaTovtkVertexToPrimal[*i]->GetProperty()->SetColor(color[0],color[1],color[2]);
+        } 
+  }
+
+void TissueTracker::slot_clicked(vtkObject*, unsigned long, void *, void *)
+{
+  std::cout << "Clicked. " << std::endl;
+}
+
+
+int TissueTracker::GetBin(double min, double max, int num_bins, double val){
+
+    double binsize = ceil(max/num_bins);
+    std::cout<<"looking at bins"<<std::endl;
+    for(int i = 0; i < num_bins;i++){
+        double lower = binsize*i;
+        double upper = binsize*(i+1);
+       // std::cout << lower << " " << upper << std::endl;
+        if(val >= lower && val < upper){
+            return i;
+        } 
+
+    }
+}
+
+void TissueTracker::SetUpPlots(){
+
+    this->SetUpPolygonPlot();
+}
+
+void TissueTracker::SetUpPolygonPlot(){
+
+    std::cout<<"entering polygon plot"<<std::endl;
+    m_pUI->PolygonPlot->clearPlottables();
+    QCPBars *myBars = new QCPBars(m_pUI->PolygonPlot->xAxis, m_pUI->PolygonPlot->yAxis);
+    m_pUI->PolygonPlot->addPlottable(myBars);
+    // now we can modify properties of myBars:
+    myBars->setName("Polgyon bars");
+    QVector<double> keyData;
+    QVector<double> valueData;
+    keyData << 3 << 4 << 5 << 6 << 7 << 8 << 9;
+    std::vector<int> vals;
+    for(int i = 0; i < 10; i++){
+        vals.push_back(0);
+    }
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+        vals[a.m_SkeletonNodes.size()]++;
+        std::cout<<"looking at v"<<std::endl;
+
+    }
+    valueData << vals[3] << vals[4] << vals[5] << vals[6] << vals[7] << vals[8] << vals[9];
+    myBars->setData(keyData, valueData);
+    m_pUI->PolygonPlot->rescaleAxes();
+    m_pUI->PolygonPlot->replot();
+
+}
+
+void TissueTracker::SetUpAreaPlot(std::vector<int> vals){
+
+    std::cout<<"entering polygon plot"<<std::endl;
+    m_pUI->AreaPlot->clearPlottables();
+    QCPBars *myBars = new QCPBars(m_pUI->AreaPlot->xAxis, m_pUI->AreaPlot->yAxis);
+    m_pUI->AreaPlot->addPlottable(myBars);
+    // now we can modify properties of myBars:
+    myBars->setName("Polgyon bars");
+    QVector<double> keyData;
+    QVector<double> valueData;
+    keyData << 1 << 2 << 3 << 4 << 5 << 6;
+    valueData << vals[0] << vals[1] << vals[2] << vals[3] << vals[4] << vals[5] << vals[6];
+    myBars->setData(keyData, valueData);
+    m_pUI->AreaPlot->rescaleAxes();
+    m_pUI->AreaPlot->replot();
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoFFTPrintout(){
+     
+     /*ofstream myfile;
+     boost::PolygonPlotat FFTfmt = boost::PolygonPlotat("FFToutput_%i.txt")%m_CurrentFrame;
+     const char* FFTfileName = FFTfmt.str().c_str();
+     myfile.open (FFTfileName);
+     BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+        boost::PolygonPlotat CellIDval = boost::PolygonPlotat("Cell ID: %i\n\n")%v;
+        const char* CellID = CellIDval.str().c_str();
+        myfile << CellID;
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+        fftw_complex * fft = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).fft;
+        myfile << "Input\n\n";
+        std::vector<double> dist = a.GetDistanceToCentroid(descriptor->m_SkeletonGraph);
+        for(std::vector<double>::iterator itr = dist.begin(); itr != dist.end(); ++itr){
+            boost::PolygonPlotat distval = boost::PolygonPlotat("%f\n")%*itr;
+            const char* DISTv = distval.str().c_str();
+            myfile << DISTv;  
+        }
+        myfile << "\nOutput\n\n";
+        for(int i = 0; i < a.m_SkeletonNodes.size(); i++){
+            boost::PolygonPlotat FFTvalue = boost::PolygonPlotat("%f\n")%fft[0][i];
+            const char* FFTv = FFTvalue.str().c_str();
+            myfile << FFTv;
+        }
+        myfile << "\n";
+     }
+
+     myfile.close();
+     //return 0;*/
+}
+#endif
+
+
+
+#ifdef OUT_OF_CONTROL
+
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoReduction(){
+
+            std::cout << " num vert in simple " << boost::num_vertices(descriptor->m_SkeletonGraph_simple) << std::endl;
+            typedef itk::Point<double, 3> itkpt;
+
+            boost::graph_traits<giaa::SkeletonGraph_listS>::edge_iterator ei, ei_end, enext;
+            boost::tie(ei, ei_end) = edges(descriptor->m_SkeletonGraph_listS);
+            for (enext = ei; ei != ei_end; ei = enext) {
+                 ++enext;
+                 remove_edge(*ei, descriptor->m_SkeletonGraph_listS);
+            }
+
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+
+                boost::clear_vertex(v,descriptor->m_SkeletonGraph_listS);
+                //boost::remove_vertex(v,descriptor->m_SkeletonGraph_listS);
+            }
+
+            boost::graph_traits<giaa::SkeletonGraph_listS>::vertex_iterator vi, vi_end, next;
+            boost::tie(vi, vi_end) = vertices(descriptor->m_SkeletonGraph_listS);
+            for (next = vi; vi != vi_end; vi = next) {
+                 ++next;
+                 remove_vertex(*vi, descriptor->m_SkeletonGraph_listS);
+            }
+
+
+            std::map<vtkActor*,SkeletonVertexType>::iterator itr;
+
+            for(itr = actorTogiaavertex.begin(); itr != actorTogiaavertex.end(); ++itr){
+                double color[3];
+                itr->first->GetProperty()->GetColor(color);
+                //std::cout<< itr->second <<std::endl;
+                if(color[0] == 0 && color[1] == 0){
+                    itkpt pos = boost::get(giaa::SkeletonPointPropertyTag(), descriptor->m_SkeletonGraph, itr->second).position;
+                    SkeletonPoint pt = SkeletonPoint(pos);
+                    boost::add_vertex(pt,descriptor->m_SkeletonGraph_listS);
+                }
+
+            }
+
+            std::cout << " num vert in simple " << boost::num_vertices(descriptor->m_SkeletonGraph_simple) << std::endl;
+            std::cout << " num edges in simple " << boost::num_edges(descriptor->m_SkeletonGraph_simple) << std::endl;
+}
+
+#endif
+
+
+#ifdef OUT_OF_CONTROL
+
+#endif
+
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoFinalize(){
+
+
+           typedef itk::Point<double,3> itkpt;
+           typedef std::vector<double> IndexType;
+
+
+           std::vector<IndexType> svtls;
+           std::map<SkeletonVertexType_lS,IndexType> svtls_pos;
+           std::map<IndexType,SkeletonVertexType> pos_svt;
+
+           //descriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame);
+
+           std::cout<<"num V in SListS "<< boost::num_vertices(descriptor->m_SkeletonGraph_listS)<<std::endl;
+           std::cout<<"num E in SListS "<< boost::num_edges(descriptor->m_SkeletonGraph_listS)<<std::endl;
+
+           boost::graph_traits<giaa::SkeletonGraph>::edge_iterator ei, ei_end, enext;
+            boost::tie(ei, ei_end) = edges(descriptor->m_SkeletonGraph);
+            for (enext = ei; ei != ei_end; ei = enext) {
+                 ++enext;
+                 remove_edge(*ei, descriptor->m_SkeletonGraph);
+            }
+
+           BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                boost::clear_vertex(v,descriptor->m_SkeletonGraph);
+           } 
+
+            boost::graph_traits<giaa::SkeletonGraph>::vertex_iterator vi, vi_end, next;
+            boost::tie(vi, vi_end) = vertices(descriptor->m_SkeletonGraph);
+            for (next = vi; vi != vi_end; vi = next) {
+                 ++next;
+                 remove_vertex(*vi, descriptor->m_SkeletonGraph);
+            }
+
+
+           std::cout<<"num V in SG "<< boost::num_vertices(descriptor->m_SkeletonGraph)<<std::endl;
+           std::cout<<"num E in SG "<< boost::num_edges(descriptor->m_SkeletonGraph)<<std::endl;
+
+           std::cout<<"got here"<<std::endl;
+           svtls.clear();
+
+           BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+
+                std::cout<< src << " " << tgt << std::endl;
+           }
+
+
+           BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS) {
+
+                //std::cout << "In edges" << std::endl;
+                SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                std::cout<<"looking at src "<< src<<std::endl;
+                itkpt a = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                IndexType avtx;
+                for(int i = 0; i < 3; i++){
+                    avtx.push_back(a[i]);
+                }
+
+                std::vector<IndexType>::iterator srcitr;
+
+                for(srcitr = svtls.begin(); srcitr != svtls.end(); ++srcitr){    
+                    IndexType tmp = *srcitr;
+                    if (tmp[0] == a[0] && tmp[1] == a[1] && tmp[2] == a[2]){
+                        break;
+                    }
+                }
+                
+                if(srcitr == svtls.end()){
+                    std::cout<<"adding vertex"<<std::endl;
+                    svtls.push_back(avtx);
+                    itkpt a = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                    SkeletonPoint pt = SkeletonPoint(a);
+                    SkeletonVertexType part1 = boost::add_vertex(pt,descriptor->m_SkeletonGraph); 
+                    svtls_pos[src] = avtx;
+                    pos_svt[avtx] = part1;
+
+                }
+
+
+                SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+                std::cout<<"looking at tgt "<< tgt<<std::endl;
+
+                itkpt b = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+                IndexType bvtx;
+                for(int i = 0; i < 3; i++){
+                    bvtx.push_back(b[i]);
+                }
+
+
+                std::vector<IndexType>::iterator tgtitr;
+
+                for(tgtitr = svtls.begin(); tgtitr != svtls.end(); ++tgtitr){    
+                    IndexType tmp = *tgtitr;
+                    if (tmp[0] == b[0] && tmp[1] == b[1] && tmp[2] == b[2]){
+                        break;
+                    }
+                }
+                
+                if(tgtitr == svtls.end()){
+                    std::cout<<"adding vertex in tgt"<<std::endl;
+                    svtls.push_back(bvtx);
+                    itkpt b = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+                    SkeletonPoint pt = SkeletonPoint(b);
+                    SkeletonVertexType part2 = boost::add_vertex(pt,descriptor->m_SkeletonGraph); 
+                    svtls_pos[tgt] = bvtx;
+                    pos_svt[bvtx] = part2;
+
+                }
+
+                boost::add_edge(pos_svt[svtls_pos[src]],pos_svt[svtls_pos[tgt]],descriptor->m_SkeletonGraph);
+            }
+
+            std::cout<<"num V in vecS "<< boost::num_vertices(descriptor->m_SkeletonGraph)<<std::endl;
+            std::cout<<"num E in vecS "<< boost::num_edges(descriptor->m_SkeletonGraph)<<std::endl;
+
+            m_Project.AddTissueDescriptor(m_CurrentFrame,descriptor);
+
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoFinalizeSimplify(){
+
+
+           typedef itk::Point<double,3> itkpt;
+           typedef std::vector<double> IndexType;
+
+
+           std::vector<IndexType> svtls;
+           std::map<SkeletonVertexType_lS,IndexType> svtls_pos;
+           std::map<IndexType,SkeletonVertexType_sim> pos_svt;
+
+           descriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame);
+
+           std::cout<<"num V in SListS "<< boost::num_vertices(descriptor->m_SkeletonGraph_listS)<<std::endl;
+           std::cout<<"num E in SListS "<< boost::num_edges(descriptor->m_SkeletonGraph_listS)<<std::endl;
+
+
+           BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_simple,giaa::SkeletonGraph_simple){
+                boost::clear_vertex(v,descriptor->m_SkeletonGraph_simple);
+           } 
+
+            boost::graph_traits<giaa::SkeletonGraph_simple>::vertex_iterator vi, vi_end, next;
+            boost::tie(vi, vi_end) = vertices(descriptor->m_SkeletonGraph_simple);
+            for (next = vi; vi != vi_end; vi = next) {
+                 ++next;
+                 remove_vertex(*vi, descriptor->m_SkeletonGraph_simple);
+            }
+
+           std::cout<<"got here"<<std::endl;
+           svtls.clear();
+           BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS) {
+
+                //std::cout << "In edges" << std::endl;
+                SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                itkpt a = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                IndexType avtx;
+                for(int i = 0; i < 3; i++){
+                    avtx.push_back(a[i]);
+                }
+
+                std::vector<IndexType>::iterator srcitr;
+
+                for(srcitr = svtls.begin(); srcitr != svtls.end(); ++srcitr){    
+                    IndexType tmp = *srcitr;
+                    if (tmp[0] == a[0] && tmp[1] == a[1] && tmp[2] == a[2]){
+                        break;
+                    }
+                }
+                
+                if(srcitr == svtls.end()){
+                    svtls.push_back(avtx);
+                    itkpt a = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                    SkeletonPoint pt = SkeletonPoint(a);
+                    SkeletonVertexType part1 = boost::add_vertex(pt,descriptor->m_SkeletonGraph_simple); 
+                    svtls_pos[src] = avtx;
+                    pos_svt[avtx] = part1;
+
+                }
+
+
+                SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+                itkpt b = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+                IndexType bvtx;
+                for(int i = 0; i < 3; i++){
+                    bvtx.push_back(b[i]);
+                }
+
+
+                std::vector<IndexType>::iterator tgtitr;
+
+                for(tgtitr = svtls.begin(); tgtitr != svtls.end(); ++tgtitr){    
+                    IndexType tmp = *tgtitr;
+                    if (tmp[0] == b[0] && tmp[1] == b[1] && tmp[2] == b[2]){
+                        break;
+                    }
+                }
+                
+                if(tgtitr == svtls.end()){
+                    svtls.push_back(bvtx);
+                    itkpt b = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+                    SkeletonPoint pt = SkeletonPoint(b);
+                    SkeletonVertexType part2 = boost::add_vertex(pt,descriptor->m_SkeletonGraph_simple); 
+                    svtls_pos[tgt] = bvtx;
+                    pos_svt[bvtx] = part2;
+
+                }
+
+                boost::add_edge(pos_svt[svtls_pos[src]],pos_svt[svtls_pos[tgt]],descriptor->m_SkeletonGraph_simple);
+            }
+
+            std::cout<<"num V in vecS "<< boost::num_vertices(descriptor->m_SkeletonGraph_simple)<<std::endl;
+            std::cout<<"num E in vecS "<< boost::num_edges(descriptor->m_SkeletonGraph_simple)<<std::endl;
+
+            m_Project.AddTissueDescriptor(m_CurrentFrame,descriptor);
+
+
+}
+
+#endif
+#ifdef OUT_OF_CONTROL
+
+void TissueTracker::DoDualCalculation(){
+
+    
+
+            boost::graph_traits<giaa::CellGraph>::edge_iterator ei, ei_end, enext;
+            boost::tie(ei, ei_end) = edges(descriptor->m_CellGraph);
+            for (enext = ei; ei != ei_end; ei = enext) {
+                 ++enext;
+                 remove_edge(*ei, descriptor->m_CellGraph);
+            }
+
+            BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+
+                boost::clear_vertex(v,descriptor->m_CellGraph);
+                //boost::remove_vertex(v,descriptor->m_SkeletonGraph_listS);
+            }
+
+            boost::graph_traits<giaa::CellGraph>::vertex_iterator vi, vi_end, next;
+            boost::tie(vi, vi_end) = vertices(descriptor->m_CellGraph);
+            for (next = vi; vi != vi_end; vi = next) {
+                 ++next;
+                 remove_vertex(*vi, descriptor->m_CellGraph);
+            }
+            m_Facade.SetTissueDescription(descriptor);
+            m_Facade.DoDualCalculation();
+   // m_Project.AddTissueDescriptor(m_CurrentFrame,m_Facade.GetTissueDescription());
+ 
+ /*   BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+
+                 dualEdgeBool[v] = 0;
+    }
+    
+    BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph) {
+
+                CellVertexType src = boost::source(e,descriptor->m_CellGraph);
+                CellVertexType tgt = boost::target(e,descriptor->m_CellGraph);
+
+                dualEdgeBool[src] = 1;
+                dualEdgeBool[tgt] = 1;
+    }
+
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+
+        if(dualEdgeBool[v] == 0){
+
+             std::cout << "Removing: " << v << std::endl;
+             boost::clear_vertex(v,descriptor->m_CellGraph);
+             boost::remove_vertex(v,descriptor->m_CellGraph);
+        }
+    }
+    */
+    //m_Facade.SetTissueDescription(descriptor);
+    std::cout<<"Adding desc in dual"<<std::endl;
+    m_Project.AddTissueDescriptor(m_CurrentFrame,m_Facade.GetTissueDescription());
+    std::cout<<"pop cell table"<<std::endl;
+    this->PopulateCellTable();
+    this->m_pUI->showDualCBox->setChecked(true);
+    //this->GetColorsofCells();
+    this->GetAreaofCells();
+    this->GetEllipsesofCells();
+
+    //this->m_pUI->showEllipseCBox->setChecked(true);
+    this->UpdateControls();
+    this->UpdateDisplay();
+}
+#endif
+#ifdef OUT_OF_CONTROL
+ void TissueTracker::GetColorsofCells(){
+
+     BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+            boost::get(CellPropertyTag(),descriptor->m_CellGraph,v).GetCellDefinitionPoints(descriptor->m_SkeletonGraph); 
+            std::vector<double> color;
+            color.push_back(r_color[v%10]);
+            color.push_back(g_color[v%10]);
+            color.push_back(b_color[v%10]);
+            //std::cout<< "Assigning: "  << " " << color[0] << " " << color[1] << " " << color[2] << " to " << v << " " << m_TissueDescriptor << std::endl; 
+            boost::get(CellPropertyTag(),descriptor->m_CellGraph,v).m_Color = color;
+         }
+ }
+#endif
+#ifdef OUT_OF_CONTROL
+ void TissueTracker::GetAreaofCells(){
+
+    std::cout<<"getting area of cells"<<std::endl;
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+            
+            boost::get(CellPropertyTag(),descriptor->m_CellGraph,v).GetArea(descriptor->m_SkeletonGraph); 
+            std::cout << v << " " << boost::get(CellPropertyTag(),descriptor->m_CellGraph,v).m_area<<std::endl;
+
+         }
+
+    m_Project.AddTissueDescriptor(m_CurrentFrame,descriptor);
+ }           
+#endif
+#ifdef OUT_OF_CONTROL
+ void TissueTracker::GetEllipsesofCells(){
+
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+            
+            std::vector<SkeletonVertexType> svt = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).m_SkeletonNodes;
+            itk::Point<double,3> center = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).m_Centroid;
+            std::vector<itk::Point<double,3> > points;
+            //std::cout << "center: " << center[0] << " " << center[1] << " " << center[2] << std::endl;
+            for(std::vector<SkeletonVertexType>::iterator itr = svt.begin(); itr != svt.end(); ++itr){
+                itk::Point<double,3> pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,*itr).position;
+                //std::cout<< pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
+                points.push_back(pos);
+            } 
+            boost::get(giaa::EllipsePropertyTag(),descriptor->m_CellGraph,v).CalcEllipseValues(points);
+            std::cout<<  boost::get(giaa::EllipsePropertyTag(),descriptor->m_CellGraph,v).xrad << std::endl;
+    }
+
+    //m_Project.AddTissueDescriptor(m_CurrentFrame,descriptor);
+
+ }
+#endif
+#ifdef OUT_OF_CONTROL
+ std::map<giaa::CellVertexType, double> TissueTracker::GetEdgeVariance(){
+
+    std::map<giaa::CellVertexType, double> resultvar;
+    typedef itk::Point<double,3> itkpt;
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+        std::cout<< "looking at " << v << std::endl;
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+        SkeletonVertexType pt1, pt2;
+        pt1 = *a.Begin();
+        std::vector<double> vals;
+        for(int i = 0; i < a.m_SkeletonNodes.size(); i++){
+          
+
+              pt1 = a.m_SkeletonNodes[i];
+              pt2 = a.m_SkeletonNodes[i+1];
+              if(i == a.m_SkeletonNodes.size()-1){
+                pt2 = a.m_SkeletonNodes[0];
+              }
+
+              itkpt pos1 = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,pt1).position;
+              itkpt pos2 = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,pt2).position;
+
+              double dist = sqrt(pow(pos1[0]-pos2[0],2)+pow(pos1[1]-pos2[1],2)+pow(pos1[2]-pos2[2],2));
+              std::cout<<dist<<std::endl;
+              vals.push_back(dist);
+        }
+
+        std::cout<<"before mean"<<std::endl;
+        double sum = 0.0;
+        for(int i = 0; i < vals.size(); i++){
+            sum+=vals[i];
+        }
+        double mean = sum/double(vals.size());
+        std::cout<<"after mean"<<std::endl;
+        sum = 0.0;
+        for(int i = 0; i< vals.size(); i++){
+            sum+= pow(vals[i]-mean,2);
+        }
+        double stdev = sqrt(sum/vals.size());
+        std::cout<<"after stdev"<<std::endl;
+
+        double varval = 2/3.14159*atan(stdev/mean);
+        std::cout<<"after atan"<<std::endl;
+
+        resultvar[v] = stdev/mean;
+
+    }
+
+    return resultvar;
+ }      
+#endif
+#ifdef OUT_OF_CONTROL
+std::map<giaa::CellVertexType, int> TissueTracker::GetStdevBin(std::map<giaa::CellVertexType,double> vals){
+
+    double sum = 0.0;
+    std::map<giaa::CellVertexType,int> result;
+    for(std::map<giaa::CellVertexType,double>::iterator itr = vals.begin(); itr != vals.end(); ++itr){
+        sum += itr->second;
+    }
+
+    double mean = sum/(vals.size());
+
+    sum = 0.0;
+
+    for(std::map<giaa::CellVertexType,double>::iterator itr = vals.begin(); itr != vals.end(); ++itr){
+        sum += pow(itr->second-mean,2);
+    }
+
+    double stdev = sqrt(sum/(vals.size()-1));
+
+
+    for(std::map<giaa::CellVertexType,double>::iterator itr = vals.begin(); itr != vals.end(); ++itr){
+        double val = itr->second;
+
+        if(val < mean - 2*stdev){
+            result[itr->first] = -3;
+        }
+
+        else if(val >= mean - 2*stdev  && val <= mean - stdev ){
+            result[itr->first] = -2;
+        }
+
+        else if(val <= mean && val > mean- stdev){
+            result[itr->first] = -1;
+        }
+
+        else if(val > mean  && val < mean+stdev){
+            result[itr->first] = 1;
+        }
+
+        else if(val > mean+stdev && val < mean + 2*stdev){
+            result[itr->first] = 2;
+        }
+
+        else if(val > mean + 2*stdev){
+            result[itr->first] = 3;
+        }
+
+    }
+
+    return result;
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoPrimalSimplify(){
+
+            
+            std::cout <<"in simplify primal"<<std::endl;
+            typedef itk::Point<double,3> itkpt;
+            ProjectType::SpacingType s = m_Project.GetSpacing();
+            std::map<SkeletonVertexType_lS,std::vector<bool> > edgebool;
+
+            /*
+
+             typedef itk::Point<double,3> IndexType;
+             ProjectType::SpacingType s = m_Project.GetSpacing();
+             BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph) {
+
+                 itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).m_Centroid;
+                 std::cout << "ID " << v << " " << a[0] * s[0] << " " << a[1]*s[1] << " " << a[2]*s[2]  << std::endl;
+            }
+
+
+            BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph) {
+
+                SkeletonVertexType src = boost::source(e,descriptor->m_CellGraph);
+                SkeletonVertexType tgt = boost::target(e,descriptor->m_CellGraph);
+
+                std::cout << "EDGE " << src << " " << tgt << std::endl;
+            }*/
+
+            std::map<SkeletonVertexType_lS,std::vector<SkeletonVertexType> > dirmap;
+            std::map<SkeletonVertexType_lS,std::vector<SkeletonVertexType_lS> > edgemap;
+
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                std::vector<SkeletonVertexType> adjvec;
+                std::vector<SkeletonVertexType_lS> edgevec;
+                dirmap[v] = adjvec;
+                edgemap[v] = edgevec;
+            }
+
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                itkpt vertpos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,v).position;
+                std::cout<<"start pt "<< vertpos[0] << " " << vertpos[1] << " " << vertpos[2] << std::endl;
+                BGL_FORALL_EDGES(e, descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                    SkeletonVertexType src = boost::source(e,descriptor->m_SkeletonGraph);
+                    SkeletonVertexType tgt = boost::target(e,descriptor->m_SkeletonGraph);
+                    itkpt srcpos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src).position;
+                    itkpt tgtpos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt).position;
+                    if(vertpos[0] == srcpos[0] && vertpos[1] == srcpos[1] && vertpos[2] == srcpos[2]){
+
+                        if(boost::degree(tgt,descriptor->m_SkeletonGraph) > 2){
+                            dirmap[v].push_back(tgt);
+                        }
+                        else{
+                            BGL_FORALL_EDGES(e1, descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                                SkeletonVertexType src_adj = boost::source(e1,descriptor->m_SkeletonGraph);
+                                SkeletonVertexType tgt_adj = boost::target(e1,descriptor->m_SkeletonGraph);
+                                itkpt src_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src_adj).position;
+                                itkpt tgt_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt_adj).position;
+                                
+                                if((src_adj_pos[0] == tgtpos[0] && src_adj_pos[1] == tgtpos[1] && src_adj_pos[2] == tgtpos[2]) && (tgt_adj_pos[0] != vertpos[0] || tgt_adj_pos[1] != vertpos[1] || tgt_adj_pos[2] != vertpos[2])){
+                                    dirmap[v].push_back(tgt_adj);
+                                    break;
+                                }
+
+                                else if((tgt_adj_pos[0] == tgtpos[0] && tgt_adj_pos[1] == tgtpos[1] && tgt_adj_pos[2] == tgtpos[2]) && (src_adj_pos[0] != vertpos[0] || src_adj_pos[1] != vertpos[1] || src_adj_pos[2] != vertpos[2])){
+                                    dirmap[v].push_back(src_adj);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if(vertpos[0] == tgtpos[0] && vertpos[1] == tgtpos[1] && vertpos[2] == tgtpos[2]){
+                        
+                        if(boost::degree(src,descriptor->m_SkeletonGraph)>2){
+                            dirmap[v].push_back(src);
+                        }
+                        else{
+                            BGL_FORALL_EDGES(e1, descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+                                SkeletonVertexType src_adj = boost::source(e1,descriptor->m_SkeletonGraph);
+                                SkeletonVertexType tgt_adj = boost::target(e1,descriptor->m_SkeletonGraph);
+                                itkpt src_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src_adj).position;
+                                itkpt tgt_adj_pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt_adj).position;
+                               
+                                if((src_adj_pos[0] == srcpos[0] && src_adj_pos[1] == srcpos[1] && src_adj_pos[2] == srcpos[2]) && (tgt_adj_pos[0] != vertpos[0] || tgt_adj_pos[1] != vertpos[1] || tgt_adj_pos[2] != vertpos[2])){
+                                    dirmap[v].push_back(tgt_adj);
+                                    break;
+                                }
+                               
+                                else if((tgt_adj_pos[0] == srcpos[0] && tgt_adj_pos[1] == srcpos[1] && tgt_adj_pos[2] == srcpos[2]) && (src_adj_pos[0] != vertpos[0] || src_adj_pos[1] != vertpos[1] || src_adj_pos[2] != vertpos[2])){
+                                    dirmap[v].push_back(src_adj);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            typedef itk::Vector<double,3> VectorIdx;
+            
+            int nodes = 0;
+            int verts = 0;
+            int cont;
+
+
+            std::cout << "STARTING SIMPLIFY"<<std::endl;
+            std::cout <<"\n"<<std::endl;
+            std::vector<SkeletonVertexType_lS> nonfullvt;
+            std::vector<SkeletonVertexType_lS> fullvt;
+
+            // initialize full vt
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                nonfullvt.push_back(v);
+            }
+
+            // 
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+
+                chosen1 = v;
+                //this->UpdateDisplay();
+                /*for(int i = 0; i < 100000000; i++){
+
+                }*/
+                std::cout<<" Looking at: "<< chosen1 <<std::endl;
+                std::vector<SkeletonVertexType>::iterator itr;
+                itkpt pt1pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,v).position;
+                std::cout<< "x1 " << pt1pos[0] << " " << pt1pos[1] << " " << pt1pos[2] <<std::endl;
+                nodes++;
+                int x1edidx = 0;
+                int counter = 0;
+                for(itr = dirmap[v].begin(); itr != dirmap[v].end(); ++itr){
+
+                            itkpt pt2pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,*itr).position;
+                            std::cout<< "try line " << counter << std::endl;
+                            counter++;
+                            std::cout<< "x2 " << pt2pos[0] << " " << pt2pos[1] << " " << pt2pos[2] <<std::endl;
+                            /*vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
+                            newLine->SetPoint1(pt1pos[0]*s[0],pt1pos[1]*s[1],pt1pos[2]*s[2]);
+                            newLine->SetPoint2(pt2pos[0]*s[0],pt2pos[1]*s[1],pt1pos[2]*s[2]);                
+                            vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+                            mapper->SetInputConnection(newLine->GetOutputPort());
+
+                            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
+                            actor->SetMapper(mapper);
+                            actor->GetProperty()->SetLineWidth(5);
+                            actor->GetProperty()->SetColor(0,1,0);
+                            m_CurrentRenderer->AddActor(actor);*/
+                    if(edgebool[v][x1edidx] == false){
+                            std::cout<<"line is free"<< std::endl;
+                            verts++;
+                            double min = 100000000;
+                            SkeletonVertexType_lS closestVT;
+                                                          
+                            int x0idx = 0;
+                            int chosenidx = 0;
+
+                            BGL_FORALL_VERTICES(vt,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+
+                                itkpt pt0pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,vt).position;
+
+                                std::cout<< "Try vertex: " << pt0pos[0] << " " << pt0pos[1] <<std::endl;
+
+                                if(vt != v && boost::degree(vt,descriptor->m_SkeletonGraph_listS) < dirmap[vt].size()){
+                                  
+                                  std::cout<<"Vertex has free edges"<<std::endl;
+
+                                  VectorIdx x0;
+                                  VectorIdx x1;
+                                  VectorIdx x2;
+
+                                  x0idx = GetBestEdge(pt1pos, vt, dirmap);
+                                  std::cout<<"Best edge is "<<x0idx<<std::endl;
+                                  std::cout<<"Best edge status "<< edgebool[vt][x0idx] << std::endl;
+                                  if(edgebool[vt][x0idx] == false){
+
+                                    bool cross = false;
+                                    BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                                        SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                                        SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+
+                                        itkpt l2posA = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                                        itkpt l2posB = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+
+                                        cross = IntersectLine(pt1pos, pt0pos, l2posA, l2posB);
+                                        //std::cout<<"cross: " << cross<<std::endl;
+                                        if(cross)
+                                          break;
+                                    }   
+
+                                    std::cout<<"Crossing status: "<< cross<<std::endl;
+
+                                    if (!cross){
+
+
+                                          for(int i = 0; i < 3; i++){
+                                            x0[i] = pt0pos[i];
+                                            x1[i] = pt1pos[i];
+                                            x2[i] = pt2pos[i];
+                                          }
+                                          x2[2] = x1[2];
+
+                                          //std::cout<< "x0 " << pt0pos[0] << " " << pt0pos[1] << " " << pt0pos[2] <<std::endl;
+
+
+                                          // calculate distance from line to point
+
+                                          
+                                          
+                                          double linedist = lineDistance(x0,x1,x2);
+                                          
+
+                                          double pointdist = pointDistance(x0,x1);
+
+                                          double sumdist = linedist + 2*pointdist;
+
+                                          std::cout <<" linedist "<< linedist << " pointdist " << pointdist << " sum " << sumdist <<std::endl;
+
+                                          if (sumdist < min){
+                                            min = sumdist;
+                                            closestVT = vt;
+                                            chosen2 = vt;
+                                            chosenidx = x0idx;
+                                            //std::cout<< "NEW min " << min << " " << closestVT << std::endl;
+                                          }
+                                        }
+                                
+                                    }    
+                                }
+
+
+                            }
+                            if(min < 100000000){
+
+                                std::cout<<"****************************"<<std::endl;
+                                std::cout<<"****************************"<<std::endl;
+                                std::cout<<"****************************"<<std::endl;
+
+                                itkpt vpos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,chosen2).position;
+
+                                std::cout<< "adding edge w/ vertex " << vpos[0] << " " << vpos[1] << std::endl;
+                                std::cout<< "x1 edge: " << x1edidx << " occupied"<<std::endl;
+
+                                int idx = chosenidx;
+                                std::cout<< "chosen vt edge: " << idx << " occupied"<<std::endl;
+
+                                //GetBestEdge(pt1pos, vt, dirmap);
+                                edgebool[v][x1edidx] = true;
+                                edgebool[chosen2][idx] = true;
+                                edgemap[v].push_back(closestVT);
+                                boost::add_edge(v,closestVT,descriptor->m_SkeletonGraph_listS);
+                                this->UpdateDisplay();
+                            }
+                            else{
+                                std::cout<<"****************************"<<std::endl;
+                                std::cout<<"****************************"<<std::endl;
+                                std::cout<<"****************************"<<std::endl;
+                                std::cout<<"No value found"<<std::endl;
+                            }
+
+                            // ("%d",&scanfcont);
+                
+                    }
+                    x1edidx++;
+
+                }
+
+            }
+           
+            /*BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                giaaTovtkVertexToPrimal_ls[v]->GetProperty()->SetColor(1,0,1);
+                m_RenderWindow->Render();
+                std::cout<< "NUMBER FOR " << v << " " << dirmap[v].size() <<  " " << boost::degree(v,descriptor->m_SkeletonGraph_listS) <<std::endl;
+                //scanf("%d",&cont);
+            }*/
+
+
+            // list of non full and full vertices
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                std::cout << "in loop Nodes full " << fullvt.size() << std::endl;
+                std::cout << "Nodes Non full " << nonfullvt.size() << std::endl;
+
+                        if(boost::degree(v,descriptor->m_SkeletonGraph_listS) == dirmap[v].size()){
+                                    int vtidx = 0;
+                                    for(std::vector<SkeletonVertexType_lS>::iterator lsitr = nonfullvt.begin(); lsitr != nonfullvt.end(); ++lsitr){
+                                        if(*lsitr == v){
+                                            break;
+                                        }
+                                        vtidx++;
+                                    }
+                                    //std::cout<< "erasing " << vtidx << " " << std::endl;
+                                    nonfullvt.erase(nonfullvt.begin()+vtidx);
+                                    fullvt.push_back(v);                  
+                        }
+                        else{
+                            std::cout<< v << " is not full "<<std::endl;
+                        }
+            }
+            std::cout << "Nodes full " << fullvt.size() << std::endl;
+            std::cout << "Nodes Non full " << nonfullvt.size() << std::endl;
+
+            //return;
+
+            std::map<std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS>, int> itermap;
+
+            BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                BGL_FORALL_VERTICES(vt,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                    std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS> pair = make_pair(v,vt);
+                    itermap[pair] = -1;
+                }
+            }
+
+            int numitr = 0;
+            int r_nfidx;
+            int r_fidx;
+            SkeletonVertexType_lS nfpt;
+            itkpt nfpos, fpos;
+            std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS> ptpair;
+            bool cross = false;
+
+            while(nonfullvt.size() > 0 && numitr < 1000){
+                   // scanf("%d",&cont);
+                    bool nonconnect;
+                    do{
+                        nonconnect = true;
+                        r_nfidx = rand() % nonfullvt.size();
+                        r_fidx = rand() % fullvt.size();
+                        
+                        SkeletonVertexType_lS fullvtidx = fullvt[r_fidx];
+                        BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                            SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                            SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+
+                            if(src == nonfullvt[r_nfidx] && tgt == fullvtidx || tgt == nonfullvt[r_nfidx] && src == fullvtidx){
+                                nonconnect = false;
+                                break;
+                            }
+                            std::cout<<"cross: " << cross<<std::endl;
+                        }  
+                        
+                        std::cout<< "non connect is " << nonconnect<<std::endl;
+                        ptpair = make_pair(nonfullvt[r_nfidx],fullvt[r_fidx]);
+
+                    }
+                    while(itermap[ptpair] >= numitr || !nonconnect);
+
+                     nfpt = nonfullvt[r_nfidx];
+                     nfpos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,nfpt).position;
+                     fpos =  boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,fullvt[r_fidx]).position;
+
+
+                     giaaTovtkVertexToPrimal_ls[nfpt]->GetProperty()->SetColor(1,0,1);
+                     giaaTovtkVertexToPrimal_ls[fullvt[r_fidx]]->GetProperty()->SetColor(0,1,0);
+                     m_RenderWindow->Render();
+                    cross = false;
+                    BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                        SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                        SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+
+                        itkpt l2posA = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                        itkpt l2posB = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+
+                        cross = IntersectLine(nfpos, fpos, l2posA, l2posB);
+                        std::cout<<"cross: " << cross<<std::endl;
+                        if(cross){
+                         break;
+                        }   
+                    }
+                    if(!cross){
+                        std::cout<<"CROSS IS FALSE "<<std::endl;
+                        //scanf("%d",&cont);
+                        int vtidx = 0;
+                        double min = 100000;
+                        SkeletonVertexType_lS closestfullvt;
+                        for(std::vector<SkeletonVertexType_lS>::iterator edgeitr = edgemap[fullvt[r_fidx]].begin(); edgeitr != edgemap[fullvt[r_fidx]].end(); ++edgeitr){
+
+                            itkpt fulledgepos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,*edgeitr).position;
+                            double distance = sqrt(pow(nfpos[0]-fulledgepos[0],2)+pow(nfpos[1]-fulledgepos[1],2));
+                            if(distance < min){
+                                min = distance;
+                                closestfullvt = *edgeitr;
+                                giaaTovtkVertexToPrimal_ls[*edgeitr]->GetProperty()->SetColor(0,0,1);
+                               // scanf("%d",&cont);
+                                std::cout<<"Found out min "<<std::endl;
+                                m_RenderWindow->Render();
+                            }
+
+                        }
+                        giaaTovtkVertexToPrimal_ls[closestfullvt]->GetProperty()->SetColor(0,0,1);
+                       // scanf("%d",&cont);
+                        std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS> ptpair = make_pair(fullvt[r_fidx],closestfullvt);
+                        std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS> ptpairev = make_pair(fullvt[r_fidx],nonfullvt[r_nfidx]);
+
+                        if(itermap[ptpair] < numitr){
+                            boost::remove_edge(fullvt[r_fidx],closestfullvt,descriptor->m_SkeletonGraph_listS);
+                            int fullidx = 0;
+                            for(std::vector<SkeletonVertexType_lS>::iterator itr = fullvt.begin(); itr != fullvt.end(); ++itr){
+                                if(*itr == closestfullvt){
+                                    std::cout<<"removing closest edge and adding it to non full"<<std::endl;
+                                    fullvt.erase(fullvt.begin()+fullidx);
+                                    nonfullvt.push_back(closestfullvt);
+                                    break;
+                                }                                
+                                fullidx++;
+                            }
+                            int edgemapidx = 0;
+                            for(std::vector<SkeletonVertexType_lS>::iterator edgeitr = edgemap[fullvt[r_fidx]].begin(); edgeitr != edgemap[fullvt[r_fidx]].end(); ++edgeitr){
+                                if(*edgeitr == closestfullvt){
+                                    edgemap[fullvt[r_fidx]].erase(edgemap[fullvt[r_fidx]].begin()+edgemapidx);
+                                    break;
+                                }
+                                edgemapidx++;
+                            }
+                            this->UpdateDisplay();
+
+                            boost::add_edge(nfpt,fullvt[r_fidx],descriptor->m_SkeletonGraph_listS);
+                            edgemap[nfpt].push_back(fullvt[r_fidx]);
+                            this->UpdateDisplay();
+                            itermap[ptpair]=numitr+10;
+                            itermap[ptpairev]=numitr+10;
+                            numitr++;
+                            if(boost::degree(nfpt,descriptor->m_SkeletonGraph_listS) == dirmap[nfpt].size()){
+                                std::cout<<"removing from non full and adding to full"<<std::endl;
+                                nonfullvt.erase(nonfullvt.begin()+r_nfidx);
+                                fullvt.push_back(nfpt);
+                            }
+                        
+                            /*for(int i = 0; i < nonfullvt.size(); i++){
+                                for(int j = i+1; j < nonfullvt.size(); j++){
+                                    bool cross = false;
+                                    BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+                                        SkeletonVertexType_lS src = boost::source(e,descriptor->m_SkeletonGraph_listS);
+                                        SkeletonVertexType_lS tgt = boost::target(e,descriptor->m_SkeletonGraph_listS);
+
+                                        itkpt i_pos =  boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,nonfullvt[i]).position;
+                                        itkpt j_pos =  boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,nonfullvt[j]).position;
+                                        itkpt l2posA = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+                                        itkpt l2posB = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+
+                                        cross = IntersectLine(i_pos, j_pos, l2posA, l2posB);
+                                        //std::cout<<"cross: " << cross<<std::endl;
+                                        if(cross){
+                                            break;
+                                        }
+                                    }
+                                        if(!cross){
+                                            boost::add_edge(nonfullvt[i],nonfullvt[j],descriptor->m_SkeletonGraph_listS);
+                                            this->UpdateDisplay();
+                                            std::pair<SkeletonVertexType_lS,SkeletonVertexType_lS> ptpainf = make_pair(nonfullvt[i],nonfullvt[j]);
+                                            itermap[ptpainf]=numitr+9;
+                                            if(boost::degree(nonfullvt[i],descriptor->m_SkeletonGraph_listS) == dirmap[nonfullvt[i]].size()){
+                                                nonfullvt.erase(nonfullvt.begin()+i);
+                                                fullvt.push_back(nonfullvt[i]);
+                                            }
+                                            if(boost::degree(nonfullvt[j],descriptor->m_SkeletonGraph_listS) == dirmap[nonfullvt[j]].size()){
+                                                nonfullvt.erase(nonfullvt.begin()+j);
+                                                fullvt.push_back(nonfullvt[j]);
+                                            }
+
+                                        }         
+                                }
+                            }*/
+
+                        }
+
+                    }
+
+                    giaaTovtkVertexToPrimal_ls[nfpt]->GetProperty()->SetColor(1,1,1);
+                    giaaTovtkVertexToPrimal_ls[fullvt[r_fidx]]->GetProperty()->SetColor(1,1,1);
+                    m_RenderWindow->Render();
+
+            }
+            std::cout << "*****************"<<std::endl;
+            std::cout << numitr << std::endl;
+            std::cout << "Nodes full " << fullvt.size() << std::endl;
+            std::cout << "Nodes Non full " << nonfullvt.size() << std::endl;
+            this->DoFinalizeSimplify();
+            //this->UpdateDisplay();
+            //m_RenderWindow->Render();
+}   
+#endif
+#ifdef OUT_OF_CONTROL
+double TissueTracker::lineDistance(VectorIdx x0, VectorIdx x1, VectorIdx x2){
+
+     
+     double cx = x0[0];
+     double ax = x1[0];
+     double bx = x2[0];
+     double cy = x0[1];
+     double ay = x1[1];
+     double by = x2[1];
+     double r_numerator = (cx-ax)*(bx-ax) + (cy-ay)*(by-ay);
+     double r_denomenator = (bx-ax)*(bx-ax) + (by-ay)*(by-ay);
+     double r = r_numerator / r_denomenator;
+     double distanceSegment;
+//
+    double px = ax + r*(bx-ax);
+    double py = ay + r*(by-ay);
+//
+    double s =  ((ay-cy)*(bx-ax)-(ax-cx)*(by-ay) ) / r_denomenator;
+
+        double distanceLine = fabs(s)*sqrt(r_denomenator);
+
+//
+// (xx,yy) is the point on the lineSegment closest to (cx,cy)
+//
+        double xx = px;
+        double yy = py;
+
+        if(r > 0)
+        {
+                 distanceSegment = distanceLine;
+        }
+        else
+        {
+
+                //return sqrt(pow(px-x1[0],2)+pow(py-x1[1],2));
+                return 1000;
+                /*double dist1 = (cx-ax)*(cx-ax) + (cy-ay)*(cy-ay);
+                double dist2 = (cx-bx)*(cx-bx) + (cy-by)*(cy-by);
+                if (dist1 < dist2)
+                {
+                        xx = ax;
+                        yy = ay;
+                        distanceSegment = sqrt(dist1);
+                }
+                else
+                {
+                        xx = bx;
+                        yy = by;
+                        distanceSegment = sqrt(dist2);
+                }*/
+
+        }
+
+        return distanceSegment;
+}
+#endif
+#ifdef OUT_OF_CONTROL
+double TissueTracker::pointDistance(VectorIdx x0, VectorIdx x1){
+
+    double pointdist = sqrt(pow(x0[0]-x1[0],2)+pow(x0[1]-x1[1],2));
+
+    return pointdist;
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+
+#endif
+#ifdef OUT_OF_CONTROL
+int TissueTracker::GetBestEdge(itk::Point<double,3>  x1pos , SkeletonVertexType_lS x0, std::map<SkeletonVertexType_lS,std::vector<SkeletonVertexType> > dirmap)
+{
+    std::vector<SkeletonVertexType> x0edges = dirmap[x0];
+    typedef itk::Point<double,3> itkpt;
+
+    itkpt x0pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,x0).position;
+
+    int idx = 0;
+    int bestidx = 0;
+    float bestang = 1000;
+    for(std::vector<SkeletonVertexType>::iterator x0edgeitr = x0edges.begin(); x0edgeitr != x0edges.end(); ++x0edgeitr){    
+        itkpt x2pos = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,*x0edgeitr).position;
+
+        float denom = sqrt(pow(x1pos[0]-x0pos[0],2)+pow(x1pos[1]-x0pos[1],2)) * sqrt(pow(x2pos[0]-x0pos[0],2)+pow(x2pos[1]-x0pos[1],2)) ;
+        float num = (x1pos[0] - x0pos[0]) * (x2pos[0] - x0pos[0]) + (x1pos[1] - x0pos[1]) * (x2pos[1] - x0pos[1]);
+        float ang = acos(num/denom);
+        if(ang < bestang){
+            bestang = ang;
+            bestidx = idx;
+        }
+        idx++;
+    }   
+
+    return bestidx;
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoJunctions(){
+
+    
+    /*int numframes = 2;
+    for(int i = 0; i < numframes -1; i++){
+
+        giaa::TissueDescriptor::Pointer descA = m_Project.GetTissueDescriptor(i);
+        giaa::TissueDescriptor::Pointer descB = m_Project.GetTissueDescriptor(i+1);
+        //Cell a = boost::get(giaa::CellPropertyTag(),descA->m_CellGraph,4);
+        //Cell b = boost::get(giaa::CellPropertyTag(),descB->m_CellGraph,4);
+        //CellJunctionComparison(descA,descB,a,b);
+        BGL_FORALL_VERTICES(v,descA->m_CellGraph,giaa::CellGraph) {
+            Cell a = boost::get(giaa::CellPropertyTag(),descA->m_CellGraph,v);
+            BGL_FORALL_VERTICES(w,descB->m_CellGraph,giaa::CellGraph) {
+                Cell b = boost::get(giaa::CellPropertyTag(),descB->m_CellGraph,w);
+                if(b.trackID == a.trackID){
+                    std::cout<<("Got here")<<std::endl;
+                    CellJunctionComparison(descA,descB,a,b);
+                    std::cout<<"done"<<std::endl;
+                    break;
+                }
+            }
+        }
+
+    }*/
+
+        giaa::TissueDescriptor::Pointer descA = m_Project.GetTissueDescriptor(0);
+        giaa::TissueDescriptor::Pointer descB = m_Project.GetTissueDescriptor(1);
+        Cell a = boost::get(giaa::CellPropertyTag(),descA->m_CellGraph,4);
+        Cell b = boost::get(giaa::CellPropertyTag(),descB->m_CellGraph,4);
+        CellJunctionComparison(descA,descB,a,b);
+
+    m_RenderWindow->Render();
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::oncelltableClick(QModelIndex index){
+
+     // this->UpdateDisplay();
+     std::cout <<"In cell clicked: " << index.row() << " " << selectedCells.size() << std::endl;
+     QStandardItem* standardItem  = cellModel->itemFromIndex(index);
+     Qt::CheckState checkState = standardItem->checkState();
+     CellVertexType pickedCell;
+     if(checkState == Qt::Checked)
+     {
+        int idx = index.row();
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,idx);
+        std::vector<double> col = a.m_Color;
+        giaaTovktVertexToDual[idx]->GetProperty()->SetColor(col[0],col[1],col[2]);
+        //ColorCell(a,-1,1);
+        /*std::vector<double> color = a.m_Color;
+        itk::Point<double,3> center = a.m_Centroid;
+        std::cout<< "Clicked " << idx << " " <<  " " << descriptor << " " << color[0] << " " << color[1] << " " << color[2] <<  std::endl;
+        std::cout<< "Position "<< center[0] << " " << center[1] << " " << center[2] << std::endl;
+        //std::cout << "Cell: " << a << std::endl;
+        for(std::vector<SkeletonVertexType>::iterator itr = a.Begin(); itr!=a.End(); ++itr){
+            std::cout<< *itr << std::endl;
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor = giaaTovtkVertexToPrimal[*itr];
+            actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+        }*/
+        int notIn = 1;
+        if(DoneTracking){
+            for(std::vector<int>::iterator cellIterator = selectedCells.begin(); cellIterator != selectedCells.end(); ++cellIterator){
+                if (*cellIterator == a.trackID){
+                    notIn = 0;
+                    break;
+                }
+            }   
+            if(notIn){
+                selectedCells.push_back(a.trackID);
+            }
+
+        }
+        
+        std::cout<< "size of selectedCells " << selectedCells.size() << std::endl;
+     }
+
+     
+
+     else if(checkState == Qt::Unchecked)
+     {
+        int idx = index.row();
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,idx);
+        giaaTovktVertexToDual[idx]->GetProperty()->SetColor(0,0,0);
+        //std::cout << "Cell: " << a << std::endl;
+        /*for(std::vector<SkeletonVertexType>::iterator itr = a.Begin(); itr!=a.End(); ++itr){
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor = giaaTovtkVertexToPrimal[*itr];
+            actor->GetProperty()->SetColor(1,1,1);
+        }*/ 
+
+        if(DoneTracking){
+            int index = 0;
+            for(std::vector<int>::iterator cellIterator = selectedCells.begin(); cellIterator != selectedCells.end(); ++cellIterator){
+                Cell currentCell =  boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,*cellIterator);
+                if (*cellIterator == a.trackID){
+                    std::cout<<"Removing " << *cellIterator << " " << selectedCells.size() << std::endl;
+                    selectedCells.erase(selectedCells.begin()+index);
+                    break;
+                }
+                index++;
+            }   
+        }
+       std::cout<< "after uncheck size of selectedCells " << selectedCells.size() << std::endl;
+     }
+
+   
+
+
+     m_RenderWindow->Render();
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected){
+    
+     std::cout << "in selectionChanged" << std::endl;
+     //QModelIndexList selectedList = selected.indexes();
+     /*QModelIndexList selectedList = m_pUI->celltableView->selectionModel()->selectedIndexes();
+     for( int i=0; i<selectedList.count(); i+=7){
+        int idx = selectedList.at(i).row();
+        std::cout << "Selected Row: " << selectedList.at(i).row() << selectedList.count() << std::endl;
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,idx);
+        itk::Vector<double,3> color = a.m_Color;
+        //std::cout << "Cell: " << a << std::endl;
+        for(std::vector<SkeletonVertexType>::iterator itr = a.Begin(); itr!=a.End(); ++itr){
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor = giaaTovtkVertexToPrimal[*itr];
+            actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+        } 
+     }
+
+      m_RenderWindow->Render();*/
+
+     QModelIndexList selectedList = selected.indexes();
+     for( int i=0; i<selectedList.count(); i+=7){
+        int idx = selectedList.at(i).row();
+        std::cout << "Selected Row: " << selectedList.at(i).row() << selectedList.count() << std::endl;
+        Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,idx);
+        std::vector<double> color = a.m_Color;
+        //std::cout << "Cell: " << a << std::endl;
+        for(std::vector<SkeletonVertexType>::iterator itr = a.Begin(); itr!=a.End(); ++itr){
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor = giaaTovtkVertexToPrimal[*itr];
+            actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+        } 
+     }
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+int TissueTracker::ondomaintableClick(QModelIndex index){
+
+    
+    //this->UpdateDisplay();
+    std::cout<<"In domain clicked "<< index.row() << std::endl;
+    QStandardItem* standardItem  = domainModel->itemFromIndex(index);
+    Qt::CheckState checkState = standardItem->checkState();
+    if(checkState == Qt::Checked){
+    
+      for(std::vector<Domain>::iterator itr = Domains.begin(); itr != Domains.end(); ++itr){
+         if(index.row() == itr->DomainID)
+         {
+            for(std::vector<int>::iterator cells = itr->Begin(); cells != itr->End(); ++cells){
+                BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+                    Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+                    if (a.trackID == *cells){
+                        giaaTovktVertexToDual[v]->GetProperty()->SetColor(r_color[itr->DomainID],g_color[itr->DomainID],b_color[itr->DomainID]);
+                        m_RenderWindow->Render();
+                        break;
+                    }
+                }
+            }
+         }
+      }
+    }
+
+    else if(checkState == Qt::Unchecked){
+        for(std::vector<Domain>::iterator itr = Domains.begin(); itr != Domains.end(); ++itr){
+         if(index.row() == itr->DomainID)
+         {
+            for(std::vector<int>::iterator cells = itr->Begin(); cells != itr->End(); ++cells){
+                BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,giaa::CellGraph){
+                    Cell a = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+                    if (a.trackID == *cells){
+                        giaaTovktVertexToDual[v]->GetProperty()->SetColor(1,1,1);
+                        m_RenderWindow->Render();
+                        break;
+                    }
+                }
+            }
+         }
+      } 
+    }
+
+    m_RenderWindow->Render();
+
+    return 0;
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::PopulateDomainTable(){
+
+    int num_row = Domains.size();
+
+    domainModel = new QStandardItemModel(num_row,3,this);
+    domainModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Domain ID")));
+    domainModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Number of Cells")));
+    
+    int dID = 0;
+    for(std::vector<Domain>::iterator d = Domains.begin(); d != Domains.end(); ++d){
+        Domain currD = *d;
+        this->GetTectonics(currD);
+        int dID = currD.DomainID;
+        QString domainIDstr;
+        domainIDstr.append(QString(QString("%1").arg(dID)));
+        QStandardItem *domainID = new QStandardItem(domainIDstr);
+        QStandardItem* checkbox = new QStandardItem();
+        checkbox->setCheckable(true);
+        checkbox->setCheckState(Qt::Checked);
+        domainModel->setItem(dID,0,checkbox);
+        domainModel->setItem(dID,1,domainID);
+        QString size = QString::number(currD.GetSize());
+        QStandardItem *sizeval = new QStandardItem(size);
+        domainModel->setItem(dID,2,sizeval);
+    }
+
+
+     m_pUI->domaintableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+     m_pUI->domaintableView->setSelectionMode(QAbstractItemView::ExtendedSelection);   
+     m_pUI->domaintableView->setModel(domainModel);
+     m_pUI->domaintableView->setContextMenuPolicy(Qt::CustomContextMenu);
+     //connect(m_pUI->domaintableView,SIGNAL(clicked(QModelIndex)),this,SLOT(ondomaintableClick(QModelIndex)));
+     //connect(m_pUI->domaintableView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(DomainContextMenu(const QPoint &)));
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::PopulateCellTable(){
+
+     descriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame);
+     /*if(DoneTracking){
+        descriptor = observations[m_CurrentFrame];
+     }*/
+     int num_row = boost::num_vertices(descriptor->m_CellGraph);     
+     cellModel = new QStandardItemModel(num_row,8,this); //2 Rows and 3 Columns
+     cellModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Cell ID")));
+     cellModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Track ID")));
+     cellModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Centroid x")));
+     cellModel->setHorizontalHeaderItem(4, new QStandardItem(QString("Centroid y")));
+     cellModel->setHorizontalHeaderItem(5, new QStandardItem(QString("Centroid z")));
+     cellModel->setHorizontalHeaderItem(6, new QStandardItem(QString("Area")));
+     cellModel->setHorizontalHeaderItem(7, new QStandardItem(QString("Number of Edges")));
+
+     //std::cout<<"Populating Cell table for " << m_CurrentFrame <<std::endl;
+
+     BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,CellGraph){
+        Cell cell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+        //std::cout<< "cell " << v << " track id " << cell.trackID << std::endl;
+        QString cellIDstr;
+        QString trackIDstr;
+        cellIDstr.append(QString("%1").arg(v));
+        trackIDstr.append(QString("%1").arg(cell.trackID));
+        QStandardItem* checkbox = new QStandardItem();
+        checkbox->setCheckable(true);
+        checkbox->setCheckState(Qt::Unchecked);
+        /*for(std::vector<CellVertexType>::iterator itr = selectedCells.begin(); itr != selectedCells.end(); ++itr){
+            if(*itr == v){
+                checkbox->setCheckState(Qt::Checked);
+                break;    
+            }
+        }*/
+        cellModel->setItem(v,0,checkbox);
+        QStandardItem *cellID = new QStandardItem(cellIDstr);
+        QStandardItem *trackID = new QStandardItem(trackIDstr);
+        cellModel->setItem(v,1,cellID);
+        cellModel->setItem(v,2,trackID);
+        itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).m_Centroid;
+        double area = cell.m_area;
+        int num_defpts = cell.m_SkeletonNodes.size();
+        QString x = QString::number(a[0]);
+        QString y = QString::number(a[1]);
+        QString z = QString::number(a[2]);
+        QString size = QString::number(area);
+        QString numV = QString::number(num_defpts);
+        QStandardItem *xval = new QStandardItem(x);
+        cellModel->setItem(v,3,xval);
+        QStandardItem *yval = new QStandardItem(y);
+        cellModel->setItem(v,4,yval);
+        QStandardItem *zval = new QStandardItem(z);
+        cellModel->setItem(v,5,zval);
+        QStandardItem *areaval = new QStandardItem(size);
+        cellModel->setItem(v,6,areaval);
+        QStandardItem *num_vertices = new QStandardItem(numV);
+        cellModel->setItem(v,7,num_vertices);
+
+        /*const QModelIndex index = cellModel->index(v, 0);
+        std::vector<double> cell_color = cell.m_Color;
+        QColor color;
+        color.setRgb(cell_color[0]*255,cell_color[1]*255,cell_color[2]*255);
+        cellModel->setData(index, color, Qt::BackgroundRole);*/
+     }
+
+     m_pUI->celltableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+     m_pUI->celltableView->setSelectionMode(QAbstractItemView::ExtendedSelection);   
+     m_pUI->celltableView->setModel(cellModel);
+     //connect(m_pUI->celltableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),this,SLOT(onSelectionChanged(const QItemSelection &,  const QItemSelection &)));
+     //connect(m_pUI->celltableView,SIGNAL(clicked(QModelIndex)),this,SLOT(oncelltableClick(QModelIndex)));
+}
+
+
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::DoPolygonMap(){
+
+    BGL_FORALL_VERTICES(v,descriptor->m_CellGraph,CellGraph){
+        Cell cell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+        int num_dpts = cell.GetNumDefinitionPoints();
+        std::cout << "For cell " << v << " " << "num pts is " << num_dpts << " " << cell.GetNumSkeletonPoints() << std::endl;
+        ColorCell(cell,num_dpts,1);
+    }
+
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::CellJunctionComparison(giaa::TissueDescriptor::Pointer desA, giaa::TissueDescriptor::Pointer desB, Cell a, Cell b){
+
+    typedef itk::Point<double,3> IndexType;
+    double currD = 0;
+    double minD = 10000000;
+    std::vector<SkeletonVertexType> compDP;
+    SkeletonVertexType begvt;
+    int idxloc = 0;
+    int begidx = 0;
+    if (a.GetNumDefinitionPoints() == b.GetNumDefinitionPoints()){
+        
+        std::cout<<"Looking at " << a.trackID <<" and "<< b.trackID<<std::endl;
+        std::map<SkeletonVertexType,std::vector<SkeletonVertexType> > map_a;
+        std::map<SkeletonVertexType,std::vector<SkeletonVertexType> > map_b;
+        std::vector<SkeletonVertexType> a_defpts = a.m_defpts;
+        std::vector<SkeletonVertexType> b_defpts = b.m_defpts;
+
+        map_a = CellDefToEdgeMap(a, desA);
+        map_b = CellDefToEdgeMap(b, desB);
+
+        //std::cout<<"Got the maps"<<std::endl;
+
+        // first figure out where to start in Cell B definition points by comparing distance to first definition pt in Cell A
+        
+       
+        IndexType ptA = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*a_defpts.begin()).position;
+        for(std::vector<SkeletonVertexType>::iterator itr = b_defpts.begin(); itr != b_defpts.end(); ++itr){
+            IndexType ptB = boost::get(giaa::SkeletonPointPropertyTag(),desB->m_SkeletonGraph,*itr).position;         
+            IndexType diff;
+            diff[0] = ptA[0] - ptB[0];
+            diff[1] = ptA[1] - ptB[1];
+            diff[2] = ptA[2] - ptB[2];
+            currD = sqrt(pow(diff[0],2)+pow(diff[1],2)+pow(diff[2],2)); 
+            if (currD < minD){
+                minD = currD;
+                begvt = *itr;
+                begidx = idxloc;
+            }
+            idxloc++;
+        }
+
+        //std::cout<<"figured out where to start"<<std::endl;
+        // arrange new vector of skeleton vt from Cell B to align with those from Cell A
+
+        if(begidx == 0){
+            for(int i = begidx; i < b_defpts.size(); i++){
+                std::cout<< i << " " << begidx << std::endl;
+                compDP.push_back(b_defpts[i]);
+            }
+        
+        }
+        else{
+
+            for(int i = begidx; i != begidx-1; i++){
+                std::cout<< i << " " << begidx << std::endl;
+                if(i == b_defpts.size() & begidx != 0){
+                    i = 0;
+                }
+                compDP.push_back(b_defpts[i]);
+            }
+            if(begidx != 0){
+                compDP.push_back(b_defpts[begidx-1]);
+            }
+        } 
+
+        std::cout<<"before rearranging"<<std::endl;
+        for(std::vector<SkeletonVertexType>::iterator aitr = a.m_defpts.begin(); aitr != a.m_defpts.end(); ++aitr){
+            std::cout << *aitr << std::endl;
+        }
+        std::cout<<" "<<std::endl;
+        for(std::vector<SkeletonVertexType>::iterator bitr = b.m_defpts.begin(); bitr != b.m_defpts.end(); ++bitr){
+            std::cout << *bitr << std::endl;
+        }
+        std::cout<<"after rearranging"<<std::endl;
+        for(std::vector<SkeletonVertexType>::iterator aitr = a.m_defpts.begin(); aitr != a.m_defpts.end(); ++aitr){
+            std::cout << *aitr << std::endl;
+        }
+        std::cout<<" "<<std::endl;
+        for(std::vector<SkeletonVertexType>::iterator bitr = compDP.begin(); bitr != compDP.end(); ++bitr){
+            std::cout << *bitr << std::endl;
+        }
+
+        // compare distances between the two lists of def points
+
+        for(int i = 0; i < a_defpts.size(); i++){
+
+           //double dista = GetEdgeDistance(map_a[a_defpts[i]], desA);
+           double dista = 0;
+           std::vector<SkeletonVertexType> sp;
+           sp = map_a[a_defpts[i]];
+           for(int j = 0; j < sp.size()-1; j++){
+             //std::cout<<"Get distance for a "<< sp.size() <<std::endl;
+             itk::Point<double,3>  a = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,sp[j]).position;
+             itk::Point<double,3>  b = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,sp[j+1]).position;
+
+             itk::Point<double,3> c;
+             c[0] = a[0] - b[0];
+             c[1] = a[1] - b[1];
+             c[2] = a[2] - b[2];
+             //std::cout<<"Got values for a"<<std::endl;
+             dista += sqrt(pow(c[0],2)+pow(c[1],2)+pow(c[2],2));  
+           }
+
+           //double distb = GetEdgeDistance(map_b[b_defpts[i]], desB);
+           double distb = 0;
+           std::cout<<"starting to get distance for b"<<std::endl;
+           sp = map_b[b_defpts[i]];
+           for(int k = 0; k < sp.size()-1; k++){
+             //std::cout<<"Get distance for b"<<std::endl;
+             itk::Point<double,3>  a = boost::get(giaa::SkeletonPointPropertyTag(),desB->m_SkeletonGraph,sp[k]).position;
+             itk::Point<double,3>  b = boost::get(giaa::SkeletonPointPropertyTag(),desB->m_SkeletonGraph,sp[k+1]).position;
+
+             itk::Point<double,3> c;
+             c[0] = a[0] - b[0];
+             c[1] = a[1] - b[1];
+             c[2] = a[2] - b[2];
+
+             distb += sqrt(pow(c[0],2)+pow(c[1],2)+pow(c[2],2));    
+           }
+
+           //std::cout<<"Got the distances"<<std::endl;
+
+           if(dista < distb){
+                std::cout<< "smaller dist " << dista << " " << distb <<std::endl;
+                std::vector<SkeletonVertexType> avt = map_a[a_defpts[i]];
+                for(std::vector<SkeletonVertexType>::iterator itr = avt.begin(); itr != avt.end(); ++itr){
+                    //SkeletonPoint pt = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr);
+                    itk::Point<double,3>  color;
+                    color[0] = 1;
+                    color[1] = 0;
+                    color[2] = 0;
+                    boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr).color = color;
+                    //std::cout << "Changed " << *itr << " to " << "R" << std::endl;
+                    IndexType ch_color = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr).color;
+                    //std::cout<< "New color " << *itr << " " << ch_color[0] << " " << ch_color[1] << " " << ch_color[2] << std::endl;
+
+                }
+           }
+           else if(dista > distb){
+                std::cout<< "longer dist " << dista << " " << distb <<std::endl;
+                std::vector<SkeletonVertexType> avt = map_a[a_defpts[i]];
+                for(std::vector<SkeletonVertexType>::iterator itr = avt.begin(); itr != avt.end(); ++itr){
+                    //SkeletonPoint pt = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr);
+                    itk::Point<double,3>  color;
+                    color[0] = 0;
+                    color[1] = 1;
+                    color[2] = 0;
+                    boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr).SetColor(color);
+                    //std::cout << "Changed " << *itr << " to " << "G" << " in " << desA << std::endl;
+                    IndexType ch_color = boost::get(giaa::SkeletonPointPropertyTag(),desA->m_SkeletonGraph,*itr).color;
+                    //std::cout<< "New color " << *itr << " " << ch_color[0] << " " << ch_color[1] << " " << ch_color[2] << std::endl;
+                }
+           }
+
+           std::cout<<"Changed colors"<<std::endl;
+        } 
+
+    }
+
+}
+
+/*
+double GetEdgeDistance(std::vector<SkeletonVertexType> sp, giaa::TissueDescriptor::Pointer d){
+
+    int iteration = 0;
+    double dist;
+    for(int i = 0; i < sp.size()-1; i++){
+        itk::Point<double,3>  a = boost::get(giaa::SkeletonPointPropertyTag(),d->m_SkeletonGraph,sp[i]).position;
+        itk::Point<double,3>  b = boost::get(giaa::SkeletonPointPropertyTag(),d->m_SkeletonGraph,sp[i+1]).position;
+
+        itk::Point<double,3> c;
+        c[0] = a[0] - b[0];
+        c[1] = a[1] - b[1];
+        c[2] = a[2] - b[2];
+
+        dist += sqrt(pow(c[0],2)+pow(c[1],2)+pow(c[2],2));    
+     }
+        
+    return dist;
+}*/
+
+/*
+double GetDistanceSkeletonPoint(itk::Point<double,3> a, itk::Point<double,3> b){
+
+    itk::Point<double,3> c;
+    c[0] = a[0] - b[0];
+    c[1] = a[1] - b[1];
+    c[2] = a[2] - b[2];
+
+    double dist = sqrt(pow(c[0],2)+pow(c[1],2)+pow(c[2],2));
+
+    return dist;
+}*/
+#endif
+#ifdef OUT_OF_CONTROL
+std::map<SkeletonVertexType,std::vector<SkeletonVertexType> > TissueTracker::CellDefToEdgeMap (Cell a, giaa::TissueDescriptor::Pointer desA){
+
+    std::map<SkeletonVertexType,std::vector<SkeletonVertexType> > map;
+    std::vector<SkeletonVertexType> beg_pts;
+    int begflag = 0;
+    int deg;
+    SkeletonVertexType key;
+    std::vector<SkeletonVertexType> skpts;
+    int addflag = 0;
+
+    for(std::vector<SkeletonVertexType>::iterator it = a.Begin(); it != a.End(); ++it){
+        std::cout<< *it << std::endl;
+    }
+
+    std::vector<SkeletonVertexType>::iterator itr = a.Begin();
+    while(itr != a.End()){
+
+        //std::cout<<*itr<<std::endl;
+        deg = boost::out_degree(*itr, desA->m_SkeletonGraph);
+       // std::cout<<"deg "<< *itr << " " << deg << std::endl;
+
+        if(begflag == 0 && deg < 3){
+            beg_pts.push_back(*itr);
+        }
+
+        if(deg > 2){
+            begflag = 1;
+            key = *itr;
+            //std::cout << "**** KEY **** " << key << std::endl;
+            ++itr;
+            deg = boost::out_degree(*itr, desA->m_SkeletonGraph);
+            skpts.clear();
+            while(deg < 3){
+                if(itr == a.End()){
+                    break;
+                }
+                //std::cout<<"key "<<key<< " " << *itr << " " << deg << std::endl;
+                deg = boost::out_degree(*itr, desA->m_SkeletonGraph);
+                if(deg < 3){
+                  skpts.push_back(*itr);
+                  ++itr;
+                }
+            }
+        }
+
+        map[key] = skpts;
+    
+        if(deg < 3 && itr != a.End()){
+            ++itr;
+        }
+    }
+
+    skpts = map[key];
+    for(std::vector<SkeletonVertexType>::iterator it = beg_pts.begin(); it < beg_pts.end(); ++it){
+        skpts.push_back(*it);
+    }
+
+    /*
+    std::cout <<"Last key is " << key << std::endl;
+    map[key] = skpts;
+
+    std::cout<< "Start of def pts" << std::endl;
+    std::vector<SkeletonVertexType> dp = a.m_defpts;
+    for(std::vector<SkeletonVertexType>::iterator itr = dp.begin(); itr != dp.end(); ++itr){
+        std::cout<<*itr<<std::endl;
+    }
+    std::cout << "End of def pts" << std::endl;
+
+    for(std::map<SkeletonVertexType,std::vector<SkeletonVertexType> >::iterator mapitr = map.begin(); mapitr != map.end(); ++mapitr){
+        std::cout<<"********************"<<std::endl;
+        std::cout<< mapitr->first <<std::endl;
+        std::cout<<"********************"<<std::endl;
+        std::vector<SkeletonVertexType> vtpts = mapitr->second;
+        for(std::vector<SkeletonVertexType>::iterator ptitr = vtpts.begin(); ptitr != vtpts.end(); ++ptitr){
+            std::cout<<*ptitr<<std::endl;
+        }
+    }*/
+
+    return map;
+}
+#endif
+#ifdef OUT_OF_CONTROL
+void TissueTracker::ColorCell(Cell a, int colorbin, int display){
+
+
+    typedef itk::Point<double,3> PointIdx;
+    ProjectType::SpacingType s = m_Project.GetSpacing();
+
+    SkeletonVertexType pt1;
+    SkeletonVertexType pt2;
+    int goneThrough = 0;
+    pt1 = *a.Begin();
+    PointIdx T0;
+    PointIdx T1;
+    PointIdx T2;
+
+    for(int i = 0; i < a.m_SkeletonNodes.size(); i++){
+      
+          pt1 = a.m_SkeletonNodes[i];
+          pt2 = a.m_SkeletonNodes[i+1];
+
+          if(i == a.m_SkeletonNodes.size()-1){
+            pt2 = a.m_SkeletonNodes[0];
+          }
+
+          if (display == 1){
+              T0 = boost::get(SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,pt1).position;
+              T1 = boost::get(SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,pt2).position;
+          }
+          else if(display == 2){
+              T0 = boost::get(SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,pt1).position;
+              T1 = boost::get(SkeletonPointPropertyTag(),descriptor2->m_SkeletonGraph,pt2).position;
+          }
+          T2 = a.m_Centroid;
+
+          vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+          points->InsertNextPoint (s[0]*T0[0],s[1]*T0[1],s[2]*T0[2] );
+          points->InsertNextPoint (s[0]*T1[0],s[1]*T1[1],s[2]*T1[2] );
+          points->InsertNextPoint (s[0]*T2[0],s[1]*T2[1],s[2]*T2[2] );
+
+         
+          vtkSmartPointer<vtkTriangle> triangle = vtkSmartPointer<vtkTriangle>::New();
+          triangle->GetPointIds()->SetId ( 0, 0 );
+          triangle->GetPointIds()->SetId ( 1, 1 );
+          triangle->GetPointIds()->SetId ( 2, 2 );
+         
+          vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
+          triangles->InsertNextCell ( triangle );
+         
+          // Create a polydata object
+          vtkSmartPointer<vtkPolyData> trianglePolyData = vtkSmartPointer<vtkPolyData>::New();
+         
+          // Add the geometry and topology to the polydata
+          trianglePolyData->SetPoints ( points );
+          trianglePolyData->SetPolys ( triangles );
+         
+          // Create mapper and actor
+          vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+          #if VTK_MAJOR_VERSION <= 5
+            mapper->SetInput(trianglePolyData);
+          #else
+            mapper->SetInputData(trianglePolyData);
+          #endif
+          
+          vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+          actor->SetMapper(mapper);
+
+          //std::cout << "Drawing Triangle: " << actor << " " << color << std::endl;
+          if(colorbin != -1){
+            actor->GetProperty()->SetColor(r_color[colorbin], g_color[colorbin], b_color[colorbin]);
+          }
+          else{
+            actor->GetProperty()->SetColor(a.m_Color[0], a.m_Color[1], a.m_Color[2]);
+          }
+          if (display == 1){
+             m_CurrentRenderer->AddActor(actor);
+          }
+          else if(display == 2){
+             m_CurrentRenderer2->AddActor(actor);
+          }
+
+    }
+
+    //m_RenderWindow->Render();
+}
+#endif
+
+
+#if 0 NOT SURE ABOUT UTILITY
+	SkeletonVertexType src;
+	SkeletonVertexType tgt;
+	giaa::TissueDescriptor::Pointer descriptor = this->m_Project.GetTissueDescriptor(m_CurrentFrame);
+	std::map<SkeletonVertexType, SkeletonVertexType_lS> svtmap;
+
+	std::cout << "VALIDATION " << std::endl;
+	std::cout << descriptor << std::endl;
+
+	typedef itk::Point<double, 3> itkpt;
+	ProjectType::SpacingType s = m_Project.GetSpacing();
+	std::vector<SkeletonVertexType_lS> svtls;
+
+	svtmap.clear();
+
+	/*
+	 1) delete all vertices in listS
+	 2) copy from Skeleton Graph to listS
+	 3) validate listS
+	 4) finalize cellgraph
+	 */
+
+	std::cout << boost::num_vertices(descriptor->m_SkeletonGraph_listS)
+			<< std::endl;
+	std::cout << "num edges in listS SG before deleting "
+			<< boost::num_edges(descriptor->m_SkeletonGraph_listS) << std::endl;
+
+	boost::graph_traits<giaa::SkeletonGraph_listS>::edge_iterator ei, ei_end,
+			enext;
+	boost::tie(ei, ei_end) = edges(descriptor->m_SkeletonGraph_listS);
+	for (enext = ei; ei != ei_end; ei = enext) {
+		++enext;
+		remove_edge(*ei, descriptor->m_SkeletonGraph_listS);
+	}
+
+	BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph_listS,giaa::SkeletonGraph_listS){
+
+	boost::clear_vertex(v,descriptor->m_SkeletonGraph_listS);
+	//boost::remove_vertex(v,descriptor->m_SkeletonGraph_listS);
+}
+
+	boost::graph_traits<giaa::SkeletonGraph_listS>::vertex_iterator vi, vi_end,
+			next;
+	boost::tie(vi, vi_end) = vertices(descriptor->m_SkeletonGraph_listS);
+	for (next = vi; vi != vi_end; vi = next) {
+		++next;
+		remove_vertex(*vi, descriptor->m_SkeletonGraph_listS);
+	}
+
+	std::cout << "cleared vertices" << std::endl;
+	std::cout << "num vert in SG  "
+			<< boost::num_vertices(descriptor->m_SkeletonGraph) << std::endl;
+	std::cout << "num edges in SG "
+			<< boost::num_edges(descriptor->m_SkeletonGraph) << std::endl;
+	std::cout << "num vert "
+			<< boost::num_vertices(descriptor->m_SkeletonGraph_listS)
+			<< std::endl;
+	std::cout << "num edges "
+			<< boost::num_edges(descriptor->m_SkeletonGraph_listS) << std::endl;
+
+	BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+
+	itkpt a = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,v).position;
+	SkeletonPoint pt = SkeletonPoint(a);
+	SkeletonVertexType_lS svt = boost::add_vertex(pt,descriptor->m_SkeletonGraph_listS);
+	svtmap[v] = svt;
+
+	// add all vertices from m_SkeletonGraph defined as vecS to m_SkeletonGraph_listS
+	/*itkpt avtx = boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,v).position;
+	 IndexType a;
+	 a.push_back(avtx[0]);
+	 a.push_back(avtx[1]);
+	 a.push_back(avtx[2]);*/
+	vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+	newSphere->SetCenter(s[0]*a[0],s[1]*a[1],0.0);
+	//std::cout << v << " " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;
+	newSphere->SetRadius(0.45);
+
+	vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	sphereMapper->SetInputConnection(newSphere->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+	sphereActor->SetMapper(sphereMapper);
+	sphereActor->GetProperty()->SetColor(1,1,1);
+	if(boost::degree(v,descriptor->m_SkeletonGraph) > 2) {
+		newSphere->SetRadius(0.45);
+		sphereActor->GetProperty()->SetColor(0,0,1);
+	}
+	if(boost::degree(v,descriptor->m_SkeletonGraph) == 1) {
+		newSphere->SetRadius(0.45);
+		sphereActor->GetProperty()->SetColor(0,1,0);
+	}
+
+	m_CurrentRenderer->AddActor(sphereActor);
+	//vtkTogiaaVertex[sphereActor] = svt;
+
+}
+
+/*BGL_FORALL_VERTICES(v,descriptor->m_SkeletonGraph,giaa::SkeletonGraph) {
+ IndexType a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,v).position;
+ vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+ newSphere->SetCenter(s[0]*a[0],s[1]*a[1],0.0);
+ std::cout << v << " " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;
+ newSphere->SetRadius(0.15);
+
+ vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+ sphereMapper->SetInputConnection(newSphere->GetOutputPort());
+
+ vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+ sphereActor->SetMapper(sphereMapper);
+ m_CurrentRenderer->AddActor(sphereActor);
+ vtkTogiaaVertex[sphereActor] = v;
+ }*/
+
+	BGL_FORALL_EDGES(e,descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+
+	//std::cout << "In edges" << std::endl;
+	vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
+	SkeletonVertexType src = boost::source(e,descriptor->m_SkeletonGraph);
+	/*std::vector<SkeletonVertexType_lS>::iterator srcitr;
+	 for(srcitr = svtls.begin(); srcitr != svtls.end(); ++srcitr){
+	 if (*srcitr == src){
+	 std::cout<<"Found "<<src<<std::endl;
+	 break;
+	 }
+	 }*/
+	/*
+	 if(srcitr == svtls.end()){
+	 svtls.push_back(src);
+	 IndexType a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,src).position;
+	 vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+	 newSphere->SetCenter(s[0]*a[0],s[1]*a[1],0.0);
+	 //std::cout << v << " " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;
+	 newSphere->SetRadius(0.15);
+
+	 vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	 sphereMapper->SetInputConnection(newSphere->GetOutputPort());
+
+	 vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+	 sphereActor->SetMapper(sphereMapper);
+	 m_CurrentRenderer->AddActor(sphereActor);
+	 // map from SkeletonVertexType_ls to
+	 vtkTogiaaVertex[sphereActor] = src;
+	 }*/
+
+	SkeletonVertexType tgt = boost::target(e,descriptor->m_SkeletonGraph);
+
+	/*std::vector<SkeletonVertexType_lS>::iterator tgtitr;
+	 for(tgtitr = svtls.begin(); tgtitr != svtls.end(); ++tgtitr){
+	 if (*tgtitr == tgt){
+	 break;
+	 }
+	 }
+
+	 if(tgtitr == svtls.end()){
+	 svtls.push_back(tgt);
+	 IndexType a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph_listS,tgt).position;
+	 vtkSmartPointer<vtkSphereSource> newSpheretgt = vtkSmartPointer<vtkSphereSource>::New();
+	 newSpheretgt->SetCenter(s[0]*a[0],s[1]*a[1],0.0);
+	 //std::cout << v << " " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;
+	 newSpheretgt->SetRadius(0.15);
+
+	 vtkSmartPointer<vtkPolyDataMapper> sphereMappertgt = vtkSmartPointer<vtkPolyDataMapper>::New();
+	 sphereMappertgt->SetInputConnection(newSpheretgt->GetOutputPort());
+
+	 vtkSmartPointer<vtkActor> sphereActortgt = vtkSmartPointer<vtkActor>::New();
+	 sphereActortgt->SetMapper(sphereMappertgt);
+	 m_CurrentRenderer->AddActor(sphereActortgt);
+	 // map from SkeletonVertexType_ls to
+	 vtkTogiaaVertex[sphereActortgt] = tgt;
+	 }*/
+
+	boost::add_edge(svtmap[src],svtmap[tgt],descriptor->m_SkeletonGraph_listS);
+
+	itkpt a= boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,src).position;
+	//IndexType a=m_SkeletonGraph[].position;
+	newLine->SetPoint1(a[0]*s[0],a[1]*s[1],0.0);
+	itkpt b= boost::get(giaa::SkeletonPointPropertyTag(),descriptor->m_SkeletonGraph,tgt).position;
+	//IndexType b=m_SkeletonGraph[boost::target(e,)].position;
+	newLine->SetPoint2(b[0]*s[0],b[1]*s[1],0.0);
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(newLine->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
+	actor->SetMapper(mapper);
+	actor->GetProperty()->SetLineWidth(5);
+
+	m_CurrentRenderer->AddActor(actor);
+
+	/* add edges to m_SkeletonGraph_listS
+
+	 IndexType avtx;
+	 IndexType bvtx;
+
+	 for(int i = 0; i < 3; i++){
+	 avtx.push_back(a[i]);
+	 bvtx.push_back(b[i]);
+	 }
+
+	 pos_svt_edge[avtx] = src;
+	 pos_svt_edge[bvtx] = tgt;*/
+
+	tuple<SkeletonVertexType_lS,SkeletonVertexType_lS> pts (svtmap[src],svtmap[tgt]);
+	//giaaTovtkEdge[pts] = actor;
+	//std::cout<< src << " " << tgt << " "<< actor <<std::endl;
+	tuple<SkeletonVertexType_lS,SkeletonVertexType_lS> ptt (svtmap[tgt],svtmap[src]);
+	//giaaTovtkEdge[ptt] = actor;
+	//vtkTogiaaEdge[actor] = pts;
+
+}
+
+	m_RenderWindow->Render();
+
+	std::cout << "num vert in SG  "
+			<< boost::num_vertices(descriptor->m_SkeletonGraph) << std::endl;
+	std::cout << "num edges in SG "
+			<< boost::num_edges(descriptor->m_SkeletonGraph) << std::endl;
+	std::cout << "num vert "
+			<< boost::num_vertices(descriptor->m_SkeletonGraph_listS)
+			<< std::endl;
+	std::cout << "num edges"
+			<< boost::num_edges(descriptor->m_SkeletonGraph_listS) << std::endl;
+
+	//this->m_pUI->showValidationCBox->setChecked(true);
+	//this->UpdateControls();
+	//this->UpdateDisplay();
+#endif
