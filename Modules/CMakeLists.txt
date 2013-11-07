@@ -49,20 +49,8 @@ SET( TTGui_SRCS
     #Commands/EllipseCommand.cpp
   )
 
-  # another list, this time it includes all header files that should be treated with moc
-  SET( TTGui_MOC_HDRS
-     tissuetracker.h
-     sqlnewprojectdialog.h
-     sqlopenprojectdialog.h
-     tectonics.h
-  )
 
-  # some .ui files
-  SET( TTGui_UIS
-     tissuetracker.ui
-     sqlnewprojectdialog.ui
-     sqlopenprojectdialog.ui
-  )
+  
 
   # and finally an resource file
   #SET( TTGui_RCS
