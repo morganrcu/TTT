@@ -12,22 +12,21 @@ TARGET = TissueTracker
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        tissuetracker.cpp \
-    tissuetrackingproject.cpp \
-    newprojectdialog.cpp \
-    sqlopenprojectdialog.cpp
+SOURCES += source/main.cpp\
+        source/tissuetracker.cpp \
+    source/tissuetrackingproject.cpp \
+    source/newprojectdialog.cpp \
+    source/sqlopenprojectdialog.cpp
 
-HEADERS  += tissuetracker.h \
-    tissuetrackingproject.h \
-    newprojectdialog.h \
-    sqlopenprojectdialog.h
+HEADERS  += include/tissuetracker.h \
+    include/tissuetrackingproject.h \
+    include/newprojectdialog.h \
+    include/sqlopenprojectdialog.h
 
-FORMS    += tissuetracker.ui \
-    newprojectdialog.ui \
-    ../mysqlproject.ui \
-    sqlnewprojectdialog.ui \
-    sqlopenprojectdialog.ui
+FORMS    += ui/tissuetracker.ui \
+    ui/newprojectdialog.ui \
+    ui/sqlnewprojectdialog.ui \
+    ui/sqlopenprojectdialog.ui
 
 INCLUDEPATH+=/usr/local/include/vtk-6.0 /usr/local/include/ITK-4.4 ../../src
 

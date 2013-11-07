@@ -25,3 +25,11 @@ link_directories(${Boost_LIBRARY_DIRS})
 FIND_PACKAGE(Qt4 REQUIRED)
 SET( QT_USE_QTXML TRUE )
 INCLUDE(${QT_USE_FILE})
+
+
+add_subdirectory(Modules/Core)
+add_subdirectory(Modules/Drawers)
+add_subdirectory(Modules/Commands)
+add_subdirectory(Modules/Interactors)
+add_subdirectory(Modules/IO)
+add_subidrectory(Modules/GUI)
