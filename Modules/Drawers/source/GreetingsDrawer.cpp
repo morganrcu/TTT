@@ -21,11 +21,11 @@
 #include <vtkRenderer.h>
 #include "GreetingsDrawer.h"
 
-GreetingsDrawer::GreetingsDrawer(){
+ttt::GreetingsDrawer::GreetingsDrawer(){
 
 }
 
-void GreetingsDrawer::Draw() {
+void ttt::GreetingsDrawer::Draw() {
 
     vtkSmartPointer<vtkTextSource> text = vtkSmartPointer<vtkTextSource>::New();
     text->SetText("Tufts Tissue tracker 0.9");

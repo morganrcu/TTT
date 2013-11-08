@@ -22,18 +22,19 @@
 //#include <boost/tuple/tuple.hpp>
 //#include <boost/tuple/tuple_comparison.hpp>
 #include "Drawer.h"
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
+namespace ttt{
 class PrimalGraphDrawer: public Drawer {
 public:
 	typedef itk::FixedArray<float,3> SpacingType;
 private:
-	giaa::TissueDescriptor::Pointer m_Descriptor;
+	TissueDescriptor::Pointer m_Descriptor;
 	SpacingType m_Spacing;
 
-	typedef std::map<vtkSmartPointer<vtkActor>, giaa::SkeletonVertexType> Actor2SkeletonVertexType;
+	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonVertexType> Actor2SkeletonVertexType;
 	Actor2SkeletonVertexType  m_Actor2SkeletonVertex;//vtkTogiaaVertex; // map from actor to svt in listS graph used for validation of primal
 
-	typedef std::map<vtkSmartPointer<vtkActor>, giaa::SkeletonEdgeType> Actor2SkeletonEdgeType;
+	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonEdgeType> Actor2SkeletonEdgeType;
 	Actor2SkeletonEdgeType m_Actor2SkeletonEdge;// vtkTowgiaaEdge;
 
 #if 0
@@ -62,7 +63,7 @@ public:
 
 	}
 
-	inline void SetTissueDescriptor(const giaa::TissueDescriptor::Pointer & descriptor){
+	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
 	inline void SetSpacing(const SpacingType & spacing ){
@@ -74,11 +75,11 @@ public:
 	inline bool IsEdge(const vtkSmartPointer<vtkActor> & actor){
 		return m_Actor2SkeletonEdge.count(actor) >0;
 	}
-	inline giaa::SkeletonVertexType GetActorSkeletonVertex(const vtkSmartPointer<vtkActor> & actor){
+	inline SkeletonVertexType GetActorSkeletonVertex(const vtkSmartPointer<vtkActor> & actor){
 		assert(IsVertex(actor));
 		return m_Actor2SkeletonVertex[actor];
 	}
-	inline giaa::SkeletonEdgeType GetActorSkeletonEdge(const vtkSmartPointer<vtkActor> & actor){
+	inline SkeletonEdgeType GetActorSkeletonEdge(const vtkSmartPointer<vtkActor> & actor){
 		assert(IsEdge(actor));
 		return m_Actor2SkeletonEdge[actor];
 	}
@@ -87,7 +88,7 @@ public:
 	}
 	virtual void Draw();
 };
-
+}
 
 #endif /* PRIMALGRAPHDRAWER_H_ */
 /** @}*/

@@ -21,7 +21,7 @@
 
 #include <itkImage.h>
 #include "Drawer.h"
-
+namespace ttt{
 //template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
 class PlatenessImageDrawer : public Drawer {
 
@@ -38,5 +38,7 @@ public:
 
 	}
 };
+
+}
 #endif
 /** @}*/

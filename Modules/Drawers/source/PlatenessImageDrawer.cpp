@@ -7,10 +7,10 @@
 
 #include "PlatenessImageDrawer.h"
 
-PlatenessImageDrawer::PlatenessImageDrawer(){
+ttt::PlatenessImageDrawer::PlatenessImageDrawer(){
 }
 
-void PlatenessImageDrawer::Draw(){
+void ttt::PlatenessImageDrawer::Draw(){
 
 	typedef itk::ImageToVTKImageFilter<PlatenessImageType> ImageToVTKType;
 

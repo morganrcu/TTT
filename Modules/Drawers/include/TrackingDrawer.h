@@ -18,16 +18,18 @@
  */
 #ifndef TRACKINGDRAWER_H_
 #define TRACKINGDRAWER_H_
-
-#include <Drawer.h>
-#include "giaaCellGraph2.h"
 #include <map>
+#include "tttDescriptionDataTypes.h"
+#include "Drawer.h"
+
+
+namespace ttt{
 class TrackingDrawer: public Drawer {
 public:
 	TrackingDrawer();
 	virtual ~TrackingDrawer();
 
-	inline void SetTrackedDescriptor(const giaa::TrackedTissueDescriptor::Pointer & descriptor){
+	inline void SetTrackedDescriptor(const TrackedTissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
 	virtual void Draw();
@@ -39,9 +41,9 @@ private:
 	typedef std::vector<double> Color ;
 
 	std::map<int,Color> m_TrackID2Color;
-	giaa::TrackedTissueDescriptor::Pointer m_Descriptor;
+	TrackedTissueDescriptor::Pointer m_Descriptor;
 
 };
-
+}
 #endif /* TRACKINGDRAWER_H_ */
 /** @}*/

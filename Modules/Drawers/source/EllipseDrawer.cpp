@@ -17,7 +17,7 @@
 #include <vtkParametricFunctionSource.h>
 #include <vtkPolyDataMapper.h>
 #include "EllipseDrawer.h"
-void EllipseDrawer::Draw(){
+void ttt::EllipseDrawer::Draw(){
 
 	for(std::map<unsigned long int,Ellipse<double> >::iterator it= (*m_Ellipses).begin();it!=(*m_Ellipses).end();it++){
 

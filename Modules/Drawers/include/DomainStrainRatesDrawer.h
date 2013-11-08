@@ -13,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTDrawer
+/** \addtogroup TTTDrawers
  *  @{
  */
 
@@ -21,13 +21,13 @@
 #define DOMAINSTRAINRATESDRAWER_H_
 #include "Drawer.h"
 #include "tectonics.h"
-#include "giaaCellGraph2.h"
-
+#include "tttDescriptionDataTypes.h"
+namespace ttt{
 class DomainStrainRatesDrawer : public Drawer{
 
 private:
 	DomainStrainRatesMapTypePointer m_DomainStrainRates;
-	giaa::TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
+	TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
 
 public:
 	DomainStrainRatesDrawer(){
@@ -37,13 +37,13 @@ public:
 	inline void SetDomainStrainRates(const DomainStrainRatesMapTypePointer & domainStrainRates){
 		m_DomainStrainRates=domainStrainRates;
 	}
-	inline void SetTrackedTissueDescriptor(const giaa::TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
+	inline void SetTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
 		m_TrackedTissueDescriptor=trackedTissueDescriptor;
 	}
 	virtual void Draw();
 
 };
-
+}
 
 #endif /* DOMAINSTRAINRATESDRAWER_H_ */
 /** @}*/

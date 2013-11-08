@@ -13,19 +13,19 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTDrawer
+/** \addtogroup TTTDrawers
  *  @{
  */
 #ifndef DUAL_GRAPH_DRAWER_H_
 #define DUAL_GRAPH_DRAWER_H_
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
 #include "Drawer.h"
-
+namespace ttt{
 class DualGraphDrawer: public Drawer {
 public:
 	typedef itk::FixedArray<float,3> SpacingType;
 private:
-	giaa::TissueDescriptor::Pointer m_Descriptor;
+	TissueDescriptor::Pointer m_Descriptor;
 	SpacingType m_Spacing;
 
 public:
@@ -36,7 +36,7 @@ public:
 
 	}
 
-	inline void SetTissueDescriptor(const giaa::TissueDescriptor::Pointer & descriptor){
+	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
 	inline void SetSpacing(const SpacingType & spacing ){
@@ -47,8 +47,7 @@ public:
 	}
 	virtual void Draw();
 };
-
-
+}
 
 #endif /* DUALGRAPHDRAWER_H_ */
 /** @}*/

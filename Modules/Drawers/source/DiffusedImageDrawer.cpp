@@ -23,11 +23,11 @@
 
 //template<class TDiffusedImage>
 //DiffusedImageDrawer<TDiffusedImage>::DiffusedImageDrawer(vtkSmartPointer<vtkRenderer> & renderer, const typename TDiffusedImage::Pointer & diffusedImage)
-DiffusedImageDrawer::DiffusedImageDrawer(){
+ttt::DiffusedImageDrawer::DiffusedImageDrawer(){
 }
 //template<class TDiffusedImage>
 //void DiffusedImageDrawer<TDiffusedImage>::Draw(){
-void DiffusedImageDrawer::Draw() {
+void ttt::DiffusedImageDrawer::Draw() {
 	typedef itk::ImageToVTKImageFilter<DiffusedImageType> ImageToVTKType;
 	typename ImageToVTKType::Pointer tovtk = ImageToVTKType::New();
 

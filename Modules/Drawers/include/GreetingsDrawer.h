@@ -20,7 +20,7 @@
 #define GREETINGS_DRAWER_H
 
 #include "Drawer.h"
-
+namespace ttt{
 class GreetingsDrawer : public Drawer {
 
 public:
@@ -31,5 +31,6 @@ public:
 	}
 	void Draw();
 };
+}
 #endif
 /** @}*/

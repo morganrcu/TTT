@@ -1,9 +1,3 @@
-/*
- * DataCastingCommand.h
- *
- *  Created on: Sep 23, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTDataCasting
  *  @{
  */
 
@@ -30,7 +24,7 @@
 #include <itkCastImageFilter.h>
 #include "AppCommand.h"
 
-
+namespace ttt{
 class DataCastingCommand : public AppCommand{
 public:
 
@@ -68,6 +62,6 @@ public:
 		return m_Output;
 	}
 };
-
+}
 #endif /* DATACASTINGCOMMAND_H_ */
 /** @}*/

@@ -19,9 +19,10 @@
 #ifndef VERTEX_LOCATIONS_DRAWER_H
 #define VERTEX_LOCATIONS_DRAWER_H
 
+
 #include <itkPointSet.h>
 #include "Drawer.h"
-
+namespace ttt{
 //template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
 class VertexLocationsDrawer : public Drawer {
 
@@ -46,5 +47,6 @@ public:
 
 	}
 };
+}
 #endif
 /** @}*/

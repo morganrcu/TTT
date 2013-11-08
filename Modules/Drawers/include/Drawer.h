@@ -13,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTDrawer
+/** \addtogroup TTTDrawers
  *  @{
  */
 #ifndef DRAWER_H
@@ -25,7 +25,7 @@
 /**
  * Abstract class to encapsulate image drawing routines.
  */
-
+namespace ttt{
 class Drawer : public vtkObjectBase{
 
 protected:
@@ -48,5 +48,6 @@ public:
 		m_Renderer=renderer;
 	}
 };
+}
 #endif
 /** @}*/

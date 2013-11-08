@@ -24,7 +24,7 @@
 #include "Ellipse.h"
 #include <boost/shared_ptr.hpp>
 #include <map>
-
+namespace ttt{
 class EllipseDrawer : public Drawer{
 
 private:
@@ -44,7 +44,7 @@ public:
 	}
 
 };
-
+}
 
 #endif /* ELLIPSEDRAWER_H_ */
 /** @}*/

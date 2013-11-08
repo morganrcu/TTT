@@ -118,25 +118,25 @@ public:
 /**
  * Auxiliary class to specify the graph storage
  */
-typedef boost::property<giaa::SkeletonPointPropertyTag, giaa::SkeletonPoint,
+typedef boost::property<ttt::SkeletonPointPropertyTag, ttt::SkeletonPoint,
 		boost::property<boost::vertex_index_t, int> > SkeletonPointProperty;
 
 /**
  * SkeletonPoint storage. The graph structure represents the intercellular skeleton
  */
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-		giaa::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
+		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
 
 
 /**
  * Type of the vertices in the graph_traits
  */
-typedef boost::graph_traits<giaa::SkeletonGraph>::vertex_descriptor SkeletonVertexType;
+typedef boost::graph_traits<ttt::SkeletonGraph>::vertex_descriptor SkeletonVertexType;
 
 /**
  * Type of the edges in the graph_traits
  */
-typedef boost::graph_traits<giaa::SkeletonGraph>::edge_descriptor SkeletonEdgeType;
+typedef boost::graph_traits<ttt::SkeletonGraph>::edge_descriptor SkeletonEdgeType;
 
 
 /**
@@ -248,7 +248,7 @@ public:
 	/**
 	 *
 	 */
-	giaa::CellVertexType m_ObservedCell;
+	ttt::CellVertexType m_ObservedCell;
 	template<typename Archive>
 	void serialize(Archive& ar, const unsigned version) {
 		ar & boost::serialization::base_object<Cell>(*this);
@@ -499,18 +499,18 @@ SkeletonGraph;
 #if 0
 
 typedef boost::adjacency_list<boost::listS, boost::listS, boost::undirectedS,
-		giaa::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_listS;
+		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_listS;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-		giaa::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_simple;
+		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_simple;
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-		giaa::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_def;
+		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph_def;
 #endif
 
 #if 0
-typedef boost::graph_traits<giaa::SkeletonGraph_listS>::vertex_descriptor SkeletonVertexType_lS;
-typedef boost::graph_traits<giaa::SkeletonGraph_simple>::vertex_descriptor SkeletonVertexType_sim;
-typedef boost::graph_traits<giaa::SkeletonGraph_def>::vertex_descriptor SkeletonVertexType_def;
+typedef boost::graph_traits<ttt::SkeletonGraph_listS>::vertex_descriptor SkeletonVertexType_lS;
+typedef boost::graph_traits<ttt::SkeletonGraph_simple>::vertex_descriptor SkeletonVertexType_sim;
+typedef boost::graph_traits<ttt::SkeletonGraph_def>::vertex_descriptor SkeletonVertexType_def;
 #endif
 
 

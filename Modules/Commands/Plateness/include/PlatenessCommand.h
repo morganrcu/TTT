@@ -1,9 +1,3 @@
-/*
- * PlatenessCommand.h
- *
- *  Created on: Sep 21, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTPlatenessCommand
  *  @{
  */
 
@@ -29,7 +23,7 @@
 
 #include "AppCommand.h"
 #include "giaaPlatenessImageFilter.h"
-
+namespace ttt{
 class PlatenessCommand: public AppCommand {
 
 public:
@@ -44,7 +38,7 @@ public:
 
 private:
 
-	typedef giaa::PlatenessImageFilter<PlatenessImageType,PlatenessImageType,OrientationImageType> PlatenessFilterType;
+	typedef ttt::PlatenessImageFilter<PlatenessImageType,PlatenessImageType,OrientationImageType> PlatenessFilterType;
     typedef itk::RescaleIntensityImageFilter<PlatenessImageType, PlatenessImageType> PlatenessRescalerType;
 
 
@@ -96,6 +90,6 @@ public:
 	}
 	void Do();
 };
-
+}
 #endif /* PLATENESSCOMMAND_H_ */
 /** @}*/

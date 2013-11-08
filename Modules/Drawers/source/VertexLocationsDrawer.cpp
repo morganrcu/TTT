@@ -1,7 +1,7 @@
 #include <vtkSphereSource.h>
 #include <vtkPolyDataMapper.h>
 #include "VertexLocationsDrawer.h"
-void VertexLocationsDrawer::Draw(){
+void ttt::VertexLocationsDrawer::Draw(){
 
 	       typedef PointSetType::PointsContainer PointsContainer;
 

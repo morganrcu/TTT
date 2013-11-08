@@ -1,9 +1,3 @@
-/*
- * VinodthSegmentationCommand.h
- *
- *  Created on: Sep 24, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,18 +13,19 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTAdherensJunctionSegmentation
  *  @{
  */
 
-#ifndef VINODTHSEGMENTATIONCOMMAND_H_
-#define VINODTHSEGMENTATIONCOMMAND_H_
+#ifndef ADHERENSJUNCTIONSEGMENTATIONCOMMAND_H_
+#define ADHERENSJUNCTIONSEGMENTATIONCOMMAND_H_
 
-#include <AppCommand.h>
-#include "giaaCellGraph2.h"
+#include "AppCommand.h"
+#include "tttDescriptionDataTypes.h"
 #include "itkPointSet.h"
 #include "itkImage.h"
-class VinodthSegmentationCommand: public AppCommand {
+namespace ttt{
+class AdherensJunctionSegmentationCommand: public AppCommand {
 
 public:
 	typedef itk::PointSet<float,3> PointSetType;
@@ -39,12 +34,12 @@ private:
 	PointSetType::Pointer m_Locations;
 	PlatenessImageType::Pointer m_Plateness;
 
-	giaa::TissueDescriptor::Pointer m_Descriptor;
+	ttt::TissueDescriptor::Pointer m_Descriptor;
 public:
-	VinodthSegmentationCommand(){
-		m_Descriptor=giaa::TissueDescriptor::New();
+	AdherensJunctionSegmentationCommand(){
+		m_Descriptor=ttt::TissueDescriptor::New();
 	}
-	virtual ~VinodthSegmentationCommand(){
+	virtual ~AdherensJunctionSegmentationCommand(){
 
 	}
 	virtual void Do(){
@@ -58,7 +53,7 @@ public:
 	inline void SetPlatenessImage(const PlatenessImageType::Pointer & plateness){
 		m_Plateness=plateness;
 	}
-	inline giaa::TissueDescriptor::Pointer GetTissueDescriptor(){
+	inline ttt::TissueDescriptor::Pointer GetTissueDescriptor(){
 		return m_Descriptor;
 	}
 	void InitDefGraph();
@@ -67,6 +62,7 @@ public:
 	double angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts);
 	double distitkpt(itk::Point<float,3> pta, itk::Point<float,3> ptb);
 };
+}
 
 #endif /* VINODTHSEGMENTATIONCOMMAND_H_ */
 /** @}*/

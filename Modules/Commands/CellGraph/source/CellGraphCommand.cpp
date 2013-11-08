@@ -5,18 +5,18 @@
  *      Author: morgan
  */
 
-#include "DualGraphCommand.h"
+#include "CellGraphCommand.h"
 
-DualGraphCommand::DualGraphCommand() {
+ttt::CellGraphCommand::DualGraphCommand() {
 	m_Dual =DualFilterType::New();
 
 }
 
-DualGraphCommand::~DualGraphCommand() {
+ttt::CellGraphCommand::~DualGraphCommand() {
 
 }
 
-void DualGraphCommand::Do(){
+void CellGraphCommand::Do(){
 
 	m_Dual->SetInput(m_Graphs);
 	m_Dual->GenerateData();

@@ -1,9 +1,3 @@
-/*
- * TectonicsCommand.h
- *
- *  Created on: Oct 15, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,34 +13,33 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTTectonics
  *  @{
  */
 
 #ifndef TECTONICSCOMMAND_H_
 #define TECTONICSCOMMAND_H_
 
-#include <AppCommand.h>
+#include "AppCommand.h"
 #include "tectonics.h"
 #include "Ellipse.h"
-#include "giaaCellGraph2.h"
-
-
+#include "tttDescriptionDataTypes.h"
+namespace ttt{
 class TectonicsCommand: public AppCommand {
 
 private:
 
 	typedef Ellipse<double> EllipseType;
-	typedef std::map<typename giaa::TrackedTissueDescriptor::DualGraphVertexDescriptorType,EllipseType >   EllipseMapType;
+	typedef std::map<typename TrackedTissueDescriptor::DualGraphVertexDescriptorType,EllipseType >   EllipseMapType;
 	typedef boost::shared_ptr<EllipseMapType > EllipseMapTypePointer;
 
 
 
-	giaa::TrackedTissueDescriptor::Pointer m_PreviousDescriptor;
-	giaa::TrackedTissueDescriptor::Pointer m_CurrentDescriptor;
-	giaa::TrackedTissueDescriptor::Pointer m_NextDescriptor;
+	TrackedTissueDescriptor::Pointer m_PreviousDescriptor;
+	TrackedTissueDescriptor::Pointer m_CurrentDescriptor;
+	TrackedTissueDescriptor::Pointer m_NextDescriptor;
 
-	boost::shared_ptr<std::vector<giaa::TrackedDomain> > m_Domains;
+	boost::shared_ptr<std::vector<TrackedDomain> > m_Domains;
 
 	EllipseMapTypePointer  m_PreviousEllipses;
 	EllipseMapTypePointer  m_CurrentEllipses;
@@ -57,7 +50,7 @@ private:
 public:
 	TectonicsCommand();
 
-	inline void SetDomains(const boost::shared_ptr<std::vector<giaa::TrackedDomain> > & domains){
+	inline void SetDomains(const boost::shared_ptr<std::vector<TrackedDomain> > & domains){
 		m_Domains=domains;
 	}
 	inline void SetEllipsesPrevious(const EllipseMapTypePointer & ellipses){
@@ -71,17 +64,15 @@ public:
 	inline void SetEllipsesCurrent(const EllipseMapTypePointer & ellipses){
 		m_CurrentEllipses=ellipses;
 	}
-	inline void SetCurrentTrackedTissueDescriptor(const giaa::TrackedTissueDescriptor::Pointer descriptor){
+	inline void SetCurrentTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer descriptor){
 		m_CurrentDescriptor=descriptor;
-
 	}
-	inline void SetPreviousTrackedTissueDescriptor(const giaa::TrackedTissueDescriptor::Pointer descriptor){
+	inline void SetPreviousTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer descriptor){
 		m_PreviousDescriptor=descriptor;
 
 	}
-	inline void SetNextTrackedTissueDescriptor(const giaa::TrackedTissueDescriptor::Pointer descriptor){
+	inline void SetNextTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer descriptor){
 		m_NextDescriptor=descriptor;
-
 	}
 	inline DomainStrainRatesMapTypePointer GetDomainStrainRates(){
 		return m_DomainStrainRates;
@@ -89,6 +80,6 @@ public:
 	virtual ~TectonicsCommand();
 	virtual void Do();
 };
-
+}
 #endif /* TECTONICSCOMMAND_H_ */
 /** @}*/

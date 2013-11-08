@@ -38,7 +38,7 @@ public:
 		m_Theta = -1;
 	}
 
-#ifdef BOOST_SERIALIZATION
+#ifdef TTT_BOOST_SERIALIZATION
 	template<typename Archive>
 	void serialize(Archive& ar, const unsigned version) {
 		ar & m_Xrad;
@@ -47,7 +47,7 @@ public:
 		ar & m_Ycent;
 		ar & m_Theta;
 	}
-#endif BOOST_SERIALIZATION
+#endif
 	/**
 	 * x radius
 	 */

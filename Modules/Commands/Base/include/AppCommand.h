@@ -15,10 +15,11 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTBase
  *  @{
  */
 
+namespace ttt{
 /**
  * Class defining the interface for data modification objects
  */
@@ -36,6 +37,6 @@ public:
 	}
 
 };
-
+}
 #endif /* APPCOMMAND_H_ */
 /** @}*/

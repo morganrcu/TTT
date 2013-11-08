@@ -20,9 +20,9 @@
 #include <boost/graph/iteration_macros.hpp>
 #include "DualGraphDrawer.h"
 
-void DualGraphDrawer::Draw() {
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,giaa::CellGraph){
-		itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
+void ttt::DualGraphDrawer::Draw() {
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,ttt::CellGraph){
+		itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
 		vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 		newSphere->SetCenter(a[0],a[1],a[2]);
 		newSphere->SetRadius(0.8);
@@ -38,11 +38,11 @@ void DualGraphDrawer::Draw() {
 		sphereActor->SetMapper(sphereMapper);
 		m_Renderer->AddActor(sphereActor);
 	}
-	BGL_FORALL_EDGES(e,*m_Descriptor->m_CellGraph,giaa::CellGraph){
+	BGL_FORALL_EDGES(e,*m_Descriptor->m_CellGraph,ttt::CellGraph){
 		vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
-		itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).m_Centroid;
+		itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).m_Centroid;
 		newLine->SetPoint1(a[0],a[1],a[2]);
-		itk::Point<double,3> b= boost::get(giaa::CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).m_Centroid;
+		itk::Point<double,3> b= boost::get(ttt::CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).m_Centroid;
 
 	//IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
 		newLine->SetPoint2(b[0],b[1],a[2]);
@@ -61,9 +61,9 @@ void DualGraphDrawer::Draw() {
 
 	typedef itk::Point<double, 3> IndexType;
 
-	BGL_FORALL_VERTICES(v,m_Descriptor->m_CellGraph,giaa::CellGraph){
+	BGL_FORALL_VERTICES(v,m_Descriptor->m_CellGraph,ttt::CellGraph){
 
-		itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_Centroid;
+		itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_Centroid;
 
 	vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 	//std::cout <<"loc " << s[0]*a[0] << " " << s[1]*a[1] << std::endl;
@@ -80,7 +80,7 @@ void DualGraphDrawer::Draw() {
 		sphereActor->GetProperty()->SetColor(0,0,1);
 	}
 #if 0
-	if(boost::get(giaa::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_area < 1) {
+	if(boost::get(ttt::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_area < 1) {
 		sphereActor->GetProperty()->SetColor(1,0,0);
 	}
 #endif
@@ -89,8 +89,8 @@ void DualGraphDrawer::Draw() {
 	/*
 	 if(DoneTracking){
 	 BGL_FORALL_VERTICES(vt,tracks[m_CurrentFrame]->m_TrackedCellGraph,TrackedCellGraph){
-	 //boost::get(giaa::TrackedCellPropertyTag(),tracks[i]->m_TrackedCellGraph,v)
-	 itk::Point<double,3> trackedCentroid = boost::get(giaa::TrackedCellPropertyTag(),tracks[m_CurrentFrame]->m_TrackedCellGraph,vt).m_Centroid;
+	 //boost::get(ttt::TrackedCellPropertyTag(),tracks[i]->m_TrackedCellGraph,v)
+	 itk::Point<double,3> trackedCentroid = boost::get(ttt::TrackedCellPropertyTag(),tracks[m_CurrentFrame]->m_TrackedCellGraph,vt).m_Centroid;
 
 	 if (a[0] == trackedCentroid[0] && a[1] == trackedCentroid[1] && a[2] == trackedCentroid[2])
 	 {
@@ -108,7 +108,7 @@ void DualGraphDrawer::Draw() {
 #ifdef OUT_OF_CONTROL
 	if(DomainSelected) {
 		//std::cout<<"In Dual Graph coloring Domains"<<std::endl;
-		int trackID = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
+		int trackID = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
 		//std::cout<<"Cell ID is: " << trackID << std::endl;
 		for(std::vector<Domain>::iterator itr = Domains.begin(); itr != Domains.end(); ++itr) {
 			Domain dom = *itr;
@@ -117,7 +117,7 @@ void DualGraphDrawer::Draw() {
 				//std::cout<<"Comparing to " << DomainCell.trackID << std::endl;
 				if(trackID == *cellitr) {
 					//std::cout << "found matching track id " << trackID << " " << *cellitr << std::endl;
-					Cell cell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+					Cell cell = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v);
 					std::vector <double> color;
 					color.push_back(r_color[DomainColor]);
 					color.push_back(g_color[DomainColor]);
@@ -136,40 +136,40 @@ void DualGraphDrawer::Draw() {
 #endif
 
 	/*else if(DoneTracking){
-	 int trackID = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
+	 int trackID = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
 	 for(std::vector<CellVertexType>::iterator cellIterator = selectedCells.begin(); cellIterator != selectedCells.end(); ++cellIterator){
-	 Cell trackCell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,*cellIterator);
+	 Cell trackCell = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,*cellIterator);
 	 //std::cout<<"Frame "<< m_CurrentFrame << ": " << "Observed: " << trackID << " Tracked: " << trackCell.trackID << std::endl;
 	 if(trackID == trackCell.trackID){
 
-	 Cell cell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+	 Cell cell = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v);
 	 SelectCell(cell,sphereActor,cell.m_Color);
 	 break;
 	 }
 	 }
 	 }*/
 #ifdef OUT_OF_CONTROL
-	std::vector<double> col = boost::get(giaa::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_Color;
+	std::vector<double> col = boost::get(ttt::CellPropertyTag(),m_Descriptor->m_CellGraph,v).m_Color;
 #endif
-	/*Cell cell = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v);
+	/*Cell cell = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v);
 	 ColorCell(cell,-1,1);
-	 if(boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 386){
+	 if(boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 386){
 	 ColorCell(cell,0,1);
 	 }
-	 if(boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 387){
+	 if(boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 387){
 	 ColorCell(cell,1,1);
 	 }
-	 if(boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 388){
+	 if(boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 388){
 	 ColorCell(cell,2,1);
 	 }
-	 if(boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 389){
+	 if(boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID == 389){
 	 ColorCell(cell,5,1);
 	 }*/
 	m_CurrentRenderer->AddActor(sphereActor);
 
-	int trackID = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
+	int trackID = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).trackID;
 	//std::cout << "In Dual Graph: Vertex Pt: " << v << " " << sphereActor << " " << trackID << std::endl;
-	//fftw_complex * fft = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,v).GetFourierTransPolygonPlot(descriptor->m_SkeletonGraph);
+	//fftw_complex * fft = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,v).GetFourierTransPolygonPlot(descriptor->m_SkeletonGraph);
 	//vtkTogiaaVertex[sphereActor] = v;
 	actorTogiaavertexDual[sphereActor] = v;
 	giaaTovktVertexToDual[v] = sphereActor;
@@ -185,16 +185,16 @@ void DualGraphDrawer::Draw() {
 		this->PopulateDomainTable();
 	}
 
-	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph){
+	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,ttt::CellGraph){
 
 	vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
 
-	itk::Point<double,3> a= boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,boost::source(e,descriptor->m_CellGraph)).m_Centroid;
+	itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,boost::source(e,descriptor->m_CellGraph)).m_Centroid;
 
 	//IndexType a=m_SkeletonGraph[].position;
 	newLine->SetPoint1(s[0]*a[0],s[1]*a[1],s[2]*a[2]);
 
-	itk::Point<double,3> b= boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,boost::target(e,descriptor->m_CellGraph)).m_Centroid;
+	itk::Point<double,3> b= boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,boost::target(e,descriptor->m_CellGraph)).m_Centroid;
 
 	//IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
 	newLine->SetPoint2(s[0]*b[0],s[1]*b[1],s[2]*a[2]);
@@ -229,12 +229,12 @@ void DualGraphDrawer::Draw() {
 	std::map<int, int> trackIDmap2;
 	if (DoneTracking && m_CurrentFrame < m_Project.GetNumFrames() - 1) {
 
-		BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph){
+		BGL_FORALL_EDGES(e,descriptor->m_CellGraph,ttt::CellGraph){
 		CellVertexType src = boost::source(e,descriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,descriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
 
 		std::vector<int> assocsrc;
 		std::vector<int> assoctgt;
@@ -243,12 +243,12 @@ void DualGraphDrawer::Draw() {
 		srctgtmap1[trackIDtgt] = assoctgt;
 	}
 
-	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph) {
+	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,ttt::CellGraph) {
 		CellVertexType src = boost::source(e,descriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,descriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
 
 		srctgtmap1[trackIDsrc].push_back(trackIDtgt);
 		srctgtmap1[trackIDtgt].push_back(trackIDsrc);
@@ -256,12 +256,12 @@ void DualGraphDrawer::Draw() {
 
 	tmpdescriptor = m_Project.GetTissueDescriptor(m_CurrentFrame+1);
 
-	BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,giaa::CellGraph) {
+	BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,ttt::CellGraph) {
 		CellVertexType src = boost::source(e,tmpdescriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,tmpdescriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
 
 		std::vector<int> assocsrc;
 		std::vector<int> assoctgt;
@@ -270,23 +270,23 @@ void DualGraphDrawer::Draw() {
 		srctgtmap2[trackIDtgt] = assoctgt;
 	}
 
-	BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,giaa::CellGraph) {
+	BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,ttt::CellGraph) {
 		CellVertexType src = boost::source(e,tmpdescriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,tmpdescriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
 
 		srctgtmap2[trackIDsrc].push_back(trackIDtgt);
 		srctgtmap2[trackIDtgt].push_back(trackIDsrc);
 	}
 
-	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph) {
+	BGL_FORALL_EDGES(e,descriptor->m_CellGraph,ttt::CellGraph) {
 		CellVertexType src = boost::source(e,descriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,descriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
 
 		bool found_edge = false;
 		for(int i = 0; i < srctgtmap2[trackIDsrc].size(); i++) {
@@ -308,12 +308,12 @@ void DualGraphDrawer::Draw() {
 		tmpdescriptor = m_Project.GetTissueDescriptor(m_CurrentFrame - 1);
 		srctgtmap2.clear();
 
-		BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,giaa::CellGraph){
+		BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,ttt::CellGraph){
 		CellVertexType src = boost::source(e,tmpdescriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,tmpdescriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
 
 		std::vector<int> assocsrc;
 		std::vector<int> assoctgt;
@@ -322,23 +322,23 @@ void DualGraphDrawer::Draw() {
 		srctgtmap2[trackIDtgt] = assoctgt;
 	}
 
-		BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,giaa::CellGraph){
+		BGL_FORALL_EDGES(e,tmpdescriptor->m_CellGraph,ttt::CellGraph){
 		CellVertexType src = boost::source(e,tmpdescriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,tmpdescriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),tmpdescriptor->m_CellGraph,tgt).trackID;
 
 		srctgtmap2[trackIDsrc].push_back(trackIDtgt);
 		srctgtmap2[trackIDtgt].push_back(trackIDsrc);
 	}
 
-		BGL_FORALL_EDGES(e,descriptor->m_CellGraph,giaa::CellGraph){
+		BGL_FORALL_EDGES(e,descriptor->m_CellGraph,ttt::CellGraph){
 		CellVertexType src = boost::source(e,descriptor->m_CellGraph);
 		CellVertexType tgt = boost::target(e,descriptor->m_CellGraph);
 
-		int trackIDsrc = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
-		int trackIDtgt = boost::get(giaa::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
+		int trackIDsrc = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,src).trackID;
+		int trackIDtgt = boost::get(ttt::CellPropertyTag(),descriptor->m_CellGraph,tgt).trackID;
 		bool found_edge = false;
 		for(int i = 0; i < srctgtmap2[trackIDsrc].size(); i++) {
 			if (srctgtmap2[trackIDsrc][i] == trackIDtgt) {

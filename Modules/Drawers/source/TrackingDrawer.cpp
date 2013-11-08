@@ -21,28 +21,29 @@
 #include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
 #include <boost/graph/iteration_macros.hpp>
-#include "TrackingDrawer.h"
 #include "genRandomColor.h"
-TrackingDrawer::TrackingDrawer() {
+#include "TrackingDrawer.h"
+
+ttt::TrackingDrawer::TrackingDrawer() {
 
 }
 
-TrackingDrawer::~TrackingDrawer() {
+ttt::TrackingDrawer::~TrackingDrawer() {
 
 }
 
-void TrackingDrawer::Draw(){
+void ttt::TrackingDrawer::Draw(){
 
-	BGL_FORALL_VERTICES(v,*(m_Descriptor->m_CellGraph),giaa::TrackedCellGraph){
+	BGL_FORALL_VERTICES(v,*(m_Descriptor->m_CellGraph),TrackedCellGraph){
 		vtkSmartPointer<vtkPoints> points =  vtkSmartPointer<vtkPoints>::New();
 		int npoints=0;
-		for( std::vector<giaa::SkeletonVertexType>::iterator it=boost::get(giaa::TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).Begin();
-				it!= boost::get(giaa::TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).End();
+		for( std::vector<SkeletonVertexType>::iterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).Begin();
+				it!= boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).End();
 				++it){
 
-				points->InsertNextPoint(boost::get(giaa::SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[0],
-										boost::get(giaa::SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[1],
-										boost::get(giaa::SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[2]);
+				points->InsertNextPoint(boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[0],
+										boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[1],
+										boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[2]);
 
 				npoints++;
 		}
@@ -68,7 +69,7 @@ void TrackingDrawer::Draw(){
 		  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
 		  actor->SetMapper(mapper);
-		  int trackID=boost::get(giaa::TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).m_ID;
+		  int trackID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).m_ID;
 
 		  std::vector<double> color;
 		  if(m_TrackID2Color.count(trackID)){

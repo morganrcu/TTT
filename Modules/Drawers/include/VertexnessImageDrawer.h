@@ -13,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTDrawer
+/** \addtogroup TTTDrawers
  *  @{
  */
 #ifndef VERTEXNESS_IMAGE_DRAWER_H
@@ -21,7 +21,7 @@
 
 #include <itkImage.h>
 #include "Drawer.h"
-
+namespace ttt{
 //template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
 class VertexnessImageDrawer : public Drawer {
 
@@ -39,5 +39,6 @@ public:
 
 	}
 };
+}
 #endif
 /** @}*/

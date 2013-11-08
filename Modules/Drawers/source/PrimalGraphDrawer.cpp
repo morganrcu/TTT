@@ -12,7 +12,7 @@
 #include <vtkLineSource.h>
 #include "PrimalGraphDrawer.h"
 
-void PrimalGraphDrawer::Draw() {
+void ttt::PrimalGraphDrawer::Draw() {
 
 	typedef itk::Point<double, 3> itkpt;
 
@@ -32,9 +32,9 @@ void PrimalGraphDrawer::Draw() {
 //	m_Actor2SkeletonVertex.clear();
 //	m_SkeletonEdge2Actor.clear();
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
-		itkpt a= boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,v).position;
-//		itkpt color = boost::get(giaa::SkeletonPointPropertyTag(),m_Descriptor->m_SkeletonGraph,v).color;
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,SkeletonGraph){
+		itkpt a= boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,v).position;
+//		itkpt color = boost::get(ttt::SkeletonPointPropertyTag(),m_Descriptor->m_SkeletonGraph,v).color;
 		vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 		//newSphere->SetCenter(m_Spacing[0]*a[0],m_Spacing[1]*a[1],m_Spacing[2]*a[2]);
 		newSphere->SetCenter(a[0],a[1],a[2]);
@@ -73,19 +73,19 @@ void PrimalGraphDrawer::Draw() {
 
 	//this->CellBoundaryReduction();
 
-	BGL_FORALL_EDGES(e,*m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+	BGL_FORALL_EDGES(e,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 
 		typedef itk::Point<double,3> itkpt;
-		giaa::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
-		giaa::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
+		ttt::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
+		ttt::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
 		//std::cout<< "In edges " << src << " " << tgt << std::endl;
 		vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
-		itkpt a= boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::source(e,*m_Descriptor->m_SkeletonGraph)).position;
+		itkpt a= boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::source(e,*m_Descriptor->m_SkeletonGraph)).position;
 		//std::cout<< a[0] << " " << a[1] << " " << a[2] << std::endl;
 		//IndexType a=m_SkeletonGraph[].position;
 		//newLine->SetPoint1(a[0]*m_Spacing[0],a[1]*m_Spacing[1],a[2]*m_Spacing[2]);
 		newLine->SetPoint1(a[0],a[1],a[2]);
-		itkpt b= boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::target(e,*m_Descriptor->m_SkeletonGraph)).position;
+		itkpt b= boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::target(e,*m_Descriptor->m_SkeletonGraph)).position;
 		//IndexType b=m_SkeletonGraph[boost::target(e,)].position;
 		//newLine->SetPoint2(b[0]*m_Spacing[0],b[1]*m_Spacing[1],b[2]*m_Spacing[2]);
 		newLine->SetPoint2(b[0],b[1],b[2]);
@@ -95,13 +95,13 @@ void PrimalGraphDrawer::Draw() {
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
 		actor->GetProperty()->SetLineWidth(5);
-		boost::tuple<giaa::SkeletonVertexType,giaa::SkeletonVertexType> pts (src,tgt);
+		boost::tuple<ttt::SkeletonVertexType,ttt::SkeletonVertexType> pts (src,tgt);
 
 		m_Actor2SkeletonEdge[actor]=e;
 //		m_SkeletonEdge2Actor[pts] = actor;
 
 		//std::cout<< src << " " << tgt << " "<< actor <<std::endl;
-		boost::tuple<giaa::SkeletonVertexType,giaa::SkeletonVertexType> ptt (tgt,src);
+		boost::tuple<ttt::SkeletonVertexType,ttt::SkeletonVertexType> ptt (tgt,src);
 
 //		m_SkeletonEdge2Actor[ptt] = actor;
 

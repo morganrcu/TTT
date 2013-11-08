@@ -1,6 +1,6 @@
 #include "VertexnessCommand.h"
 
-void VertexnessCommand::Do(){
+void ttt::VertexnessCommand::Do(){
 
 	m_Vertexness->SetSigmaMin(m_SigmaMin);
 	m_Vertexness->SetSigmaMax(m_SigmaMax);

@@ -20,7 +20,7 @@
 #define ORIGINAL_IMAGE_DRAWER_H
 #include <itkImage.h>
 #include "Drawer.h"
-
+namespace ttt{
 //template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
 class RawImageDrawer : public Drawer {
 
@@ -37,5 +37,6 @@ public:
 
 	}
 };
+}
 #endif
 /** @}*/

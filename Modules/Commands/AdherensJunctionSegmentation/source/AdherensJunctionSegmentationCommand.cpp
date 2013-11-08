@@ -9,14 +9,14 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <itkLineIterator.h>
 
-#include "VinodthSegmentationCommand.h"
+#include "AdherensJunctionSegmentationCommand.h"
 
 
-void VinodthSegmentationCommand::InitDefGraph() {
+void ttt::AdherensJunctionSegmentationCommand::InitDefGraph() {
 	typedef double PixelType;
 	bool cross;
 #if 0
-	boost::graph_traits<giaa::SkeletonGraph>::edge_iterator ei, ei_end,enext;
+	boost::graph_traits<ttt::SkeletonGraph>::edge_iterator ei, ei_end,enext;
 
 	boost::tie(ei, ei_end) = boost::edges(m_Descriptor->m_SkeletonGraph);
 	for (enext = ei; ei != ei_end; ei = enext) {
@@ -24,12 +24,12 @@ void VinodthSegmentationCommand::InitDefGraph() {
 		remove_edge(*ei, m_Descriptor->m_SkeletonGraph);
 	}
 
-	BGL_FORALL_VERTICES(v, *m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph)
+	BGL_FORALL_VERTICES(v, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph)
 	{
 		boost::clear_vertex(v, *m_Descriptor->m_SkeletonGraph);
 	}
 
-	boost::graph_traits<giaa::SkeletonGraph>::vertex_iterator vi, vi_end, next;
+	boost::graph_traits<ttt::SkeletonGraph>::vertex_iterator vi, vi_end, next;
 	boost::tie(vi, vi_end) = vertices(*m_Descriptor->m_SkeletonGraph);
 	for (next = vi; vi != vi_end; vi = next) {
 		++next;
@@ -43,7 +43,7 @@ void VinodthSegmentationCommand::InitDefGraph() {
 	std::cout << "num edges before initdef "
 			<< boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
 #endif
-	m_Descriptor->m_SkeletonGraph= boost::shared_ptr<giaa::SkeletonGraph>(new giaa::SkeletonGraph);
+	m_Descriptor->m_SkeletonGraph= boost::shared_ptr<ttt::SkeletonGraph>(new ttt::SkeletonGraph);
 
 	typedef typename PointSetType::PointsContainer PointsContainer;
 	PointsContainer::Pointer localMaxPoints = m_Locations->GetPoints();
@@ -55,14 +55,14 @@ void VinodthSegmentationCommand::InitDefGraph() {
 		for (int i = 0; i < 3; i++) {
 			pos[i] = it.Value()[i];
 		}
-		giaa::SkeletonPoint pt = giaa::SkeletonPoint(pos);
+		ttt::SkeletonPoint pt = ttt::SkeletonPoint(pos);
 		boost::add_vertex(pt,*(m_Descriptor->m_SkeletonGraph));
 	}
 	std::cout << "num vertices after initdef " << boost::num_vertices(*m_Descriptor->m_SkeletonGraph) << std::endl;
 	std::cout << "num edges after initdef " << boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
 }
 
-bool VinodthSegmentationCommand::IntersectLine(itk::Point<float ,3> l1posA, itk::Point<float, 3> l1posB, itk::Point<float, 3> l2posA, itk::Point<float, 3> l2posB ){
+bool ttt::AdherensJunctionSegmentationCommand::IntersectLine(itk::Point<float ,3> l1posA, itk::Point<float, 3> l1posB, itk::Point<float, 3> l2posA, itk::Point<float, 3> l2posB ){
 
 
     double x1 = l1posA[0];
@@ -124,14 +124,14 @@ bool VinodthSegmentationCommand::IntersectLine(itk::Point<float ,3> l1posA, itk:
     return((c1*c2 < 0) && (c3*c4 <0));*/
 }
 
-void VinodthSegmentationCommand::DoPrimalComputation() {
+void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 
 	typedef itk::Point<double, 3> itkpt;
 	typedef double PixelType;
 	bool cross;
 
-	std::map<giaa::SkeletonVertexType, std::vector<giaa::SkeletonVertexType> > svtedgemap;
-	std::vector<boost::tuple<giaa::SkeletonVertexType, giaa::SkeletonVertexType> > vecdeledges;
+	std::map<ttt::SkeletonVertexType, std::vector<ttt::SkeletonVertexType> > svtedgemap;
+	std::vector<boost::tuple<ttt::SkeletonVertexType, ttt::SkeletonVertexType> > vecdeledges;
 
 
 
@@ -139,7 +139,7 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 
 #if 0
 	std::cout << "num vertices before primal " << boost::num_vertices(*m_Descriptor->m_SkeletonGraph) << std::endl;
-	boost::graph_traits<giaa::SkeletonGraph>::edge_iterator ei, ei_end, enext;
+	boost::graph_traits<ttt::SkeletonGraph>::edge_iterator ei, ei_end, enext;
 	boost::tie(ei, ei_end) = edges(*m_Descriptor->m_SkeletonGraph);
 
 	for (enext = ei; ei != ei_end; ei = enext) {
@@ -150,22 +150,22 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 	int cont;
 	std::cout << "num edges before primal " << boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
-			std::vector<giaa::SkeletonVertexType> vecvt;
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+			std::vector<ttt::SkeletonVertexType> vecvt;
 			svtedgemap[v] = vecvt;
 	}
 
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
-		giaa::SkeletonVertexType c1 = v;
-		itkpt pos1 = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, v).position;
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+		ttt::SkeletonVertexType c1 = v;
+		itkpt pos1 = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, v).position;
 
 		std::vector<double> distances;
-		std::map<double, giaa::SkeletonVertexType> distovtmap;
+		std::map<double, ttt::SkeletonVertexType> distovtmap;
 
-		BGL_FORALL_VERTICES(vt, *m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+		BGL_FORALL_VERTICES(vt, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 			if (vt != v) {
-				itkpt pos2 = boost::get(giaa::SkeletonPointPropertyTag(), *m_Descriptor->m_SkeletonGraph, vt).position;
+				itkpt pos2 = boost::get(ttt::SkeletonPointPropertyTag(), *m_Descriptor->m_SkeletonGraph, vt).position;
 				double dist = sqrt(pow(pos1[0] - pos2[0], 2) + pow(pos1[1] - pos2[1], 2));//2D distances
 				distances.push_back(dist);
 				distovtmap[dist] = vt;
@@ -175,10 +175,10 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 
 		for (int i = 0; i < 10; i++) {
 
-			giaa::SkeletonVertexType vtof10 = distovtmap[distances[i]];
+			ttt::SkeletonVertexType vtof10 = distovtmap[distances[i]];
 
-			giaa::SkeletonVertexType c2 = vtof10;
-			itkpt pos3 = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, vtof10).position;
+			ttt::SkeletonVertexType c2 = vtof10;
+			itkpt pos3 = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, vtof10).position;
 
 			typename PlatenessImageType::IndexType pt1;
 			typename PlatenessImageType::IndexType pt2;
@@ -209,14 +209,14 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 			cross = false;
 			if (percent > .6) {
 
-				BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
-					giaa::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
+				BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+					ttt::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
 
-					giaa::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
+					ttt::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
 
 
-					itkpt l2posA = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
-					itkpt l2posB = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
+					itkpt l2posA = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
+					itkpt l2posB = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
 
 					cross = IntersectLine(pos1, pos3, l2posA, l2posB);
 					//std::cout << "cross: " << cross << std::endl;
@@ -256,12 +256,12 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 
 				if (!cross) {
 					vecdeledges.clear();
-					BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
-						giaa::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
-						giaa::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
+					BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+						ttt::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
+						ttt::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
 
-						itkpt l2posA = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
-						itkpt l2posB = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
+						itkpt l2posA = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
+						itkpt l2posB = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
 
 						if (l2posA[0] == pos3[0] && l2posA[1] == pos3[1]
 								&& l2posA[2] == pos3[2]) {
@@ -279,8 +279,8 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 									//boost::remove_edge(src,tgt,descriptor->m_SkeletonGraph_listS);
 									std::cout << "added 1 " << src << " " << tgt
 											<< std::endl;
-									//boost::tuple < giaa::SkeletonVertexType_lS, giaa::SkeletonVertexType_lS> delpair(src, tgt);
-									boost::tuple < giaa::SkeletonVertexType, giaa::SkeletonVertexType> delpair(src, tgt);
+									//boost::tuple < ttt::SkeletonVertexType_lS, ttt::SkeletonVertexType_lS> delpair(src, tgt);
+									boost::tuple < ttt::SkeletonVertexType, ttt::SkeletonVertexType> delpair(src, tgt);
 									std::cout << boost::get<0>(delpair) << " " << boost::get<1>(delpair) << std::endl;
 
 									vecdeledges.push_back(delpair);
@@ -311,8 +311,8 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 									std::cout << "added 2 " << src << " " << tgt
 											<< std::endl;
 
-									//boost::tuple < giaa::SkeletonVertexType_lS, giaa::SkeletonVertexType_lS > delpair(src, tgt);
-									boost::tuple < giaa::SkeletonVertexType, giaa::SkeletonVertexType > delpair(src, tgt);
+									//boost::tuple < ttt::SkeletonVertexType_lS, ttt::SkeletonVertexType_lS > delpair(src, tgt);
+									boost::tuple < ttt::SkeletonVertexType, ttt::SkeletonVertexType > delpair(src, tgt);
 									std::cout << boost::get<0>(delpair) << " "
 											<< boost::get<1>(delpair)
 											<< std::endl;
@@ -331,12 +331,12 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 
 					for (int i = 0; i < vecdeledges.size(); i++) {
 
-						//boost::tuple < giaa::SkeletonVertexType_lS, giaa::SkeletonVertexType_lS > pts = vecdeledges[i];
-						boost::tuple < giaa::SkeletonVertexType, giaa::SkeletonVertexType > pts = vecdeledges[i];
-						//giaa::SkeletonVertexType_lS src = boost::get<0>(pts);
-						giaa::SkeletonVertexType src = boost::get<0>(pts);
-						//giaa::SkeletonVertexType_lS tgt = boost::get<1>(pts);
-						giaa::SkeletonVertexType tgt = boost::get<1>(pts);
+						//boost::tuple < ttt::SkeletonVertexType_lS, ttt::SkeletonVertexType_lS > pts = vecdeledges[i];
+						boost::tuple < ttt::SkeletonVertexType, ttt::SkeletonVertexType > pts = vecdeledges[i];
+						//ttt::SkeletonVertexType_lS src = boost::get<0>(pts);
+						ttt::SkeletonVertexType src = boost::get<0>(pts);
+						//ttt::SkeletonVertexType_lS tgt = boost::get<1>(pts);
+						ttt::SkeletonVertexType tgt = boost::get<1>(pts);
 						std::cout << "removing " << src << " " << tgt << std::endl;
 						//boost::remove_edge(src, tgt, m_Descriptor->m_SkeletonGraph_listS);
 						boost::remove_edge(src, tgt, *m_Descriptor->m_SkeletonGraph);
@@ -345,10 +345,10 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 					std::cout << "*** Cross is " << cross << std::endl;
 					if (!cross) {
 						bool notfound = true;
-						//std::vector<giaa::SkeletonVertexType_lS> vt_edges =	svtedgemap[vtof10];
-						std::vector<giaa::SkeletonVertexType> vt_edges =	svtedgemap[vtof10];
-//						for (std::vector<giaa::SkeletonVertexType_lS>::iterator itr = vt_edges.begin(); itr != vt_edges.end(); ++itr) {
-						for (std::vector<giaa::SkeletonVertexType>::iterator itr = vt_edges.begin(); itr != vt_edges.end(); ++itr) {
+						//std::vector<ttt::SkeletonVertexType_lS> vt_edges =	svtedgemap[vtof10];
+						std::vector<ttt::SkeletonVertexType> vt_edges =	svtedgemap[vtof10];
+//						for (std::vector<ttt::SkeletonVertexType_lS>::iterator itr = vt_edges.begin(); itr != vt_edges.end(); ++itr) {
+						for (std::vector<ttt::SkeletonVertexType>::iterator itr = vt_edges.begin(); itr != vt_edges.end(); ++itr) {
 							if (*itr == v) {
 								notfound = false;
 								std::cout << "************" << std::endl;
@@ -370,8 +370,8 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 
 	}
 #if 0
-	//boost::graph_traits<giaa::SkeletonGraph_listS>::vertex_iterator vi, vi_end, next;
-	boost::graph_traits<giaa::SkeletonGraph>::vertex_iterator vi, vi_end, next;
+	//boost::graph_traits<ttt::SkeletonGraph_listS>::vertex_iterator vi, vi_end, next;
+	boost::graph_traits<ttt::SkeletonGraph>::vertex_iterator vi, vi_end, next;
 	//boost::tie(vi, vi_end) = boost::vertices(m_Descriptor->m_SkeletonGraph_listS);
 	boost::tie(vi, vi_end) = boost::vertices(*m_Descriptor->m_SkeletonGraph);
 
@@ -386,21 +386,21 @@ void VinodthSegmentationCommand::DoPrimalComputation() {
 		}
 	}
 #endif
-	BGL_FORALL_VERTICES(v, *m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+	BGL_FORALL_VERTICES(v, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 		for(int i=0;i<3;i++){
-			boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, v).position[i]*=this->m_Plateness->GetSpacing()[i];
+			boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, v).position[i]*=this->m_Plateness->GetSpacing()[i];
 		}
 	}
 	//std::cout << "num vertices after primal " << boost::num_vertices(m_Descriptor->m_SkeletonGraph_listS) << std::endl;
 	std::cout << "num vertices after primal " << boost::num_vertices(*m_Descriptor->m_SkeletonGraph) << std::endl;
 	//std::cout << "num edges after primal " << boost::num_edges(m_Descriptor->m_SkeletonGraph_listS) << std::endl;
 	std::cout << "num edges after primal " << boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
-	BGL_FORALL_EDGES(e,*m_Descriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+	BGL_FORALL_EDGES(e,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 		std::cout << boost::source(e,*m_Descriptor->m_SkeletonGraph) << "-" << boost::target(e,*m_Descriptor->m_SkeletonGraph) << std::endl;
 	}
 }
 
-double VinodthSegmentationCommand::angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts){
+double ttt::AdherensJunctionSegmentationCommand::angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts){
 
 
         typedef itk::Point<double, 3> itkpt;
@@ -434,7 +434,7 @@ double VinodthSegmentationCommand::angleBetween2Lines(itk::Point<double,3> srcpt
         return theta;
 }
 
-double VinodthSegmentationCommand::distitkpt(itk::Point<float,3> pta, itk::Point<float,3> ptb){
+double ttt::AdherensJunctionSegmentationCommand::distitkpt(itk::Point<float,3> pta, itk::Point<float,3> ptb){
 
     double dist = sqrt(pow(pta[0] - ptb[0],2) + pow(pta[1] - ptb[1],2) + pow(pta[2] - ptb[2],2));
     return dist;

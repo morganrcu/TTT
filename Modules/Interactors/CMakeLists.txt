@@ -1,3 +1,3 @@
 Project(TTTInteractors)
 
-include_directories( include)
+include_directories(include)

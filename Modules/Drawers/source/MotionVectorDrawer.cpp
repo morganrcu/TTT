@@ -23,18 +23,18 @@
 #include <boost/graph/iteration_macros.hpp>
 #include "MotionVectorDrawer.h"
 
-MotionVectorDrawer::MotionVectorDrawer(){
+ttt::MotionVectorDrawer::MotionVectorDrawer(){
 
 }
-void MotionVectorDrawer::Draw(){
+void ttt::MotionVectorDrawer::Draw(){
 
 	assert(m_Descriptor);
 	assert(m_Renderer);
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,giaa::TrackedCellGraph){
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,ttt::TrackedCellGraph){
 
 		vtkSmartPointer<vtkArrowSource> arrowSource = vtkSmartPointer<vtkArrowSource>::New();
-		itk::Point<double,3> midPoint= boost::get(giaa::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
-		itk::Vector<double,3> velocity= boost::get(giaa::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Velocity;
+		itk::Point<double,3> midPoint= boost::get(ttt::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
+		itk::Vector<double,3> velocity= boost::get(ttt::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Velocity;
 
 
 		// Generate a random start and end point

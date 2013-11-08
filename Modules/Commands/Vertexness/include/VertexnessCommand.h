@@ -13,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTVertexness
  *  @{
  */
 
@@ -23,7 +23,7 @@
 
 #include "AppCommand.h"
 #include "giaaVertexnessImageFilter.h"
-
+namespace ttt{
 class VertexnessCommand : public AppCommand{
 
 public:
@@ -34,7 +34,7 @@ public:
 
 private:
 
-	typedef giaa::VertexnessImageFilter<VertexnessImageType,VertexnessImageType> VertexnessFilterType;
+	typedef VertexnessImageFilter<VertexnessImageType,VertexnessImageType> VertexnessFilterType;
     typedef itk::RescaleIntensityImageFilter<VertexnessImageType, VertexnessImageType> VertexnessRescalerType;
 
     VertexnessFilterType::Pointer m_Vertexness;
@@ -81,8 +81,7 @@ public:
 	}
 	void Do();
 };
-
-
+}
 
 #endif
 /** @}*/

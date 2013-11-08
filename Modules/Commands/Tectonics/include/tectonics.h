@@ -1,8 +1,13 @@
 #ifndef TECTONICS_H
 #define TECTONICS_H
+
+/** \addtogroup TTTTectonics
+ *  @{
+ */
+
 #include <itkPoint.h>
 #include <vnl/vnl_matrix_fixed.h>
-#include <giaaCellGraph2.h>
+#include "tttDescriptionDataTypes.h"
 typedef itk::Point<double, 3> Centroid ;
 typedef itk::Vector<double,3> VelocityVector;
 typedef vnl_matrix_fixed<double,2,2> EllipseMatrix;
@@ -27,8 +32,8 @@ typedef struct{
 
 } DomainStrainRates;
 
-typedef std::map<typename giaa::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >   DomainStrainRatesMapType;
-typedef std::map<typename giaa::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >::iterator   DomainStrainRatesMapIteratorType;
+typedef std::map<typename ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >   DomainStrainRatesMapType;
+typedef std::map<typename ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >::iterator   DomainStrainRatesMapIteratorType;
 typedef boost::shared_ptr<DomainStrainRatesMapType > DomainStrainRatesMapTypePointer;
 
 void domainStrainRates(const std::vector<Centroid> & centroids0,
@@ -44,3 +49,4 @@ void tensorToPlot(const vnl_matrix<double> & tensor, vnl_vector<double> & majorD
 
 void parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const double angle, vnl_matrix_fixed<double,2,2> & result);
 #endif
+/** @}*/

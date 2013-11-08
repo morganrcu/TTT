@@ -7,7 +7,7 @@
 
 #include "DataCastingCommand.h"
 
-void DataCastingCommand::Do(){
+void ttt::DataCastingCommand::Do(){
 	m_Caster->SetInput(m_Input);
 	m_Caster->Update();
 	m_Rescaler->SetInput(m_Caster->GetOutput());

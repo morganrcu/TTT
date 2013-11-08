@@ -22,11 +22,11 @@ template<class TImage> void StoreImage(const typename TImage::Pointer & image,co
 }
 
 //template<class TOriginalImage> OriginalImageDrawer<TOriginalImage>::OriginalImageDrawer(
-RawImageDrawer::RawImageDrawer(){}
+ttt::RawImageDrawer::RawImageDrawer(){}
 
 
 //template<class TOriginalImage> void OriginalImageDrawer<TOriginalImage>::Draw() {
-void RawImageDrawer::Draw() {
+void ttt::RawImageDrawer::Draw() {
 	std::cout << "in original" << std::endl;
 
 	StoreImage<OriginalImageType>(m_OriginalImage,".","rawimage",0);

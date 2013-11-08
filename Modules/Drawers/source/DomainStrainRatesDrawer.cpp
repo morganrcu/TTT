@@ -13,18 +13,18 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "DomainStrainRatesDrawer.h"
+
 #include <vtkLineSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkProperty.h>
-
-void DomainStrainRatesDrawer::Draw(){
+#include "DomainStrainRatesDrawer.h"
+void ttt::DomainStrainRatesDrawer::Draw(){
 	assert(m_DomainStrainRates);
 	assert(m_Renderer);
 
 	for(DomainStrainRatesMapIteratorType it = m_DomainStrainRates->begin();it!=m_DomainStrainRates->end();it++){
-		giaa::TrackedTissueDescriptor::DualGraphVertexDescriptorType cell=it->first;
+		TrackedTissueDescriptor::DualGraphVertexDescriptorType cell=it->first;
 		DomainStrainRates domainStrainRates=it->second;
 
 
@@ -33,7 +33,7 @@ void DomainStrainRatesDrawer::Draw(){
 
 		tensorToPlot(domainStrainRates.Intercalation_SRT,majorDir,&majorLength,minorDir,&minorLength,&rotation);
 
-		itk::Point<double,3> center=boost::get(giaa::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,cell).m_Centroid;
+		itk::Point<double,3> center=boost::get(TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,cell).m_Centroid;
 
 		itk::Point<double,3> a,b,c,d;
 

@@ -7,9 +7,9 @@
 
 #include "VertexnessImageDrawer.h"
 
-VertexnessImageDrawer::VertexnessImageDrawer(){
+ttt::VertexnessImageDrawer::VertexnessImageDrawer(){
 }
-void VertexnessImageDrawer::Draw(){
+void ttt::VertexnessImageDrawer::Draw(){
 
 	typedef itk::ImageToVTKImageFilter<VertexnessImageType> ImageToVTKType;
 

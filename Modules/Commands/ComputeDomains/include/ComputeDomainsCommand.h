@@ -1,9 +1,3 @@
-/*
- * ComputeDomainsCommand.h
- *
- *  Created on: Oct 12, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,22 +13,22 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTComputeDomains
  *  @{
  */
 
 #ifndef COMPUTEDOMAINSCOMMAND_H_
 #define COMPUTEDOMAINSCOMMAND_H_
 #include <boost/shared_ptr.hpp>
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
 #include "AppCommand.h"
 
-
+namespace ttt{
 class ComputeDomainsCommand : public AppCommand{
 
 private:
-	giaa::TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
-	boost::shared_ptr<std::vector<giaa::TrackedDomain> > m_Domains;
+	TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
+	boost::shared_ptr<std::vector<TrackedDomain> > m_Domains;
 
 	unsigned int m_Order;
 public:
@@ -47,18 +41,14 @@ public:
 		m_Order=order;
 	}
 
-	inline void SetTrackedTissueDescriptor(const giaa::TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
+	inline void SetTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
 		m_TrackedTissueDescriptor=trackedTissueDescriptor;
 	}
 
-	inline boost::shared_ptr<std::vector<giaa::TrackedDomain> > GetDomains(){
+	inline boost::shared_ptr<std::vector<TrackedDomain> > GetDomains(){
 		return m_Domains;
 	}
-
-
-
-
 };
-
+}
 #endif /* COMPUTEDOMAINSCOMMAND_H_ */
 /** @}*/

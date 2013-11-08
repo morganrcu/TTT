@@ -1,9 +1,3 @@
-/*
- * DualGraphCommand.h
- *
- *  Created on: Oct 2, 2013
- *      Author: morgan
- */
 //    This file is part of TTT Tissue Tracker.
 //
 //    TTT Tissue Tracker is free software: you can redistribute it and/or modify
@@ -19,38 +13,40 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTCommand
+/** \addtogroup TTTCellGraph
  *  @{
  */
 
-#ifndef DUALGRAPHCOMMAND_H_
-#define DUALGRAPHCOMMAND_H_
+#ifndef CELLGRAPHCOMMAND_H_
+#define CELLGRAPHCOMMAND_H_
 
 
-#include <giaaCellGraph2.h>
+#include <tttDescriptionDataTypes.h>
 #include <giaaPrimalGraphToDualGraphFilter.h>
 #include "AppCommand.h"
 
+namespace ttt{
 
-class DualGraphCommand: public AppCommand {
+class CellGraphCommand: public AppCommand {
 private:
-    typedef giaa::PrimalGraphToDualGraphFilter<giaa::TissueDescriptor> DualFilterType;
+    typedef PrimalGraphToDualGraphFilter<giaa::TissueDescriptor> DualFilterType;
     DualFilterType::Pointer m_Dual;
 
-    giaa::TissueDescriptor::Pointer m_Graphs;
+   TissueDescriptor::Pointer m_Graphs;
 
 public:
 	DualGraphCommand();
 	virtual ~DualGraphCommand();
 	virtual void Do();
 
-	inline void SetPrimalGraph(const giaa::TissueDescriptor::Pointer & graph){
+	inline void SetPrimalGraph(const TissueDescriptor::Pointer & graph){
 		m_Graphs=graph;
 	}
-	inline giaa::TissueDescriptor::Pointer GetGraphs(){
+	inline TissueDescriptor::Pointer GetGraphs(){
 		return m_Graphs;
 	}
 };
 
 #endif /* DUALGRAPHCOMMAND_H_ */
+}
 /** @}*/

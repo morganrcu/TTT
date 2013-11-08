@@ -19,25 +19,25 @@
 #ifndef MOTIONVECTORDRAWER_H_
 #define MOTIONVECTORDRAWER_H_
 
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
 #include "Drawer.h"
-
+namespace ttt{
 class MotionVectorDrawer : public Drawer {
 
 private:
 
-	giaa::TrackedTissueDescriptor::Pointer m_Descriptor;
+	TrackedTissueDescriptor::Pointer m_Descriptor;
 
 public:
 	MotionVectorDrawer();
 	virtual void Draw();
 
-	inline void SetTrackedDescriptor(const giaa::TrackedTissueDescriptor::Pointer & descriptor){
+	inline void SetTrackedDescriptor(const TrackedTissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
 
 };
-
+}
 
 #endif /* MOTIONVECTORDRAWER_H_ */
 /** @}*/
