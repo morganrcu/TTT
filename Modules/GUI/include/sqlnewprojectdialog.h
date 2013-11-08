@@ -15,7 +15,7 @@
 namespace Ui {
     class SQLNewProjectDialog;
 }
-
+using namespace ttt;
 class SQLNewProjectDialog : public QDialog
 {
     Q_OBJECT
@@ -43,9 +43,6 @@ private:
 
     TissueTrackingProject * m_NewProject;
 };
-
-
-
 
 
 #endif /* SQLNEWPROJECTDIALOG_H_ */

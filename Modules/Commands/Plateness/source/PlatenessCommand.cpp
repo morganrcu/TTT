@@ -7,7 +7,7 @@
 
 #include "PlatenessCommand.h"
 
-void PlatenessCommand::Do(){
+void ttt::PlatenessCommand::Do(){
 
 	m_Plateness->SetSigmaMin(m_SigmaMin);
 	m_Plateness->SetSigmaMax(m_SigmaMax);

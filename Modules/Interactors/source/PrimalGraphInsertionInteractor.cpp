@@ -10,7 +10,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include "PrimalGraphInsertionInteractor.h"
 
-PrimalGraphInsertionInteractor::PrimalGraphInsertionInteractor() {
+ttt::PrimalGraphInsertionInteractor::PrimalGraphInsertionInteractor() {
 
 	m_NewVertexSphere=vtkSmartPointer<vtkSphereSource>::New();
 	m_NewVertexMapper=vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -30,15 +30,15 @@ PrimalGraphInsertionInteractor::PrimalGraphInsertionInteractor() {
 	m_Origin=-1;
 }
 
-void PrimalGraphInsertionInteractor::Init(){
+void ttt::PrimalGraphInsertionInteractor::Init(){
 	m_Renderer->AddActor(m_NewEdgeActor);
 	m_Renderer->AddActor(m_NewVertexActor);
 }
-PrimalGraphInsertionInteractor::~PrimalGraphInsertionInteractor() {
+ttt::PrimalGraphInsertionInteractor::~PrimalGraphInsertionInteractor() {
 	delete m_InsertionFinished;
 }
 
-void PrimalGraphInsertionInteractor::OnMouseMove(){
+void ttt::PrimalGraphInsertionInteractor::OnMouseMove(){
 
 	double picked[3];
 
@@ -48,7 +48,7 @@ void PrimalGraphInsertionInteractor::OnMouseMove(){
 
 	m_NewVertexSphere->SetCenter(picked[0],picked[1],picked[2]); //TODO recover positions
 
-	itk::Point<float,3> center=boost::get(giaa::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Origin).position;
+	itk::Point<float,3> center=boost::get(SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Origin).position;
 	m_NewEdgeLine->SetPoint1(center[0],center[1],center[2]);
 	m_NewEdgeLine->SetPoint2(picked[0],picked[1],picked[2]);
 
@@ -59,7 +59,7 @@ void PrimalGraphInsertionInteractor::OnMouseMove(){
 
 }
 
-void PrimalGraphInsertionInteractor::OnLeftButtonDown(){
+void ttt::PrimalGraphInsertionInteractor::OnLeftButtonDown(){
 
 	m_Renderer->RemoveActor(m_NewVertexActor);
 	m_Renderer->RemoveActor(m_NewEdgeActor);
@@ -73,7 +73,7 @@ void PrimalGraphInsertionInteractor::OnLeftButtonDown(){
 
     vtkSmartPointer<vtkActor> pickedActor;
     pickedActor=cellPicker->GetActor();
-    giaa::SkeletonVertexType newVertexDescriptor;
+    SkeletonVertexType newVertexDescriptor;
 
     std::cout << "Actor " << m_Drawer->IsVertex(pickedActor) << " " << m_Drawer->IsEdge(pickedActor) << std::endl;
 
@@ -85,7 +85,7 @@ void PrimalGraphInsertionInteractor::OnLeftButtonDown(){
         pointPicker->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1],  0, m_Renderer);
         pointPicker->GetPickPosition(pickPosition);
 
-        giaa::SkeletonPoint newVertex;
+        SkeletonPoint newVertex;
 
         newVertex.position[0]=pickPosition[0];
         newVertex.position[1]=pickPosition[1];
@@ -128,7 +128,7 @@ void PrimalGraphInsertionInteractor::OnLeftButtonDown(){
 
 }
 
-void PrimalGraphInsertionInteractor::OnRightButtonUp(){
+void ttt::PrimalGraphInsertionInteractor::OnRightButtonUp(){
 
 	m_Renderer->RemoveActor(m_NewEdgeActor);
 	m_Renderer->RemoveActor(m_NewVertexActor);

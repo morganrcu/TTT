@@ -5,8 +5,6 @@
 #include <qfiledialog.h>
 
 
-
-
 SQLNewProjectDialog::SQLNewProjectDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SQLNewProjectDialog)
@@ -18,7 +16,6 @@ SQLNewProjectDialog::SQLNewProjectDialog(QWidget *parent) :
 
 SQLNewProjectDialog::~SQLNewProjectDialog()
 {
-
     delete ui;
 }
 void SQLNewProjectDialog::accept(){

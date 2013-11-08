@@ -10,21 +10,21 @@
 #include <vtkRenderWindow.h>
 #include "PrimalGraphStandardInteractor.h"
 
-PrimalGraphStandardInteractor::PrimalGraphStandardInteractor() {
+ttt::PrimalGraphStandardInteractor::PrimalGraphStandardInteractor() {
 	m_SelectionCleared=0;
 	m_SomethingSelected=0;
 	m_SelectedEdge=0;
 	m_SelectedVertex=0;
 }
 
-PrimalGraphStandardInteractor::~PrimalGraphStandardInteractor() {
+ttt::PrimalGraphStandardInteractor::~PrimalGraphStandardInteractor() {
 	assert(m_SelectionCleared);
 	delete m_SelectionCleared;
 	assert(m_SomethingSelected);
 	delete m_SomethingSelected;
 }
 
-void PrimalGraphStandardInteractor::OnRightButtonUp(){
+void ttt::PrimalGraphStandardInteractor::OnRightButtonUp(){
     vtkInteractorStyle::OnRightButtonUp();
 
     if(m_SelectedVertex){
@@ -42,14 +42,14 @@ void PrimalGraphStandardInteractor::OnRightButtonUp(){
 }
 
 
-void PrimalGraphStandardInteractor::UnhighlightActor(const vtkSmartPointer<vtkActor> & actor){
+void ttt::PrimalGraphStandardInteractor::UnhighlightActor(const vtkSmartPointer<vtkActor> & actor){
 	actor->GetProperty()->SetColor(1,1,1);
 }
-void PrimalGraphStandardInteractor::HighlightActor(const vtkSmartPointer<vtkActor> & actor){
+void ttt::PrimalGraphStandardInteractor::HighlightActor(const vtkSmartPointer<vtkActor> & actor){
 	actor->GetProperty()->SetColor(1,0,0);
 }
 
-void PrimalGraphStandardInteractor::OnLeftButtonDown(){
+void ttt::PrimalGraphStandardInteractor::OnLeftButtonDown(){
 
     vtkInteractorStyle::OnLeftButtonDown();
 

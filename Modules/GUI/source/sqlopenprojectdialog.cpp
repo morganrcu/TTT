@@ -1,8 +1,9 @@
-#include "sqlopenprojectdialog.h"
-#include "ui_sqlopenprojectdialog.h"
 #include <QtSql/qsqldatabase.h>
 #include <iostream>
 #include <QtSql/qsqlrelationaltablemodel.h>
+#include "sqlopenprojectdialog.h"
+#include "ui_sqlopenprojectdialog.h"
+
 SQLOpenProjectDialog::SQLOpenProjectDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SQLOpenProjectDialog)
@@ -24,7 +25,6 @@ SQLOpenProjectDialog::SQLOpenProjectDialog(QWidget *parent) :
     	ui->existingProjectsTableView->setModel(model);
     }
     m_Accepted=false;
-
 }
 
 void SQLOpenProjectDialog::accept(){

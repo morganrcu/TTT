@@ -8,8 +8,9 @@
 #ifndef PRIMALGRAPHMOVEINTERACTOR_H_
 #define PRIMALGRAPHMOVEINTERACTOR_H_
 #include <vtkActor.h>
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
 #include "PrimalGraphInteractor.h"
+namespace ttt{
 class PrimalGraphMoveInteractor : public PrimalGraphInteractor{
 public:
 	class MoveFinished{
@@ -27,9 +28,9 @@ public:
 private:
 
 	vtkSmartPointer<vtkActor> m_TargetActor;
-	giaa::SkeletonVertexType m_Target;
+	SkeletonVertexType m_Target;
 
-	giaa::TissueDescriptor::Pointer m_TissueDescriptor;
+	TissueDescriptor::Pointer m_TissueDescriptor;
 	itk::Point<double,3> m_OriginalPoint;
 	MoveFinished * m_MoveFinished;
 
@@ -50,22 +51,22 @@ public:
 		assert(m_TissueDescriptor);
 		m_TargetActor=targetActor;
 		m_Target=m_Drawer->GetActorSkeletonVertex(targetActor);
-		m_OriginalPoint=boost::get(giaa::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Target).position;
+		m_OriginalPoint=boost::get(SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Target).position;
 	}
 
-	inline void SetTissueDescriptor(const giaa::TissueDescriptor::Pointer & tissueDescriptor){
+	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & tissueDescriptor){
 		m_TissueDescriptor=tissueDescriptor;
 	}
 
 	inline void SetMoveFinished(MoveFinished * moveFinished ){
 		m_MoveFinished=moveFinished;
 	}
-	inline giaa::TissueDescriptor::Pointer GetTissueDescriptor(){
+	inline TissueDescriptor::Pointer GetTissueDescriptor(){
 		return m_TissueDescriptor;
 	}
 	inline bool IsMoved(){
 		return m_Moved;
 	}
 };
-
+}
 #endif /* PRIMALGRAPHMOVEINTERACTOR_H_ */

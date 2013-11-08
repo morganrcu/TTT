@@ -8,6 +8,7 @@
 #ifndef PRIMALGRAPHSTANDARDINTERACTOR_H_
 #define PRIMALGRAPHSTANDARDINTERACTOR_H_
 #include "PrimalGraphInteractor.h"
+namespace ttt{
 class PrimalGraphStandardInteractor : public PrimalGraphInteractor {
 public:
 	class SomethingSelected{
@@ -71,5 +72,5 @@ private:
     inline void HighlightActor(const vtkSmartPointer<vtkActor> & actor);
     inline void UnhighlightActor(const vtkSmartPointer<vtkActor> & actor);
 };
-
+}
 #endif /* PRIMALGRAPHSTANDARDINTERACTOR_H_ */

@@ -7,7 +7,7 @@
 #include "SurfaceSegmentationCommand.h"
 
 
-void SurfaceSegmentationCommand::Do(){
+void ttt::SurfaceSegmentationCommand::Do(){
 
 	this->m_Integer2SmoothingFilter->SetInput(this->m_Input);
 	this->m_Integer2SmoothingFilter->Update();

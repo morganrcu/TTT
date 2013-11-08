@@ -20,7 +20,7 @@
 #ifndef TRACKINGCOMMAND_H_
 #define TRACKINGCOMMAND_H_
 #include <vector>
-#include "tttDescriptionDataTypes.h"
+#include "giaaCellTracker.h"
 #include "tttDescriptionDataTypes.h"
 #include "AppCommand.h"
 namespace ttt{

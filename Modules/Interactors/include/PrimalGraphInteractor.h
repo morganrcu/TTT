@@ -11,6 +11,7 @@
 #include <vtkRenderer.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include "PrimalGraphDrawer.h"
+namespace ttt{
 class PrimalGraphInteractor : public vtkInteractorStyleTrackballCamera {
 protected:
 	vtkSmartPointer<PrimalGraphDrawer> m_Drawer;
@@ -25,5 +26,6 @@ public:
 		m_Renderer=renderer;
 	}
 };
+}
 
 #endif /* PRIMALGRAPHINTERACTOR_H_ */

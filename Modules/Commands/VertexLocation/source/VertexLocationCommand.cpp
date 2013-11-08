@@ -7,7 +7,7 @@
 
 #include "VertexLocationCommand.h"
 
-void VertexLocationCommand::Do(){
+void ttt::VertexLocationCommand::Do(){
 	itk::Size<3> radius;
 	radius.Fill(3);
 	m_VertexLocator->SetRadius(radius);

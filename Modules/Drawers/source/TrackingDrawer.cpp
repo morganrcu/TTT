@@ -21,7 +21,7 @@
 #include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
 #include <boost/graph/iteration_macros.hpp>
-#include "genRandomColor.h"
+//#include "genRandomColor.h"
 #include "TrackingDrawer.h"
 
 ttt::TrackingDrawer::TrackingDrawer() {

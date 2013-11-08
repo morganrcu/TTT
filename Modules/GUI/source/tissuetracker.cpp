@@ -1,11 +1,11 @@
 #include <vtkProperty.h>
 #include <vtkInteractorStyleSwitch.h>
+#include <vtkRenderWindow.h>
 #include "sqlopenprojectdialog.h"
 
 #include "tissuetracker.h"
 #include "ui_tissuetracker.h"
 #include "sqlnewprojectdialog.h"
-//#include "newprojectdialog.h"
 
 #include "SurfaceSegmentationCommand.h"
 #include "AnisotropicDiffusionCommand.h"
@@ -14,8 +14,8 @@
 #include "VertexnessCommand.h"
 #include "DataCastingCommand.h"
 #include "VertexLocationCommand.h"
-#include "VinodthSegmentationCommand.h"
-#include "DualGraphCommand.h"
+#include "AdherensJunctionSegmentationCommand.h"
+#include "CellGraphCommand.h"
 #include "EllipsesCommand.h"
 #include "ComputeDomainsCommand.h"
 
@@ -35,25 +35,8 @@
 #include "MotionVectorDrawer.h"
 #include "EllipseDrawer.h"
 #include "DomainStrainRatesDrawer.h"
-#ifdef OUT_OF_CONTROL
-// clustering file taken from http://bonsai.hgc.jp/~mdehoon/software/cluster/software.htm#source
-extern "C" {
-#include "cluster.h"
-}
 
-
-#include <map>
-#include <fftw3.h>
-#include <iostream>
-#include <fstream>
-
-#include <math.h>
-#include <stdlib.h>
-#define _USE_MATH_DEFINES
-using namespace boost;
-#endif
 using namespace giaa;
-
 using namespace std;
 
 
@@ -538,7 +521,7 @@ void TissueTracker::DoVertexLocation(){
 
 void TissueTracker::DoPrimalCalculation(){
 
-	VinodthSegmentationCommand command;
+	AdherensJunctionSegmentationCommand command;
 
 	assert(m_Project->GetVertexLocations(m_CurrentFrame));
 	assert(m_Project->GetPlatenessImage(m_CurrentFrame));
@@ -770,15 +753,15 @@ void TissueTracker::DoLevelSet(){
 void TissueTracker::DoDeletion(){
 	assert(m_PrimalGraphStandardInteractor->IsSelectedEdge() ||m_PrimalGraphStandardInteractor->IsSelectedVertex()  );
 
-	giaa::TissueDescriptor::Pointer descriptor = m_Project->GetTissueDescriptor(m_CurrentFrame);
+	TissueDescriptor::Pointer descriptor = m_Project->GetTissueDescriptor(m_CurrentFrame);
 
 	if(m_PrimalGraphStandardInteractor->IsSelectedEdge()){
 		vtkSmartPointer<vtkActor> edgeActor=m_PrimalGraphStandardInteractor->GetSelectedEdge();
-		giaa::SkeletonEdgeType toDelete=m_PrimalGraphDrawer->GetActorSkeletonEdge(edgeActor);
+		SkeletonEdgeType toDelete=m_PrimalGraphDrawer->GetActorSkeletonEdge(edgeActor);
 		boost::remove_edge(boost::source(toDelete,*descriptor->m_SkeletonGraph),boost::target(toDelete,*descriptor->m_SkeletonGraph),*descriptor->m_SkeletonGraph);
 	}else if(m_PrimalGraphStandardInteractor->IsSelectedVertex()){
 		vtkSmartPointer<vtkActor> vertexActor=m_PrimalGraphStandardInteractor->GetSelectedVertex();
-		giaa::SkeletonVertexType toDelete=m_PrimalGraphDrawer->GetActorSkeletonVertex(vertexActor);
+		SkeletonVertexType toDelete=m_PrimalGraphDrawer->GetActorSkeletonVertex(vertexActor);
 		boost::clear_vertex(toDelete,*descriptor->m_SkeletonGraph);
 		boost::remove_vertex(toDelete,*descriptor->m_SkeletonGraph);
 	}
@@ -788,7 +771,7 @@ void TissueTracker::DoDeletion(){
 }
 
 void TissueTracker::DoDualCalculation(){
-	DualGraphCommand command;
+	CellGraphCommand command;
 
 	assert(m_Project->GetTissueDescriptor(m_CurrentFrame));
 	command.SetPrimalGraph(m_Project->GetTissueDescriptor(m_CurrentFrame));
@@ -891,7 +874,7 @@ void TissueTracker::DoTracking(){
 
 	int numFrames= m_Project->GetNumFrames();
 
-	std::vector<giaa::TissueDescriptor::Pointer> observations;
+	std::vector<TissueDescriptor::Pointer> observations;
 	observations.resize(numFrames);
 
 	for(int i=0;i<numFrames;i++){
@@ -901,10 +884,10 @@ void TissueTracker::DoTracking(){
 	trackingCommand.SetObservedTissues(observations);
 	trackingCommand.Do();
 
-	std::vector<giaa::TrackedTissueDescriptor::Pointer> tracked =trackingCommand.GetTrackedTissue();
+	std::vector<TrackedTissueDescriptor::Pointer> tracked =trackingCommand.GetTrackedTissue();
 
 	int frame=0;
-	for(std::vector<giaa::TrackedTissueDescriptor::Pointer>::iterator it = tracked.begin(); it!=tracked.end();it++){
+	for(std::vector<TrackedTissueDescriptor::Pointer>::iterator it = tracked.begin(); it!=tracked.end();it++){
 
 		m_Project->AddTrackedTissueDescriptor(frame++,*it);
 	}
@@ -960,7 +943,7 @@ void TissueTracker::DoTracking(){
 #endif
 }
 void TissueTracker::DoEllipses(){
-	EllipsesCommand<giaa::TrackedTissueDescriptor> command;
+	EllipsesCommand<TrackedTissueDescriptor> command;
 	assert(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
 	command.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
 	command.Do();

@@ -9,14 +9,15 @@
 #define PRIMALINTERACTOR_H_
 
 
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
+namespace ttt{
 class PrimalInteractor : public vtkInteractorStyle{
 private:
     vtkSmartPointer<vtkActor> pt1 = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkActor> pt2 = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkActor> pt1prev = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkActor> pt2prev = vtkSmartPointer<vtkActor>::New();
-    std::vector<giaa::SkeletonVertexType_lS> selected_svt;
+    std::vector<SkeletonVertexType_lS> selected_svt;
     int chosen = 1;
     PrimalInteractor(){
 
@@ -28,6 +29,6 @@ public:
     virtual void OnLeftButtonDown();
     virtual void OnKeyPress();
 };
-
+}
 
 #endif /* PRIMALINTERACTOR_H_ */

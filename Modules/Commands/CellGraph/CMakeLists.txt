@@ -8,4 +8,4 @@ include_directories( include)
 
 set(TTTCellGraph_SRCS source/CellGraphCommand.cpp)
 
-#add_library(TTTCellGraph ${TTTCellGraph_SRCS})
+add_library(TTTCellGraph ${TTTCellGraph_SRCS})

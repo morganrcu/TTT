@@ -20,7 +20,7 @@
 #ifndef DOMAINSTRAINRATESDRAWER_H_
 #define DOMAINSTRAINRATESDRAWER_H_
 #include "Drawer.h"
-#include "tectonics.h"
+#include "tttDomainStrainRates.h"
 #include "tttDescriptionDataTypes.h"
 namespace ttt{
 class DomainStrainRatesDrawer : public Drawer{

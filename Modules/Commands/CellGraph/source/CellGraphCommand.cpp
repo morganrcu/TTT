@@ -7,16 +7,16 @@
 
 #include "CellGraphCommand.h"
 
-ttt::CellGraphCommand::DualGraphCommand() {
+ttt::CellGraphCommand::CellGraphCommand() {
 	m_Dual =DualFilterType::New();
 
 }
 
-ttt::CellGraphCommand::~DualGraphCommand() {
+ttt::CellGraphCommand::~CellGraphCommand() {
 
 }
 
-void CellGraphCommand::Do(){
+void ttt::CellGraphCommand::Do(){
 
 	m_Dual->SetInput(m_Graphs);
 	m_Dual->GenerateData();

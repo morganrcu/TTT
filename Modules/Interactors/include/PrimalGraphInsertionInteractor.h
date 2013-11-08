@@ -11,7 +11,8 @@
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
 #include "PrimalGraphInteractor.h"
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
+namespace ttt{
 class PrimalGraphInsertionInteractor : public PrimalGraphInteractor {
 public:
 	class InsertionFinished {
@@ -32,7 +33,7 @@ private:
 
 
 	vtkSmartPointer<vtkActor> m_OriginActor;
-	giaa::SkeletonVertexType m_Origin;
+	SkeletonVertexType m_Origin;
 
 	vtkSmartPointer<vtkSphereSource> m_NewVertexSphere;
 	vtkSmartPointer<vtkPolyDataMapper> m_NewVertexMapper;
@@ -42,7 +43,7 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_NewEdgeMapper;
 	vtkSmartPointer<vtkActor> m_NewEdgeActor;
 
-	giaa::TissueDescriptor::Pointer m_TissueDescriptor;
+	TissueDescriptor::Pointer m_TissueDescriptor;
 
 	InsertionFinished * m_InsertionFinished;
 public:
@@ -65,16 +66,17 @@ public:
 		m_OriginActor=originActor;
 		m_Origin=m_Drawer->GetActorSkeletonVertex(originActor);
 	}
-	inline void SetTissueDescriptor(const giaa::TissueDescriptor::Pointer & tissueDescriptor){
+	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & tissueDescriptor){
 		m_TissueDescriptor=tissueDescriptor;
 	}
 	inline void SetInsertionFinished(InsertionFinished *insertionFinished ){
 		m_InsertionFinished=insertionFinished;
 	}
-	inline giaa::TissueDescriptor::Pointer GetTissueDescriptor(){
+	inline TissueDescriptor::Pointer GetTissueDescriptor(){
 		return m_TissueDescriptor;
 	}
 
 };
+}
 
 #endif /* PRIMALGRAPHINSERTIONINTERACTOR_H_ */

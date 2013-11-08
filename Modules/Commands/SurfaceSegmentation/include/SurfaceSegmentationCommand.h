@@ -26,6 +26,7 @@
 #include <itkAndImageFilter.h>
 #include <itkCastImageFilter.h>
 #include  "AppCommand.h"
+namespace ttt{
 /**
  * Tissue Surface segmentation method based in gaussian blurring + thresholding. Performed employing GPU methods
  */
@@ -99,6 +100,6 @@ public:
 
 	}
 };
-
+}
 #endif
 /** @}*/

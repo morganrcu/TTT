@@ -1,7 +1,7 @@
 #include "AnisotropicDiffusionCommand.h"
 
 
-void AnisotropicDiffusionCommand::Do(){
+void ttt::AnisotropicDiffusionCommand::Do(){
 
 	m_Diffuser->SetSigmaMin(m_DiffusionSigmaMin);
 	m_Diffuser->SetSigmaMax(m_DiffusionSigmaMax);

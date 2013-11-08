@@ -6,7 +6,7 @@
 namespace Ui {
 class SQLOpenProjectDialog;
 }
-
+using namespace ttt;
 class SQLOpenProjectDialog : public QDialog
 {
     Q_OBJECT

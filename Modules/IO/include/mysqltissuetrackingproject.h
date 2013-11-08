@@ -33,9 +33,9 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/graph/iteration_macros.hpp>
 
-#include "giaaCellGraph2.h"
+#include "tttDescriptionDataTypes.h"
 #include "Ellipse.h"
-#include "tectonics.h"
+#include "tttDomainStrainRates.h"
 
 #if 0
 #include <itkImageFileWriter.h>
@@ -46,7 +46,7 @@
 #include <tectonics.h>
 
 #endif
-
+namespace ttt{
 class TissueTrackingProject {
 
 public:
@@ -59,8 +59,8 @@ public:
 	typedef itk::Image<itk::Vector<float, 3>, 3> OrientationImageType;
 	typedef itk::Image<float, 3> VertexnessImageType;
 	typedef itk::PointSet<VertexnessImageType::PixelType, 3> PointsetType;
-	typedef giaa::TissueDescriptor TissueDescriptorType;
-	typedef giaa::TrackedTissueDescriptor TrackedTissueDescriptorType;
+	typedef ttt::TissueDescriptor TissueDescriptorType;
+	typedef ttt::TrackedTissueDescriptor TrackedTissueDescriptorType;
 
 	typedef typename RawImageType::SpacingType SpacingType;
 
@@ -71,7 +71,7 @@ public:
 			EllipseType> EllipseMapType;
 
 	typedef boost::shared_ptr<EllipseMapType> EllipseMapTypePointer;
-	typedef std::vector<giaa::TrackedDomain> TrackedDomainVectorType;
+	typedef std::vector<ttt::TrackedDomain> TrackedDomainVectorType;
 	typedef boost::shared_ptr<TrackedDomainVectorType> TrackedDomainVectorTypePointer;
 
 	typedef RawImageType::RegionType RegionType;
@@ -505,15 +505,15 @@ public:
 			std::auto_ptr<sql::PreparedStatement> insertVertex_stmt(
 					m_DB->prepareStatement(insertVertexString));
 
-			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 
 			insertVertex_stmt->setInt(1,m_ProjectID);
 			insertVertex_stmt->setInt(2,frame);
 			insertVertex_stmt->setInt(3,0);
 			insertVertex_stmt->setInt(4,v);
-			insertVertex_stmt->setDouble(5,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[0]);
-			insertVertex_stmt->setDouble(6,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[1]);
-			insertVertex_stmt->setDouble(7,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[2]);
+			insertVertex_stmt->setDouble(5,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[0]);
+			insertVertex_stmt->setDouble(6,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[1]);
+			insertVertex_stmt->setDouble(7,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[2]);
 			insertVertex_stmt->execute();
 
 		}
@@ -545,7 +545,7 @@ public:
 		std::auto_ptr<sql::PreparedStatement> insertEdge_stmt(
 				m_DB->prepareStatement(insertEdgeString));
 
-		BGL_FORALL_EDGES(e,*tissueDescriptor->m_SkeletonGraph,giaa::SkeletonGraph){
+		BGL_FORALL_EDGES(e,*tissueDescriptor->m_SkeletonGraph,ttt::SkeletonGraph){
 
 			insertEdge_stmt->setInt(1,m_ProjectID);
 			insertEdge_stmt->setInt(2,frame);
@@ -583,14 +583,14 @@ public:
 			std::auto_ptr<sql::PreparedStatement> insertCell_stmt(
 					m_DB->prepareStatement(insertCellString));
 
-			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,giaa::CellGraph){
+			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,ttt::CellGraph){
 			insertCell_stmt->setInt(1,m_ProjectID);
 			insertCell_stmt->setInt(2,frame);
 			insertCell_stmt->setInt(3,0);
 			insertCell_stmt->setInt(4,v);
-			insertCell_stmt->setDouble(5,boost::get(giaa::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[0]);
-			insertCell_stmt->setDouble(6,boost::get(giaa::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[1]);
-			insertCell_stmt->setDouble(7,boost::get(giaa::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[2]);
+			insertCell_stmt->setDouble(5,boost::get(ttt::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[0]);
+			insertCell_stmt->setDouble(6,boost::get(ttt::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[1]);
+			insertCell_stmt->setDouble(7,boost::get(ttt::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[2]);
 			insertCell_stmt->execute();
 		}
 	} catch(sql::SQLException &e) {
@@ -618,7 +618,7 @@ public:
 			std::auto_ptr<sql::PreparedStatement> insertCellEdge_stmt(
 					m_DB->prepareStatement(insertCellEdgeString));
 
-			BGL_FORALL_EDGES(e,*tissueDescriptor->m_CellGraph,giaa::CellGraph){
+			BGL_FORALL_EDGES(e,*tissueDescriptor->m_CellGraph,ttt::CellGraph){
 			insertCellEdge_stmt->setInt(1,m_ProjectID);
 			insertCellEdge_stmt->setInt(2,frame);
 			insertCellEdge_stmt->setInt(3,0);
@@ -650,13 +650,13 @@ public:
 									"INSERT IGNORE INTO Cell_has_MembranePoint(idProject,t,idTissue,idCell,idMembranePoint,`order`) VALUES (?,?,?,?,?,?)");
 			std::auto_ptr<sql::PreparedStatement> insertCellToMembranePointString_stmt(
 					m_DB->prepareStatement(insertCellToMembranePointString));
-			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,giaa::CellGraph){
+			BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,ttt::CellGraph){
 
 
 
 				int order=0;
-				for(std::vector<giaa::SkeletonVertexType>::iterator it=boost::get(giaa::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).Begin();
-						it!=boost::get(giaa::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).End();
+				for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).Begin();
+						it!=boost::get(ttt::CellPropertyTag(),*tissueDescriptor->m_CellGraph,v).End();
 						it++) {
 					insertCellToMembranePointString_stmt->setInt(1,m_ProjectID);
 					insertCellToMembranePointString_stmt->setInt(2,frame);
@@ -726,15 +726,15 @@ void AddTrackedTissueDescriptor(unsigned int frame, const typename TrackedTissue
 
 		std::auto_ptr< sql::PreparedStatement > insertVertex_stmt(m_DB->prepareStatement(insertVertexString));
 
-		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_SkeletonGraph,giaa::SkeletonGraph) {
+		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_SkeletonGraph,ttt::SkeletonGraph) {
 
 			insertVertex_stmt->setInt(1,m_ProjectID);
 			insertVertex_stmt->setInt(2,frame);
 			insertVertex_stmt->setInt(3,0);
 			insertVertex_stmt->setInt(4,v);
-			insertVertex_stmt->setDouble(5,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[0]);
-			insertVertex_stmt->setDouble(6,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[1]);
-			insertVertex_stmt->setDouble(7,boost::get(giaa::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[2]);
+			insertVertex_stmt->setDouble(5,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[0]);
+			insertVertex_stmt->setDouble(6,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[1]);
+			insertVertex_stmt->setDouble(7,boost::get(ttt::SkeletonPointPropertyTag(),*tissueDescriptor->m_SkeletonGraph,v).position[2]);
 			insertVertex_stmt->execute();
 		}
 
@@ -787,7 +787,7 @@ void AddTrackedTissueDescriptor(unsigned int frame, const typename TrackedTissue
 
 		std::auto_ptr< sql::PreparedStatement > insertEdge_stmt(m_DB->prepareStatement(insertEdgeString));
 
-		BGL_FORALL_EDGES(e,*tissueDescriptor->m_SkeletonGraph,giaa::SkeletonGraph) {
+		BGL_FORALL_EDGES(e,*tissueDescriptor->m_SkeletonGraph,ttt::SkeletonGraph) {
 
 			insertEdge_stmt->setInt(1,m_ProjectID);
 			insertEdge_stmt->setInt(2,frame);
@@ -845,19 +845,19 @@ void AddTrackedTissueDescriptor(unsigned int frame, const typename TrackedTissue
 
 		std::auto_ptr< sql::PreparedStatement > insertCell_stmt(m_DB->prepareStatement(insertCellString));
 
-		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,giaa::TrackedCellGraph) {
+		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,ttt::TrackedCellGraph) {
 			insertCell_stmt->setInt(1,m_ProjectID);
 			insertCell_stmt->setInt(2,frame);
 			insertCell_stmt->setInt(3,0);
 			insertCell_stmt->setInt(4,v);
 			insertCell_stmt->setInt(5,-1); //TODO obtain from ???
-			insertCell_stmt->setInt(6,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_ID);
-			insertCell_stmt->setDouble(7,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[0]);
-			insertCell_stmt->setDouble(8,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[1]);
-			insertCell_stmt->setDouble(9,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[2]);
-			insertCell_stmt->setDouble(10,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[0]);
-			insertCell_stmt->setDouble(11,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[1]);
-			insertCell_stmt->setDouble(12,boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[2]);
+			insertCell_stmt->setInt(6,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_ID);
+			insertCell_stmt->setDouble(7,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[0]);
+			insertCell_stmt->setDouble(8,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[1]);
+			insertCell_stmt->setDouble(9,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Centroid[2]);
+			insertCell_stmt->setDouble(10,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[0]);
+			insertCell_stmt->setDouble(11,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[1]);
+			insertCell_stmt->setDouble(12,boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).m_Velocity[2]);
 			insertCell_stmt->execute();
 		}
 	} catch(sql::SQLException &e) {
@@ -884,7 +884,7 @@ void AddTrackedTissueDescriptor(unsigned int frame, const typename TrackedTissue
 
 		std::auto_ptr< sql::PreparedStatement > insertCellEdge_stmt(m_DB->prepareStatement(insertCellEdgeString));
 
-		BGL_FORALL_EDGES(e,*tissueDescriptor->m_CellGraph,giaa::TrackedCellGraph) {
+		BGL_FORALL_EDGES(e,*tissueDescriptor->m_CellGraph,ttt::TrackedCellGraph) {
 			insertCellEdge_stmt->setInt(1,m_ProjectID);
 			insertCellEdge_stmt->setInt(2,frame);
 			insertCellEdge_stmt->setInt(3,0);
@@ -917,10 +917,10 @@ void AddTrackedTissueDescriptor(unsigned int frame, const typename TrackedTissue
 
 		std::auto_ptr< sql::PreparedStatement > insertTrackedCellToTrackedMembranePointString_stmt(m_DB->prepareStatement(insertTrackedCellToMembranePointString));
 
-		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,giaa::TrackedCellGraph) {
+		BGL_FORALL_VERTICES(v,*tissueDescriptor->m_CellGraph,ttt::TrackedCellGraph) {
 
-			for(std::vector<giaa::SkeletonVertexType>::iterator it=boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).Begin();
-					it!=boost::get(giaa::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).End();
+			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).Begin();
+					it!=boost::get(ttt::TrackedCellPropertyTag(),*tissueDescriptor->m_CellGraph,v).End();
 					it++) {
 
 				insertTrackedCellToTrackedMembranePointString_stmt->setInt(1,m_ProjectID);
@@ -1008,7 +1008,7 @@ void AddTrackedDomains(unsigned int frame,const TrackedDomainVectorTypePointer &
 			insertTrackedDomains_stmt->setInt(5,it->GetOrder());
 			insertTrackedDomains_stmt->execute();
 
-			for(typename std::set<giaa::TrackedCellVertexType>::iterator it2=it->Begin();it2!=it->End();it2++) {
+			for(typename std::set<ttt::TrackedCellVertexType>::iterator it2=it->Begin();it2!=it->End();it2++) {
 				std::string insertTrackedDomainsTrackedCellString("INSERT INTO TrackedDomain_has_TrackedCell(idProject,t,idTissue,idTrackedCell,idNucleousCell) VALUES (?,?,?,?,?)");
 
 				std::auto_ptr< sql::PreparedStatement > insertTrackedDomainsTrackedCell_stmt(m_DB->prepareStatement(insertTrackedDomainsTrackedCellString));
@@ -1241,11 +1241,11 @@ typename TissueDescriptorType::Pointer GetTissueDescriptor(unsigned int frame) {
 
 		while(resMembranePoints->next()) {
 
-			giaa::SkeletonPoint newPoint;
+			ttt::SkeletonPoint newPoint;
 			newPoint.position[0]=resMembranePoints->getDouble("posX");
 			newPoint.position[1]=resMembranePoints->getDouble("posY");
 			newPoint.position[2]=resMembranePoints->getDouble("posZ");
-			giaa::SkeletonVertexType vertex = boost::add_vertex(newPoint,*m_TissueDescriptor->m_SkeletonGraph);
+			ttt::SkeletonVertexType vertex = boost::add_vertex(newPoint,*m_TissueDescriptor->m_SkeletonGraph);
 
 			assert(vertex== resMembranePoints->getInt("idMembranePoint"));
 
@@ -1284,12 +1284,12 @@ typename TissueDescriptorType::Pointer GetTissueDescriptor(unsigned int frame) {
 		std::auto_ptr< sql::ResultSet > resCell(queryCell->getResultSet());
 
 		while(resCell->next()) {
-			giaa::Cell newCell;
+			ttt::Cell newCell;
 			newCell.m_Centroid[0]=resCell->getDouble("posX");
 			newCell.m_Centroid[1]=resCell->getDouble("posY");
 			newCell.m_Centroid[2]=resCell->getDouble("posZ");
 
-			giaa::CellVertexType vertex = boost::add_vertex(newCell,*m_TissueDescriptor->m_CellGraph);
+			ttt::CellVertexType vertex = boost::add_vertex(newCell,*m_TissueDescriptor->m_CellGraph);
 
 			assert(vertex== resCell->getInt("idCell"));
 
@@ -1307,7 +1307,7 @@ typename TissueDescriptorType::Pointer GetTissueDescriptor(unsigned int frame) {
 				std::auto_ptr< sql::ResultSet > resCellMembrane(queryCellMembrane->getResultSet());
 
 				while(resCellMembrane->next()) {
-					boost::get(giaa::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,vertex).AddSkeletonPoint(resCellMembrane->getInt("idMembranePoint"));
+					boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,vertex).AddSkeletonPoint(resCellMembrane->getInt("idMembranePoint"));
 				}
 			}
 
@@ -1352,11 +1352,11 @@ inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor(
 
 		while(resMembranePoints->next()) {
 
-			giaa::SkeletonPoint newPoint;
+			ttt::SkeletonPoint newPoint;
 			newPoint.position[0]=resMembranePoints->getDouble("posX");
 			newPoint.position[1]=resMembranePoints->getDouble("posY");
 			newPoint.position[2]=resMembranePoints->getDouble("posZ");
-			giaa::SkeletonVertexType vertex = boost::add_vertex(newPoint,*m_TrackedTissueDescriptor->m_SkeletonGraph);
+			ttt::SkeletonVertexType vertex = boost::add_vertex(newPoint,*m_TrackedTissueDescriptor->m_SkeletonGraph);
 
 			assert(vertex== resMembranePoints->getInt("idTrackedMembranePoint"));
 
@@ -1396,7 +1396,7 @@ inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor(
 		std::auto_ptr< sql::ResultSet > resCell(queryCell->getResultSet());
 
 		while(resCell->next()) {
-			giaa::TrackedCell newCell;
+			ttt::TrackedCell newCell;
 			newCell.m_Centroid[0]=resCell->getDouble("posX");
 			newCell.m_Centroid[1]=resCell->getDouble("posY");
 			newCell.m_Centroid[2]=resCell->getDouble("posZ");
@@ -1408,7 +1408,7 @@ inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor(
 			newCell.m_ID=resCell->getInt("trackID");
 			newCell.m_ObservedCell=resCell->getInt("idCell");
 
-			giaa::TrackedCellVertexType vertex = boost::add_vertex(newCell,*m_TrackedTissueDescriptor->m_CellGraph);
+			ttt::TrackedCellVertexType vertex = boost::add_vertex(newCell,*m_TrackedTissueDescriptor->m_CellGraph);
 
 			assert(vertex== resCell->getInt("idTrackedCell"));
 
@@ -1426,7 +1426,7 @@ inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor(
 				std::auto_ptr< sql::ResultSet > resTrackedCellMembrane(queryTrackedCellMembrane->getResultSet());
 
 				while(resTrackedCellMembrane->next()) {
-					boost::get(giaa::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,vertex).AddSkeletonPoint(resTrackedCellMembrane->getInt("idTrackedMembranePoint"));
+					boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,vertex).AddSkeletonPoint(resTrackedCellMembrane->getInt("idTrackedMembranePoint"));
 				}
 			}
 
@@ -1496,7 +1496,7 @@ TrackedDomainVectorTypePointer GetTrackedDomains(unsigned int frame) {
 	std::auto_ptr< sql::ResultSet > resTrackedDomains(selectTrackedDomains_stmt->getResultSet());
 
 	while(resTrackedDomains->next()) {
-		giaa::TrackedDomain domain;
+		ttt::TrackedDomain domain;
 		domain.SetOrder(resTrackedDomains->getInt("order"));
 		domain.SetNucleus(resTrackedDomains->getInt("idTrackedCell"));
 
@@ -1857,6 +1857,7 @@ template<class TImage> void storeImageInTable(const typename TImage::Pointer & i
 }
 
 };
+}
 
  // TISSUETRACKINGPROJECT_H
 

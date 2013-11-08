@@ -22,8 +22,8 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include "EllipsesCommand.h"
-#include "giaaCellGraph2.h"
+
+#include "tttDomainStrainRates.h"
 #include  "Ellipse.h"
 #include "fitEllipse.h"
 #include "AppCommand.h"
@@ -84,12 +84,12 @@ template<class TissueDescriptor> void EllipsesCommand<TissueDescriptor>::Do(){
 	assert(m_Descriptor);
 	assert(m_Descriptor->m_CellGraph);
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,giaa::CellGraph) {
-		std::vector<giaa::SkeletonVertexType> svt = boost::get(giaa::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_SkeletonNodes;
+	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,CellGraph) {
+		std::vector<SkeletonVertexType> svt = boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_SkeletonNodes;
 		std::vector<itk::Point<double,3> > points;
 
-		for(std::vector<giaa::SkeletonVertexType>::iterator itr = svt.begin(); itr != svt.end(); ++itr){
-			itk::Point<double,3> pos = boost::get(giaa::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,*itr).position;
+		for(std::vector<SkeletonVertexType>::iterator itr = svt.begin(); itr != svt.end(); ++itr){
+			itk::Point<double,3> pos = boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,*itr).position;
 			points.push_back(pos);
 		}
 		bool done=false;

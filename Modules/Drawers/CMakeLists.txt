@@ -6,7 +6,7 @@ include_directories(../Core/include/)
 
 set(TTTDrawers_SRCS 
 	source/DiffusedImageDrawer.cpp
-	#source/DomainStrainRatesDrawer.cpp
+	source/DomainStrainRatesDrawer.cpp
 	source/Drawer.cpp
 	source/DualGraphDrawer.cpp
 	source/EllipseDrawer.cpp
@@ -15,7 +15,7 @@ set(TTTDrawers_SRCS
 	source/PlatenessImageDrawer.cpp
 	source/PrimalGraphDrawer.cpp
 	source/RawImageDrawer.cpp
-	#source/TrackingDrawer.cpp
+	source/TrackingDrawer.cpp
 	source/VertexLocationsDrawer.cpp
 	source/VertexnessImageDrawer.cpp
 	)

@@ -19,10 +19,9 @@
 #ifndef PRIMAL_GRAPH_DRAWER_H_
 #define PRIMAL_GRAPH_DRAWER_H_
 #include <itkFixedArray.h>
-//#include <boost/tuple/tuple.hpp>
-//#include <boost/tuple/tuple_comparison.hpp>
-#include "Drawer.h"
 #include "tttDescriptionDataTypes.h"
+#include "Drawer.h"
+
 namespace ttt{
 class PrimalGraphDrawer: public Drawer {
 public:

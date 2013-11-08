@@ -12,7 +12,7 @@
 
 #define DTOR ( M_PI/180.0)
 
-void parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const double angle, vnl_matrix_fixed<double,2,2> & result){
+void ttt::parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const double angle, vnl_matrix_fixed<double,2,2> & result){
 	vnl_matrix_fixed<double,2,2> V,D;
 
 	V(0,0)=cos(angle);
@@ -27,7 +27,7 @@ void parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const do
 
 	result = V*D*V.transpose();
 }
-void polarToRect(double radius, double phase, Vector & r) {
+static void polarToRect(double radius, double phase, ttt::Vector & r) {
 
 	r(0) = radius * cos(phase);
 	r(1) = radius * sin(phase);
@@ -43,11 +43,11 @@ return, Tensor
 end
 #endif
 
-Tensor expSymmTensor(const Tensor & ppTensor) {
+static ttt::Tensor expSymmTensor(const ttt::Tensor & ppTensor) {
 
 	vnl_symmetric_eigensystem<double> eigensystem(ppTensor);
 
-	Tensor D(2, 2);
+	ttt::Tensor D(2, 2);
 
 	D(0, 0) = eigensystem.D(0, 0);
 	D(0, 1) = 0;
@@ -70,7 +70,7 @@ function LogSymmTensor, Tensor
 end
 #endif
 
-Tensor logSymmTensor(const Tensor & ppTensor) {
+static ttt::Tensor logSymmTensor(const ttt::Tensor & ppTensor) {
 	vnl_symmetric_eigensystem<double> eigensystem(ppTensor);
 	vnl_matrix<double> D(2, 2);
 
@@ -118,7 +118,7 @@ struct MyComparator{
 	}
 }mycomparator;
 
-std::vector<std::pair<double,double> > Convert_rxy_to_radth(const std::vector<vnl_vector<double> > & rxy,
+static std::vector<std::pair<double,double> > Convert_rxy_to_radth(const std::vector<vnl_vector<double> > & rxy,
 		const bool deg = false) {
 
 	int n = rxy.size();
@@ -171,7 +171,7 @@ return, (ATAN(v[1],v[0]) + 2*!PI) MOD (2*!PI)
 end
 #endif
 
-double vectorToRadians(const vnl_vector<double> & v) {
+static double vectorToRadians(const vnl_vector<double> & v) {
 	return atan2(v(1), v(0)) + M_PI;
 }
 #if 0
@@ -182,7 +182,7 @@ return, [[COS(Rot),SIN(Rot)],[-SIN(Rot),COS(Rot)]]
 end
 #endif
 
-vnl_matrix<double> rotationMatrix(double rotation) {
+static vnl_matrix<double> rotationMatrix(double rotation) {
 	vnl_matrix<double> result(2, 2);
 	result(0, 0) = cos(rotation);
 	result(0, 1) = -sin(rotation);
@@ -206,7 +206,7 @@ return, r0
 end
 #endif
 
-vnl_vector<double> GetEllipsePerimXY(const vnl_symmetric_eigensystem<double> & Evecs, double theta) {
+static vnl_vector<double> GetEllipsePerimXY(const vnl_symmetric_eigensystem<double> & Evecs, double theta) {
 
 	double cossqrth = pow(cos(theta), 2);
 
@@ -215,7 +215,7 @@ vnl_vector<double> GetEllipsePerimXY(const vnl_symmetric_eigensystem<double> & E
 
 	double rad = Evecs.D(0, 0)/ sqrt(1.0 - pow(eccentricity, 2) * cossqrth);
 
-	Vector r0;
+	ttt::Vector r0;
 	polarToRect(rad, theta, r0);
 
 	double phi = vectorToRadians(Evecs.V.get_column(1));
@@ -243,7 +243,7 @@ end
 
 #endif
 
-vnl_matrix<double> EvalOrient_To_Tensor(double eval1, double eval2, double orient){
+static vnl_matrix<double> EvalOrient_To_Tensor(double eval1, double eval2, double orient){
 	vnl_matrix<double> V(2,2);
 
 	V(0,0)=cos(orient);
@@ -280,7 +280,7 @@ return, EvaluateEllipseMapping(Ellipse0,Ellipse1,StrainTensor)
 end
 #endif
 
-void interpolate(const std::vector<std::pair<double,double> > & data, std::vector<std::pair<double, double> > & Pts){
+static void interpolate(const std::vector<std::pair<double,double> > & data, std::vector<std::pair<double, double> > & Pts){
 	double p,a,b,fa,fb,fp,d;
 	for(int i=0;i<Pts.size();i++){
 		p=Pts[i].second;
@@ -308,8 +308,8 @@ void interpolate(const std::vector<std::pair<double,double> > & data, std::vecto
 		Pts[i].first=fp;
 	}
 }
-double evaluateEllipseMapping(const EllipseMatrix & ellipse0,
-		const EllipseMatrix & ellipse1, vnl_matrix<double> strainTensor) {
+static double evaluateEllipseMapping(const ttt::EllipseMatrix & ellipse0,
+		const ttt::EllipseMatrix & ellipse1, vnl_matrix<double> strainTensor) {
 #if 0
 	std::cout << "ellipse0" << std::endl;
 	std::cout << ellipse0 << std::endl;
@@ -464,12 +464,12 @@ double evaluateEllipseMapping(const EllipseMatrix & ellipse0,
 
 class ellipse_mapping_cost_function: public vnl_cost_function {
 private:
-	EllipseMatrix ellipse0;
-	EllipseMatrix ellipse1;
+	ttt::EllipseMatrix ellipse0;
+	ttt::EllipseMatrix ellipse1;
 	double trace;
 public:
 	ellipse_mapping_cost_function(): vnl_cost_function(2),trace(0){}
-	ellipse_mapping_cost_function(const EllipseMatrix & ellipse0, const EllipseMatrix & ellipse1,double trace) : vnl_cost_function(2){
+	ellipse_mapping_cost_function(const ttt::EllipseMatrix & ellipse0, const ttt::EllipseMatrix & ellipse1,double trace) : vnl_cost_function(2){
 		this->ellipse0=ellipse0;
 		this->ellipse1=ellipse1;
 		this->trace=trace;
@@ -519,7 +519,7 @@ end
 
 #endif
 
-double ellipseArea(const EllipseMatrix & ellipse) {
+static double ellipseArea(const ttt::EllipseMatrix & ellipse) {
 	//vnl_real_eigensystem eigensystem(ellipse);
 	vnl_symmetric_eigensystem<double> eigensystem(ellipse);
 	return 2*M_PI*(eigensystem.D(0, 0) * eigensystem.D(1, 1));//TODO
@@ -548,7 +548,7 @@ function OptimizeCellShapeStrain, Ellipse0,Ellipse1
 end
 #endif
 
-void optimizeCellShapeStrain(const EllipseMatrix & a, const EllipseMatrix & b,vnl_matrix<double> & tensor) {
+static void optimizeCellShapeStrain(const ttt::EllipseMatrix & a, const ttt::EllipseMatrix & b,vnl_matrix<double> & tensor) {
 
 	double area0 = ellipseArea(a); //Area0 = Ellipse_Area(Ellipse0)
 	double area1 = ellipseArea(b); // Area1 = Ellipse_Area(Ellipse1)
@@ -627,7 +627,7 @@ void optimizeCellShapeStrain(const EllipseMatrix & a, const EllipseMatrix & b,vn
 
 }
 
-void calculateIntercalationSRT( const vnl_matrix<double> & tissueSRT, const vnl_matrix<double> & cellShapeSRT, Tensor & intercalationSRT ){
+static void calculateIntercalationSRT( const ttt::Tensor & tissueSRT, const ttt::Tensor & cellShapeSRT, ttt::Tensor & intercalationSRT ){
 	intercalationSRT= tissueSRT - cellShapeSRT;
 }
 
@@ -662,8 +662,8 @@ end
 #endif
 
 #endif
-void calculateCellShapeSRT(const std::vector<EllipseMatrix> & ellipses0,
-		const std::vector<EllipseMatrix> & ellipses1, double rotation, double mins,Tensor & cellShapeSRT) {
+static void calculateCellShapeSRT(const std::vector<ttt::EllipseMatrix> & ellipses0,
+		const std::vector<ttt::EllipseMatrix> & ellipses1, double rotation, double mins,ttt::Tensor & cellShapeSRT) {
 
 	assert(ellipses0.size() == ellipses1.size());
 
@@ -739,9 +739,9 @@ end
 
 #endif
 
-void calculateTissueSRT(const std::vector<Centroid> & centroids0,
-		const std::vector<VelocityVector> & velocities, int mins,
-		Tensor & TissueSRT) { //, TRANSLATION & translation, ERROR & ErrorEst){
+static void calculateTissueSRT(const std::vector<ttt::Centroid> & centroids0,
+		const std::vector<ttt::VelocityVector> & velocities, int mins,
+		ttt::Tensor & TissueSRT) { //, TRANSLATION & translation, ERROR & ErrorEst){
 	//std::cout << "->calculateTissueSRT" << std::endl;
 
 	assert(centroids0.size() == velocities.size());
@@ -807,7 +807,7 @@ end
 
 #endif
 
-void domainStrainRates(const std::vector<Centroid> & centroids0,
+void ttt::domainStrainRates(const std::vector<Centroid> & centroids0,
 		const std::vector<VelocityVector> & centroids1,
 		const std::vector<EllipseMatrix> & ellipse0,
 		const std::vector<EllipseMatrix> & ellipse1,
@@ -852,19 +852,6 @@ void domainStrainRates(const std::vector<Centroid> & centroids0,
 #endif
 }
 
-void tensorToPlot(const vnl_matrix<double> & tensor, vnl_vector<double> & majorDir, double * majorLength, vnl_vector<double> & minorDir, double * minorLength,double * rotation){
-
-	vnl_symmetric_eigensystem<double> eigensystem(tensor);
-
-	majorDir= eigensystem.V.get_column(1);
-	majorLength[0]=eigensystem.D(1,1);
-	minorDir = eigensystem.V.get_column(0);
-	minorLength[0]=eigensystem.D(0,0);
-	vnl_matrix<double> Spin = (tensor - tensor.transpose()) / 2;
-
-	assert(majorLength[0]>minorLength[0]);
-	rotation[0] = tensor(1,0);
-}
 
 /*
 int main() {

@@ -7,16 +7,16 @@
 
 #include <TrackingCommand.h>
 
-TrackingCommand::TrackingCommand() {
-	m_Tracker=giaa::CellTracker::New();
+ttt::TrackingCommand::TrackingCommand() {
+	m_Tracker=CellTracker::New();
 }
 
-TrackingCommand::~TrackingCommand() {
+ttt::TrackingCommand::~TrackingCommand() {
 
 }
 
 
-void TrackingCommand::Do(){
+void ttt::TrackingCommand::Do(){
 	m_Tracker->SetObservations(m_Input);
 	m_Tracker->Track();
 	//m_Tracker->Update();

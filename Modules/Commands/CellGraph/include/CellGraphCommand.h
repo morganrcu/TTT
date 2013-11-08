@@ -21,7 +21,7 @@
 #define CELLGRAPHCOMMAND_H_
 
 
-#include <tttDescriptionDataTypes.h>
+#include "tttDescriptionDataTypes.h"
 #include <giaaPrimalGraphToDualGraphFilter.h>
 #include "AppCommand.h"
 
@@ -29,14 +29,14 @@ namespace ttt{
 
 class CellGraphCommand: public AppCommand {
 private:
-    typedef PrimalGraphToDualGraphFilter<giaa::TissueDescriptor> DualFilterType;
+    typedef PrimalGraphToDualGraphFilter<TissueDescriptor> DualFilterType;
     DualFilterType::Pointer m_Dual;
 
    TissueDescriptor::Pointer m_Graphs;
 
 public:
-	DualGraphCommand();
-	virtual ~DualGraphCommand();
+	CellGraphCommand();
+	virtual ~CellGraphCommand();
 	virtual void Do();
 
 	inline void SetPrimalGraph(const TissueDescriptor::Pointer & graph){

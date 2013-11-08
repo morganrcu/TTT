@@ -6,6 +6,7 @@ include_directories(../../Core/include/)
 
 include_directories( include)
 
-set(TTTTectonics_SRCS source/TectonicsCommand.cpp)
+set(TTTTectonics_SRCS source/TectonicsCommand.cpp source/tectonics.cpp)
 
 add_library(TTTTectonics ${TTTTectonics_SRCS})
+target_link_libraries(TTTTectonics TTTCore)

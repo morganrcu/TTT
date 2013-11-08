@@ -7,7 +7,7 @@
 #include <vtkRenderer.h>
 #include "itkPoint.h"
 #ifndef Q_MOC_RUN
-#include "giaaTissueSegmentation.h"
+//#include "giaaTissueSegmentation.h"
 #include "giaaCellTracker.h"
 #endif
 
@@ -20,10 +20,9 @@
 
 #include "TrackingDrawer.h"
 
-using namespace giaa;
 using namespace boost;
 using namespace std;
-
+using namespace ttt;
 namespace Ui {
     class TissueTracker;
 }
@@ -152,96 +151,14 @@ private slots:
     void SetupNavigation();
     void UpdateControls();
 
-    //void DoLevelSet();
-    //void DoThresholding();
-    //void DoSkeletonization();
-    //void DoPrimalGiaaCalculation();
-    //void DoOutputDual();
     void DoCurrent();
     void DoAll();
-//    void Save();
 
 
 
 
 
 
-
-    //double GetEdgeDistance(std::vector<giaa::SkeletonVertexType> sp, giaa::TissueDescriptor::Pointer d);
-
-
-
-#if 0
-    void DoSelection();
-
-    void DoMove();
-    void DoModification();
-    void DoModSim();
-#endif
- #ifdef OUT_OF_CONTROL
-    void CellBoundaryReduction();
-    void DoJunctions();
-    void DoFinalize();
-
-    void AddCellsToDomain();
-
-
-    void DoSelectTracking();
-    void DoSelectTracking1();
-    void DoSelectTracking2();
-
-
-    void DoReduction();
-
-    void PopulateCellTable();
-    void DoPrimalSimplify();
-    void ChangeColor();
-    void PopulateDomainTable();
-    void DoFinalizeSimplify();
-    void SetUpPlots();
-    void SetUpPolygonPlot();
-    void SetUpAreaPlot(std::vector<int> vals);
-    void InitDefGraph();
-    void slot_clicked(vtkObject*, unsigned long, void *, void *);
-    void onSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
-    int GetBestEdge(itk::Point<double,3>  x1pos , giaa::SkeletonVertexType_lS x0, std::map<giaa::SkeletonVertexType_lS,std::vector<giaa::SkeletonVertexType> > dirmap);
-    bool IntersectLine(itk::Point<double ,3> l1posA, itk::Point<double, 3> l1posB, itk::Point<double, 3> l2posA, itk::Point<double, 3> l2posB );
-    double lineDistance(itk::Vector<double, 3> x0, itk::Vector<double, 3> x1, itk::Vector<double, 3> x2);
-    double pointDistance(itk::Vector<double, 3> x0, itk::Vector<double, 3> x1);
-    double angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts);
-    double distitkpt(itk::Point<double,3> pta, itk::Point<double,3> ptb);
-    void UpdateDisplay2();
-    int GetBin(double min, double max, int num_bins, double val);
-    void GetAreaofCells();
-    void GetEllipsesofCells();
-    void GetColorsofCells();
-    void GetTectonics(Domain d);
-
-    std::map<giaa::SkeletonVertexType,std::vector<giaa::SkeletonVertexType> > CellDefToEdgeMap (Cell a, giaa::TissueDescriptor::Pointer desA);
-
-    //void contextMenuEvent(QContextMenuEvent *event);
-        void CellJunctionComparison(giaa::TissueDescriptor::Pointer desA, giaa::TissueDescriptor::Pointer desB, giaa::Cell a, giaa::Cell b);
-        std::map<giaa::CellVertexType, double> GetEdgeVariance();
-
-        void SetFrame2(int frame);
-
-        void RemoveMembrane();
-        void SetupCurrentFrame2();
-        void SelectCell(giaa::Cell a, vtkActor* actor, std::vector<double> color);
-
-            void DoFFTPrintout();
-            void DoPolygonMap();
-            void oncelltableClick(QModelIndex index);
-            int ondomaintableClick(QModelIndex index);
-            void DeleteDomain();
-             void DomainContextMenu(const QPoint &pos);
-             void ColorCell(giaa::Cell a, int colorbin, int display);
-             void GetTrackedCells();
-                 void Cluster(std::map<int,std::vector<giaa::CellVertexType> > trackedcells);
-                 double GetMean(std::vector<double> vals);
-                 double GetStdDev(std::vector<double> vals, double ave);
-                 std::map<giaa::CellVertexType, int> GetStdevBin(std::map<giaa::CellVertexType,double> vals);
-#endif
 
 private:
 
@@ -250,12 +167,7 @@ private:
     QStringList m_Files;
 
     unsigned int m_CurrentFrame;
-
-
-    //giaa::TissueSegmentation m_Facade;
     
-    giaa::CellTracker m_TrackingFacade;
-
     bool m_DrawOriginal;
     bool m_DrawDiffused;
     bool m_DrawVesselness;
@@ -264,17 +176,6 @@ private:
     bool m_DrawSegmentation;
     bool m_DrawSkeleton;
     TissueTrackingProject * m_Project;
-
-//    QString m_BasePath;
-
-//    ProjectType::SpacingType m_Spacing;
-
-#ifdef OUT_OF_CONTROL
-    bool m_vlocationdone;
-    bool m_platenessdone;
-    bool m_levelsetdone;
-    unsigned int m_CurrentFrame2;
-#endif
 
 
     vtkSmartPointer<vtkRenderer> m_CurrentRenderer;

@@ -13,6 +13,7 @@
 #include <vtkObjectFactory.h>
 #include <vector>
 #include "PrimalGraphDrawer.h"
+namespace ttt{
 class PrimalGraphDrawerInteractor : public PrimalGraphDrawer, public vtkInteractorStyleTrackballCamera{
 private:
     vtkSmartPointer<vtkActor> m_SelectedEdge;
@@ -54,5 +55,5 @@ private:
 };
 //vtkStandardNewMacro(PrimalGraphDrawerInteractor);
 
-
+}
 #endif /* PRIMALGRAPHDRAWERINTERACTOR_H_ */

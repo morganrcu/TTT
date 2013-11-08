@@ -8,4 +8,4 @@ include_directories( include)
 
 set(TTTSurfaceSegmentation_SRCS source/SurfaceSegmentationCommand.cpp)
 
-#add_library(TTTCellGraph ${TTTCellGraph_SRCS})
+add_library(TTTSurfaceSegmentation ${TTTSurfaceSegmentation_SRCS})

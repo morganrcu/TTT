@@ -69,6 +69,7 @@ public:
 	 */
 	T m_Theta;
 };
-#endif
 }
+#endif
+
 /** @}*/
