@@ -23,12 +23,11 @@ HEADERS  += include/tissuetracker.h \
     include/newprojectdialog.h \
     include/sqlopenprojectdialog.h
 
-FORMS    += ui/tissuetracker.ui \
-    ui/newprojectdialog.ui \
-    ui/sqlnewprojectdialog.ui \
-    ui/sqlopenprojectdialog.ui
+FORMS    += tissuetracker.ui \
+    sqlnewprojectdialog.ui \
+    sqlopenprojectdialog.ui
 
-INCLUDEPATH+=/usr/local/include/vtk-6.0 /usr/local/include/ITK-4.4 ../../src
+INCLUDEPATH+=/usr/local/include/vtk-6.0 /usr/local/include/ITK-4.4 ./include
 
 #LIBS += -L../../../tissuetracking-bin/ -lTissueTrackerFacade -lITKCommon-4.1 -L/usr/local/lib/vtk-5.8 -lvtkCommon -lvtkGraphics -lvtkRendering -lvtkVolumeRendering -lITKVTK-4.1 -lITKIOImageBase-4.1 -litkvnl-4.1 -lITKIOJPEG-4.1 -lITKIOGDCM-4.1 -lITKIOBMP-4.1 -lITKIOLSM-4.1 -lITKIOPNG-4.1 -lITKIOVTK-4.1 -lITKIOStimulate-4.1 -lITKIOBioRad-4.1 -lITKIOMeta-4.1 -lITKIONIFTI-4.1 -lITKIONRRD-4.1 -lITKIOGIPL-4.1 -lITKIOHDF5-4.1 -lQVTK
 #LIBS += -lboost_serialization

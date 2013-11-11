@@ -22,9 +22,10 @@
 #include "itkAnisotropicDiffusionVesselEnhancementFunction.h"
 #include "itkMultiThreader.h"
 #include "itkDiffusionTensor3D.h"
-#include "itkMultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter.h"
+#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
 #include "itkSymmetricEigenVectorAnalysisImageFilter.h"
+#include "itkPlatenessMeasurementFunction.h"
 
 namespace itk {
 /** \class AnisotropicDiffusionVesselEnhancementFunction
@@ -64,7 +65,7 @@ public:
   itkNewMacro( Self );
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(AnisotropicDiffusionVesselEnhancementImageFilter,
+  itkTypeMacro(AnisotropicDiffusionPlateEnhancementImageFilter,
                                                 ImageToImageFilter );
   
   /** Convenient typedefs */
@@ -86,11 +87,12 @@ public:
   typedef HessianRecursiveGaussianImageFilter< InputImageType >
                                                 HessianFilterType;
 
-  typedef itk::Image< double, 3 >               VesselnessOutputImageType;
+  typedef itk::Image< double, 3 >               ObjectnessOutputImageType;
 
-  typedef MultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter< 
+  typedef PlatenessMeasurementFunction PlatenessMeasurementFunctionType;
+  typedef MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<PlatenessMeasurementFunctionType,
                                                 InputImageType, 
-                                                VesselnessOutputImageType >
+                                                ObjectnessOutputImageType >
                                                 MultiScaleVesselnessFilterType;
 
   typedef itk::Matrix<double, ImageDimension, ImageDimension> MatrixType;
@@ -160,6 +162,10 @@ public:
   double GetSigmaMax( ); 
   int GetNumberOfSigmaSteps( );
 
+
+  void SetPlatenessMeasurementFunction(const PlatenessMeasurementFunctionType::Pointer & platenessMeasurementFunction){
+	  m_MultiScaleVesselnessFilter->SetObjectnessMeasurementFunction(platenessMeasurementFunction);
+  }
 protected:
   AnisotropicDiffusionPlateEnhancementImageFilter();
  ~AnisotropicDiffusionPlateEnhancementImageFilter() {}
@@ -269,6 +275,7 @@ private:
   double                                                 m_Epsilon;
   double                                                 m_WStrength;
   double                                                 m_Sensitivity;
+
 };
   
 

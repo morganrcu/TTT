@@ -21,8 +21,11 @@
 #define PLATENESSCOMMAND_H_
 #include <itkRescaleIntensityImageFilter.h>
 
+#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "itkPlatenessMeasurementFunction.h"
+
 #include "AppCommand.h"
-#include "giaaPlatenessImageFilter.h"
+
 namespace ttt{
 class PlatenessCommand: public AppCommand {
 
@@ -38,7 +41,8 @@ public:
 
 private:
 
-	typedef ttt::PlatenessImageFilter<PlatenessImageType,PlatenessImageType,OrientationImageType> PlatenessFilterType;
+
+    typedef itk::MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<itk::PlatenessMeasurementFunction,PlatenessImageType> PlatenessFilterType;
     typedef itk::RescaleIntensityImageFilter<PlatenessImageType, PlatenessImageType> PlatenessRescalerType;
 
 

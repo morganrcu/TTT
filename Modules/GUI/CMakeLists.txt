@@ -19,6 +19,7 @@ include_directories( ../Commands/DataCasting/include/)
 include_directories( ../Commands/ComputeDomains/include/)
 include_directories( ../Commands/Tectonics/include/)
 include_directories( ../Commands/Base/include/)
+include_directories( ../Commands/ObjectnessMeasurementBase/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 # some .ui files sqlnewprojectdialog.ui sqlopenprojectdialog.ui

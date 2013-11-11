@@ -1,8 +1,12 @@
 #include "AnisotropicDiffusionCommand.h"
-
+#include "itkPlatenessMeasurementFunction.h"
 
 void ttt::AnisotropicDiffusionCommand::Do(){
 
+	typedef itk::PlatenessMeasurementFunction PlatenessMeasurementFunctionType;
+
+	PlatenessMeasurementFunctionType::Pointer platenessMeasurementFunction=PlatenessMeasurementFunctionType::New();
+	m_Diffuser->SetPlatenessMeasurementFunction(platenessMeasurementFunction);
 	m_Diffuser->SetSigmaMin(m_DiffusionSigmaMin);
 	m_Diffuser->SetSigmaMax(m_DiffusionSigmaMax);
 	m_Diffuser->SetNumberOfSigmaSteps(m_DiffusionSigmaSteps);

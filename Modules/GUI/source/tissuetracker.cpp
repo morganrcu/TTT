@@ -36,7 +36,6 @@
 #include "EllipseDrawer.h"
 #include "DomainStrainRatesDrawer.h"
 
-using namespace giaa;
 using namespace std;
 
 
@@ -453,7 +452,7 @@ void TissueTracker::DoPlateness(){
 	command.Do();
 
 	m_Project->AddPlateness(m_CurrentFrame,command.GetPlatenessImage());
-	m_Project->AddOrientation(m_CurrentFrame,command.GetOrientationImage());
+	//m_Project->AddOrientation(m_CurrentFrame,command.GetOrientationImage());
 
 	this->m_pUI->showPlatenessCBox->setChecked(true);
 

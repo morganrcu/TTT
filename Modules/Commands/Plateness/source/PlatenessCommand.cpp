@@ -6,9 +6,14 @@
  */
 
 #include "PlatenessCommand.h"
+#include "itkPlatenessMeasurementFunction.h"
 
 void ttt::PlatenessCommand::Do(){
 
+	typedef itk::PlatenessMeasurementFunction PlatenessFunctionType;
+	PlatenessFunctionType::Pointer platenessFunction = PlatenessFunctionType::New();
+
+	m_Plateness->SetObjectnessMeasurementFunction(platenessFunction);
 	m_Plateness->SetSigmaMin(m_SigmaMin);
 	m_Plateness->SetSigmaMax(m_SigmaMax);
 	m_Plateness->SetNumberOfSigmaSteps(m_SigmaSteps);
@@ -18,5 +23,5 @@ void ttt::PlatenessCommand::Do(){
 	m_PlatenessRescaler->Update();
 
 	m_PlatenessImage=m_PlatenessRescaler->GetOutput();
-	m_OrientationImage=m_Plateness->GetDirectionImage();
+	//m_OrientationImage=m_Plateness->GetDirectionImage();
 }
