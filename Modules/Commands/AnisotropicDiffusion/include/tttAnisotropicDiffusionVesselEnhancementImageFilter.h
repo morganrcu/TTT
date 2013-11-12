@@ -1,34 +1,36 @@
-/*=========================================================================
+//    This file is part of TTT Tissue Tracker.
+//
+//    TTT Tissue Tracker is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    TTT Tissue Tracker is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkAnisotropicDiffusionVesselEnhancementImageFilter.h,v $
-  Language:  C++
-  Date:      $Date: 2007/06/20 16:03:23 $
-  Version:   $Revision: 1.15 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/** \addtogroup TTTAnisotropicDiffusion
+ *  @{
+ */
 #ifndef __itkAnisotropicDiffusionVesselEnhancementImageFilter_h
 #define __itkAnisotropicDiffusionVesselEnhancementImageFilter_h
 
 //#include "itkFiniteDifferenceImageFilter.h"
 #include "itkDenseFiniteDifferenceImageFilter.h"
-#include "itkAnisotropicDiffusionVesselEnhancementFunction.h"
+#include "tttAnisotropicDiffusionVesselEnhancementFunction.h"
 #include "itkMultiThreader.h"
 #include "itkDiffusionTensor3D.h"
-#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "tttMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
 #include "itkSymmetricEigenVectorAnalysisImageFilter.h"
-#include "itkPlatenessMeasurementFunction.h"
+#include "tttPlatenessMeasurementFunction.h"
 
-namespace itk {
-/** \class AnisotropicDiffusionVesselEnhancementFunction
+namespace ttt {
+/** \class AnisotropicDiffusionPlateEnhancementFunction
  * \brief This class iteratively enhances vessels in an image by solving
  * non-linear diffusion equation developed by Manniesing et al.
  *
@@ -282,7 +284,9 @@ private:
 }// end namespace itk
 
 #if ITK_TEMPLATE_TXX
-# include "itkAnisotropicDiffusionVesselEnhancementImageFilter.hxx"
+# include "tttAnisotropicDiffusionVesselEnhancementImageFilter.hxx"
 #endif
 
 #endif
+
+/** @}*/

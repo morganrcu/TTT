@@ -3,7 +3,7 @@
 void ttt::VertexnessCommand::Do(){
 
 
-	typedef itk::VertexnessMeasurementFunction VertexnessFunctionType;
+	typedef VertexnessMeasurementFunction VertexnessFunctionType;
 	VertexnessFunctionType::Pointer vertexnessFunction = VertexnessFunctionType::New();
 
 	m_Vertexness->SetObjectnessMeasurementFunction(vertexnessFunction);

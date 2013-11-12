@@ -3,13 +3,79 @@
 */
 
 /**
-  \defgroup TTTCommand Data transformation algorithms
-  \ingroup DataRepresentation
-  This category includes the objects required to represent meshes in ITK.
+  \defgroup TTTCommand TTT Data transformation commands 
+
 */
 
 /**
-  \defgroup AnisotropicDifusion Data transformation algorithms
+  \defgroup TTTAnisotropicDiffusion 
   \ingroup TTTCommand
-  This category includes the classes employed to implement Membrane Enhancement Anisotropic Diffusion
+Anisotropic diffusion membrane enhancement command
+*/
+
+
+/**
+  \defgroup TTTAdherensJunctionSegmentation
+  \ingroup TTTCommand
+ Build a graph to represent the adherens junctions	
+*/
+
+/**
+  \defgroup TTTSurfaceSegmentation
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTBase
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTCellGraph
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTPlateness
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTComputeDomains
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTDataCasting
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTEllipses
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTTectonics
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTTracking
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTVertexLocation
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTVertexness
+  \ingroup TTTCommand
+*/
+
+/**
+  \defgroup TTTDrawers
+
 */

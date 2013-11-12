@@ -1,9 +1,10 @@
-#ifndef TECTONICS_H
-#define TECTONICS_H
-#include <vnl/algo/vnl_symmetric_eigensystem.h>
 /** \addtogroup TTTTectonics
  *  @{
  */
+#ifndef TECTONICS_H
+#define TECTONICS_H
+#include <vnl/algo/vnl_symmetric_eigensystem.h>
+
 
 #include <itkPoint.h>
 #include <vnl/vnl_matrix_fixed.h>

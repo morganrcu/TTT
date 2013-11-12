@@ -6,11 +6,11 @@
  */
 
 #include "PlatenessCommand.h"
-#include "itkPlatenessMeasurementFunction.h"
+#include "tttPlatenessMeasurementFunction.h"
 
 void ttt::PlatenessCommand::Do(){
 
-	typedef itk::PlatenessMeasurementFunction PlatenessFunctionType;
+	typedef ttt::PlatenessMeasurementFunction PlatenessFunctionType;
 	PlatenessFunctionType::Pointer platenessFunction = PlatenessFunctionType::New();
 
 	m_Plateness->SetObjectnessMeasurementFunction(platenessFunction);

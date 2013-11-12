@@ -13,7 +13,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-/** \addtogroup TTTPlatenessCommand
+/** \addtogroup TTTPlateness
  *  @{
  */
 
@@ -21,8 +21,8 @@
 #define PLATENESSCOMMAND_H_
 #include <itkRescaleIntensityImageFilter.h>
 
-#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
-#include "itkPlatenessMeasurementFunction.h"
+#include "tttMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "tttPlatenessMeasurementFunction.h"
 
 #include "AppCommand.h"
 
@@ -42,7 +42,7 @@ public:
 private:
 
 
-    typedef itk::MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<itk::PlatenessMeasurementFunction,PlatenessImageType> PlatenessFilterType;
+    typedef MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<PlatenessMeasurementFunction,PlatenessImageType> PlatenessFilterType;
     typedef itk::RescaleIntensityImageFilter<PlatenessImageType, PlatenessImageType> PlatenessRescalerType;
 
 

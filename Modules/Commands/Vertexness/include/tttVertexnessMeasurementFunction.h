@@ -1,9 +1,9 @@
 #ifndef __itkVertexnessMeasurementFunction_h
 #define __itkVertexnessMeasurementFunction_h
 
-#include "itkObjectnessMeasurementFunction.h"
+#include "tttObjectnessMeasurementFunction.h"
 
-namespace itk
+namespace ttt
 {
 
 

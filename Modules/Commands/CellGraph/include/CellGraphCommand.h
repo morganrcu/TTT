@@ -22,7 +22,7 @@
 
 
 #include "tttDescriptionDataTypes.h"
-#include <giaaPrimalGraphToDualGraphFilter.h>
+#include "tttPrimalGraphToDualGraphFilter.h"
 #include "AppCommand.h"
 
 namespace ttt{

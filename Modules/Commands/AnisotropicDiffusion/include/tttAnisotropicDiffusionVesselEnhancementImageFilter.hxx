@@ -1,24 +1,11 @@
-/*=========================================================================
-
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkAnisotropicDiffusionVesselEnhancementImageFilter.txx,v $
-  Language:  C++
-  Date:      $Date: 2007/06/20 16:03:23 $
-  Version:   $Revision: 1.26 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/** \addtogroup TTTAnisotropicDiffusion
+ *  @{
+ */
 #ifndef __itkAnisotropicDiffusionVesselEnhancementImageFilter_txx_
 #define __itkAnisotropicDiffusionVesselEnhancementImageFilter_txx_
 
-#include "itkAnisotropicDiffusionVesselEnhancementImageFilter.h"
-#include "itkAnisotropicDiffusionVesselEnhancementFunction.h"
+#include "tttAnisotropicDiffusionVesselEnhancementImageFilter.h"
+#include "tttAnisotropicDiffusionVesselEnhancementFunction.h"
 
 #include <list>
 #include "itkImageRegionConstIterator.h"
@@ -31,7 +18,7 @@
 
 //#define INTERMEDIATE_OUTPUTS
 
-namespace itk {
+namespace ttt {
 
 /**
  * Constructor

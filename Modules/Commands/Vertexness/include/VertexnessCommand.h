@@ -21,8 +21,8 @@
 #define VERTEXNESS_COMMAND_H_
 #include <itkRescaleIntensityImageFilter.h>
 
-#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
-#include "itkVertexnessMeasurementFunction.h"
+#include "tttMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "tttVertexnessMeasurementFunction.h"
 
 #include "AppCommand.h"
 
@@ -37,7 +37,7 @@ public:
 
 private:
 
-    typedef itk::MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<itk::VertexnessMeasurementFunction,VertexnessImageType> VertexnessFilterType;
+    typedef MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<VertexnessMeasurementFunction,VertexnessImageType> VertexnessFilterType;
     typedef itk::RescaleIntensityImageFilter<VertexnessImageType, VertexnessImageType> VertexnessRescalerType;
 
     VertexnessFilterType::Pointer m_Vertexness;

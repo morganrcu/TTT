@@ -1,30 +1,32 @@
-/*=========================================================================
+//    This file is part of TTT Tissue Tracker.
+//
+//    TTT Tissue Tracker is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    TTT Tissue Tracker is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter.txx,v $
-  Language:  C++
-  Date:      $Date: 2007/06/20 16:03:23 $
-  Version:   $Revision: 1.13 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/** \addtogroup TTTObjectnessMeasurementBase
+ *  @{
+ */
 #ifndef __itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter_txx
 #define __itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter_txx
 
-#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "tttMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "vnl/vnl_math.h"
 
 #define EPSILON  1e-03
 
-namespace itk
+namespace ttt
 {
 
 /**
@@ -198,3 +200,4 @@ MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter
 } // end namespace itk
   
 #endif
+/** @}*/

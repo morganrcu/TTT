@@ -1,29 +1,31 @@
-/*=========================================================================
+//    This file is part of TTT Tissue Tracker.
+//
+//    TTT Tissue Tracker is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    TTT Tissue Tracker is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter.h,v $
-  Language:  C++
-  Date:      $Date: 2007/04/01 23:13:46 $
-  Version:   $Revision: 1.6 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/** \addtogroup TTTObjectnessMeasurementBase
+ *  @{
+ */
 #ifndef __itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter_h
 #define __itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter_h
 
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
-#include "itkHessianSmoothed3DToObjectnessMeasureImageFilter.h"
+#include "tttHessianSmoothed3DToObjectnessMeasureImageFilter.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
-#include "itkObjectnessMeasurementFunction.h"
-namespace itk
+#include "tttObjectnessMeasurementFunction.h"
+namespace ttt
 {
 /**\class MultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter
  * \brief A filter to enhance 3D vascular structures using Hessian 
@@ -150,7 +152,8 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.hxx"
+#include "tttMultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter.hxx"
 #endif
   
 #endif
+/** @}*/

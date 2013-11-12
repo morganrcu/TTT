@@ -27,7 +27,7 @@
 #include <itkCastImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include  "AppCommand.h"
-#include "itkAnisotropicDiffusionVesselEnhancementImageFilter.h"
+#include "tttAnisotropicDiffusionVesselEnhancementImageFilter.h"
 namespace ttt{
 /**
  * Anisotropic Diffusion
@@ -35,7 +35,7 @@ namespace ttt{
 class AnisotropicDiffusionCommand : public AppCommand{
 public:
 	typedef itk::Image<float,3> DiffusedImageType;
-	typedef itk::AnisotropicDiffusionPlateEnhancementImageFilter<DiffusedImageType, DiffusedImageType> DiffusionType;
+	typedef ttt::AnisotropicDiffusionPlateEnhancementImageFilter<DiffusedImageType, DiffusedImageType> DiffusionType;
 
 
 private:

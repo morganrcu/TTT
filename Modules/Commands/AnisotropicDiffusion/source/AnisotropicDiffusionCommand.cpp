@@ -1,9 +1,9 @@
 #include "AnisotropicDiffusionCommand.h"
-#include "itkPlatenessMeasurementFunction.h"
+#include "tttPlatenessMeasurementFunction.h"
 
 void ttt::AnisotropicDiffusionCommand::Do(){
 
-	typedef itk::PlatenessMeasurementFunction PlatenessMeasurementFunctionType;
+	typedef PlatenessMeasurementFunction PlatenessMeasurementFunctionType;
 
 	PlatenessMeasurementFunctionType::Pointer platenessMeasurementFunction=PlatenessMeasurementFunctionType::New();
 	m_Diffuser->SetPlatenessMeasurementFunction(platenessMeasurementFunction);
