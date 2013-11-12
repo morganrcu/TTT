@@ -26,22 +26,51 @@
 #include "AppCommand.h"
 
 namespace ttt{
-
+/**
+ * TODO
+ * \class CellGraphCommand
+ */
 class CellGraphCommand: public AppCommand {
 private:
+	/**
+	 * TODO
+	 */
     typedef PrimalGraphToDualGraphFilter<TissueDescriptor> DualFilterType;
+    /**
+     * TODO
+     */
     DualFilterType::Pointer m_Dual;
 
+    /**
+     * TODO
+     */
    TissueDescriptor::Pointer m_Graphs;
 
 public:
+   /**
+    * TODO
+    */
 	CellGraphCommand();
+	/**
+	 * TODO
+	 */
 	virtual ~CellGraphCommand();
+	/**
+	 * TODO
+	 */
 	virtual void Do();
 
+	/**
+	 * TODO
+	 * @param graph
+	 */
 	inline void SetPrimalGraph(const TissueDescriptor::Pointer & graph){
 		m_Graphs=graph;
 	}
+	/**
+	 * TODO
+	 * @return
+	 */
 	inline TissueDescriptor::Pointer GetGraphs(){
 		return m_Graphs;
 	}

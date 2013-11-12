@@ -1,3 +1,6 @@
+/** \addtogroup TTTGUI
+ *  @{
+ */
 #ifndef NEWPROJECTDIALOG_H
 #define NEWPROJECTDIALOG_H
 
@@ -36,4 +39,5 @@ private:
 };
 
 #endif // NEWPROJECTDIALOG_H
+/** @}*/
 

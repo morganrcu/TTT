@@ -1,3 +1,6 @@
+/** \addtogroup TTTGUI
+ *  @{
+ */
 #ifndef TISSUETRACKER_H
 #define TISSUETRACKER_H
 #include <QMainWindow>
@@ -6,10 +9,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include "itkPoint.h"
-#ifndef Q_MOC_RUN
-//#include "giaaTissueSegmentation.h"
-#include "giaaCellTracker.h"
-#endif
 
 #include "PrimalGraphDrawer.h"
 #include "PrimalGraphStandardInteractor.h"
@@ -195,3 +194,4 @@ private:
 };
 
 #endif // TISSUETRACKER_H
+/** @}*/

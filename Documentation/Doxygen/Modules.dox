@@ -8,6 +8,12 @@
 */
 
 /**
+  \defgroup TTTObjectnessMeasurementBase
+  \ingroup TTTCommand
+*/
+
+
+/**
   \defgroup TTTAnisotropicDiffusion 
   \ingroup TTTCommand
 Anisotropic diffusion membrane enhancement command

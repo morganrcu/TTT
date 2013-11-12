@@ -21,7 +21,9 @@
 
 namespace ttt{
 /**
- * Class defining the interface for data modification objects
+ * \class AppCommand
+ * Abstract Class defining the interface for data modification objects
+ * TODO
  */
 class AppCommand{
 public:

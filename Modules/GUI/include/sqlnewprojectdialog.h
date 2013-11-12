@@ -1,10 +1,6 @@
-/*
- * sqlnewprojectdialog.h
- *
- *  Created on: Oct 24, 2013
- *      Author: morgan
+/** \addtogroup TTTGUI
+ *  @{
  */
-
 #ifndef SQLNEWPROJECTDIALOG_H_
 #define SQLNEWPROJECTDIALOG_H_
 
@@ -46,3 +42,4 @@ private:
 
 
 #endif /* SQLNEWPROJECTDIALOG_H_ */
+/** @}*/

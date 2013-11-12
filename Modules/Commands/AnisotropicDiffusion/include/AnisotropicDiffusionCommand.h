@@ -26,29 +26,58 @@
 #include <itkAndImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
-#include  "AppCommand.h"
+#include "AppCommand.h"
 #include "tttAnisotropicDiffusionVesselEnhancementImageFilter.h"
 namespace ttt{
 /**
- * Anisotropic Diffusion
+ * \class AnisotropicDiffusionCommand Anisotropic Diffusion
+ * TODO
  */
 class AnisotropicDiffusionCommand : public AppCommand{
 public:
+	/**
+	 * TODO
+	 */
 	typedef itk::Image<float,3> DiffusedImageType;
+	/**
+	 * TODO
+	 */
 	typedef ttt::AnisotropicDiffusionPlateEnhancementImageFilter<DiffusedImageType, DiffusedImageType> DiffusionType;
 
 
 private:
+	/**
+	 * TODO
+	 */
 	DiffusedImageType::Pointer m_Input;
+	/**
+		 * TODO
+		 */
 	DiffusedImageType::Pointer m_Output;
-
+	/**
+		 * TODO
+		 */
 	DiffusionType::Pointer m_Diffuser;
-
+	/**
+		 * TODO
+		 */
 	double m_DiffusionSigmaMin;
+	/**
+		 * TODO
+		 */
 	double m_DiffusionSigmaMax;
+	/**
+		 * TODO
+		 */
 	unsigned int m_DiffusionSigmaSteps;
+	/**
+		 * TODO
+		 */
 	unsigned int m_DiffusionIterations;
 public:
+	/**
+		 * TODO
+		 */
 	AnisotropicDiffusionCommand(){
 		m_DiffusionIterations=0;
 		m_DiffusionSigmaSteps=0;
@@ -56,26 +85,55 @@ public:
 		m_DiffusionSigmaMin=-1;
 		m_Diffuser=DiffusionType::New();
 	}
-
+	/**
+	 * TODO
+	 * @param input
+	 */
 	inline void SetInputImage(const DiffusedImageType::Pointer & input){
 		m_Input=input;
 	}
+	/**
+	 * TODO
+	 * @param sigmaMin
+	 */
 	inline void SetDiffusionSigmaMin(float sigmaMin){
 		m_DiffusionSigmaMin=sigmaMin;
 	}
+	/**
+	 * TODO
+	 * @param sigmaMax
+	 */
 	inline void SetDiffusionSigmaMax(float sigmaMax){
 		m_DiffusionSigmaMax=sigmaMax;
 	}
+	/**
+	 * TODO
+	 * @param sigmaSteps
+	 */
 	inline void SetDiffusionSigmaSteps(unsigned int sigmaSteps){
 		m_DiffusionSigmaSteps=sigmaSteps;
 	}
+	/**
+	 * TODO
+	 * @param iterations
+	 */
 	inline void SetDiffusionIterations(unsigned int iterations){
 		m_DiffusionIterations=iterations;
 	}
+	/**
+	 * TODO
+	 * @return
+	 */
 	inline DiffusedImageType::Pointer GetOutputImage(){
 		return m_Output;
 	}
+	/**
+	 * TODO
+	 */
 	virtual void Do();
+	/**
+	 * TODO
+	 */
 	virtual ~AnisotropicDiffusionCommand(){
 
 	}

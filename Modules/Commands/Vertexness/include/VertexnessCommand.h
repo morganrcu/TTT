@@ -27,6 +27,10 @@
 #include "AppCommand.h"
 
 namespace ttt{
+/**
+ * \class VertexnessCommand
+ * TODO
+ */
 class VertexnessCommand : public AppCommand{
 
 public:
@@ -36,20 +40,45 @@ public:
     typedef itk::Image<float,3> VertexnessImageType;
 
 private:
-
+    /**
+     *TODO
+     */
     typedef MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter<VertexnessMeasurementFunction,VertexnessImageType> VertexnessFilterType;
+    /**
+     *TODO
+     */
     typedef itk::RescaleIntensityImageFilter<VertexnessImageType, VertexnessImageType> VertexnessRescalerType;
 
     VertexnessFilterType::Pointer m_Vertexness;
+    /**
+     *TODO
+     */
     VertexnessRescalerType::Pointer m_VertexnessRescaler;
+    /**
+     *TODO
+     */
 	VertexnessImageType::Pointer m_Input;
+	/**
+	 *TODO
+	 */
 	VertexnessImageType::Pointer m_VertexnessImage;
 
-
+	/**
+	 *TODO
+	 */
 	float m_SigmaMax;
+	/**
+	 *TODO
+	 */
 	float m_SigmaMin;
+	/**
+	 *TODO
+	 */
 	unsigned int m_SigmaSteps;
 public:
+	/**
+	 * TODO
+	 */
 	VertexnessCommand(){
 		m_Vertexness=VertexnessFilterType::New();
 		m_VertexnessRescaler=VertexnessRescalerType::New();
@@ -62,26 +91,52 @@ public:
 		m_SigmaMin=0;
 	}
 
+	/**
+	 *TODO
+	 */
 	virtual ~VertexnessCommand(){
 
 	}
+	/**
+	 *TODO
+	 * @param sigmaMin
+	 */
 	inline void SetSigmaMin(float sigmaMin){
 		m_SigmaMin=sigmaMin;
 	}
+	/**
+	 *TODO
+	 * @param sigmaMax
+	 */
 	inline void SetSigmaMax(float sigmaMax){
 		m_SigmaMax=sigmaMax;
 	}
+	/**
+	 *TODO
+	 * @param sigmaSteps
+	 */
 	inline void SetSigmaSteps(unsigned int sigmaSteps){
 		m_SigmaSteps=sigmaSteps;
 	}
 
+	/**
+	 *TODO
+	 * @param input
+	 */
 	inline void SetInput(const VertexnessImageType::Pointer & input){
 		m_Input= input;
 	}
 
+	/**
+	 * TODO
+	 * @return
+	 */
 	inline VertexnessImageType::Pointer GetVertexnessImage(){
 		return m_VertexnessImage;
 	}
+	/**
+	 * TODO
+	 */
 	void Do();
 };
 }

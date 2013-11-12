@@ -38,8 +38,6 @@ namespace ttt {
  * 
  * \sa MultiScaleHessianSmoothed3DToVesselnessMeasureImageFilter 
  * \sa AnisotropicDiffusionVesselEnhancementImageFilter 
- * \ingroup FiniteDifferenceFunctions
- * \ingroup Functions
  */
 using namespace itk;
 template <class TImageType>
