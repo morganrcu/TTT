@@ -1,0 +1,13 @@
+Project(TTTLateralImageVolumeSegmentation)
+
+include_directories( include)
+
+include_directories( ../Base/include)
+
+set(TTTLateralImageVolumeSegmentation_SRCS source/LateralImageVolumeSegmentationCommand.cpp)
+
+add_library(TTTLateralImageVolumeSegmentation ${TTTLateralImageVolumeSegmentation_SRCS})
+
+add_executable(TTTLateralImageVolumeSegmentationTest test/LateralImageVolumeSegmentationTest.cpp)
+
+target_link_libraries(TTTLateralImageVolumeSegmentationTest ${ITK_LIBRARIES}  TTTLateralImageVolumeSegmentation )
