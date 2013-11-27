@@ -141,28 +141,24 @@ public:
 
 		assert(vnl_math_abs(Lambda3) > vnl_math_abs(Lambda2));
 		assert(vnl_math_abs(Lambda2) > vnl_math_abs(Lambda1));
-		if (Lambda3 < 0 && Lambda2 < 0 && Lambda1 < 0) {
+		if (Lambda3 > 0 || Lambda2 > 0 || Lambda1 > 0) {
 			return 0;
 		} else {
 
 			double S = vcl_sqrt(
 					Lambda1 * Lambda1 + Lambda2 * Lambda2 * Lambda3 * Lambda3);
-			double A = Lambda3 / Lambda2;
-			double B = Lambda2 / Lambda1;
+			double A =  Lambda2 / Lambda3;
+			double B = Lambda1 / Lambda2;
 
 			double Lambda3Sqr = vnl_math_sqr(Lambda3);
 
 			double GammaSqr = m_Gamma * m_Gamma;
 			double AlphaSqr = m_Alpha * m_Alpha;
 			double BetaSqr = m_Beta * m_Beta;
-			double term1 = (vcl_exp(
-					-1.0 * ((vnl_math_sqr(S))) / (2.0 * GammaSqr)));
-			double term2 = (1
-					- vcl_exp(-1.0 * ((vnl_math_sqr(A)) / (2.0 * AlphaSqr))));
-			double term3 = (1
-					- vcl_exp(-1.0 * ((vnl_math_sqr(B)) / (2.0 * BetaSqr))));
-			double term4 = vcl_exp(
-					-1.0 * (2.0 * vnl_math_sqr(m_C)) / (Lambda3Sqr));
+			double term1 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(S))) / (2.0 * GammaSqr)));
+			double term2 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(A))) / (2.0 * AlphaSqr)));
+			double term3 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(B))) / (2.0 * BetaSqr)));
+			double term4 = vcl_exp(-1.0 * (2.0 * vnl_math_sqr(m_C)) / (Lambda3Sqr));
 			//			double term1 =  ( 1 - vcl_exp( -1.0 * (S)));
 			//			double term2  = ( 1 - vcl_exp( -1.0 * (A)));
 			//			double term3  = ( 1 - vcl_exp( -1.0 * (B)));
@@ -175,7 +171,7 @@ public:
 			} else {
 				result = vertexnessMeasure;
 			}
-			return result;
+			return (result);
 		}
 	}
 

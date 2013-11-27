@@ -6,7 +6,8 @@
 #include "tissuetracker.h"
 #include "ui_tissuetracker.h"
 #include "sqlnewprojectdialog.h"
-
+#include "LateralImageVolumeSegmentationCommand.h"
+#include "CLAHECommand.h"
 #include "SurfaceSegmentationCommand.h"
 #include "AnisotropicDiffusionCommand.h"
 
@@ -21,7 +22,6 @@
 
 #include "TrackingCommand.h"
 #include "TectonicsCommand.h"
-
 
 #include "GreetingsDrawer.h"
 #include "RawImageDrawer.h"
@@ -53,7 +53,7 @@ TissueTracker::TissueTracker(QWidget *parent) :
 
 
     m_CurrentRenderer = vtkSmartPointer<vtkRenderer>::New();
-    m_CurrentRenderer->SetBackground(0.4,0.6,0.8);
+    m_CurrentRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
 
     m_RenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     m_RenderWindow->AddRenderer(m_CurrentRenderer);
@@ -89,6 +89,8 @@ TissueTracker::TissueTracker(QWidget *parent) :
 
     //connect(m_pUI->actionModify, SIGNAL(triggered()), this, SLOT(DoModification()));
     connect(m_pUI->showOriginalCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
+    connect(m_pUI->showLHCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
+    connect(m_pUI->showCLAHECBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showDiffusedCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showSurfaceSegmentedCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showPlatenessCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
@@ -117,6 +119,9 @@ TissueTracker::TissueTracker(QWidget *parent) :
     connect(m_pUI->ptnessbutton,SIGNAL(clicked()),this,SLOT(DoPlateness()));
     connect(m_pUI->vtxnessbutton,SIGNAL(clicked()),this,SLOT(DoVertexness()));
     connect(m_pUI->primalButton,SIGNAL(clicked()),this,SLOT(DoPrimalCalculation()));
+
+    connect(m_pUI->lhButton,SIGNAL(clicked()),this,SLOT(DoLateralImageSegmentation()));
+    connect(m_pUI->claheButton,SIGNAL(clicked()),this,SLOT(DoCLAHE()));
 
     connect(m_pUI->dualButton,SIGNAL(clicked()),this,SLOT(DoDualCalculation()));
     connect(m_pUI->trackingButton,SIGNAL(clicked()),this,SLOT(DoTracking()));
@@ -235,18 +240,18 @@ void TissueTracker::OpenFile(){
 void TissueTracker::UpdateControls(){
 
     this->m_pUI->adbutton->setEnabled(
-                this->m_Project->IsSurfaceSegmentedReady(m_CurrentFrame)
+                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
                 );
     this->m_pUI->adinputgroupBox->setEnabled(
     			this->m_Project->IsDiffusedReady(m_CurrentFrame));
 
     this->m_pUI->ptnessbutton->setEnabled(
-                this->m_Project->IsSurfaceSegmentedReady(m_CurrentFrame)
+                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
                 );
     this->m_pUI->ptnessinputgroupBox->setEnabled(
         			this->m_Project->IsDiffusedReady(m_CurrentFrame));
     this->m_pUI->vtxnessbutton->setEnabled(
-                this->m_Project->IsSurfaceSegmentedReady(m_CurrentFrame)
+                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
                 );
     this->m_pUI->vtxnessinputgroupBox->setEnabled(
             			this->m_Project->IsDiffusedReady(m_CurrentFrame));
@@ -358,6 +363,28 @@ void TissueTracker::SetupCurrentFrame(){
     this->UpdateDisplay();
 }
 
+void TissueTracker::DoLateralImageSegmentation(){
+	LateralImageVolumeSegmentationCommand command;
+
+	float threshold= (float)atof(this->m_pUI->lhLowThresholdtxt->text().toStdString().c_str());
+
+	command.SetRelativeThreshold(threshold);
+	command.SetInputImage(m_Project->GetRawImage(m_CurrentFrame));
+	command.Do();
+	m_Project->AddLateralImageVolumeSegmented(m_CurrentFrame,command.GetOutput());
+}
+
+void TissueTracker::DoCLAHE(){
+	CLAHECommand command;
+	float radius= (float)atof(this->m_pUI->claheRadiustxt->text().toStdString().c_str());
+	float maxSlope= (float)atof(this->m_pUI->claheSlopetxt->text().toStdString().c_str());
+
+	command.SetRadius(radius);
+	command.SetMaxSlope(maxSlope);
+	command.SetInputImage(m_Project->GetLateralImageVolumeSegmentedImage(m_CurrentFrame));
+	command.Do();
+	m_Project->AddCLAHED(m_CurrentFrame,command.GetOutputImage());
+}
 
 void TissueTracker::DoSurfaceSegmentation(){
 	float sigmaxy= (float)atof(this->m_pUI->ssxyVartxt->text().toStdString().c_str());
@@ -404,8 +431,8 @@ void TissueTracker::DoAnisotropicDiffusion(){
 
 	if(diffuseSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
+		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
 		castingCommand.Do();
 		command.SetInputImage(castingCommand.GetOutput());
 
@@ -440,8 +467,8 @@ void TissueTracker::DoPlateness(){
 	command.SetSigmaSteps(sigmasteps);
 	if(platenessSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
+		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
 		castingCommand.Do();
 		command.SetInput(castingCommand.GetOutput());
 	}else{
@@ -476,8 +503,8 @@ void TissueTracker::DoVertexness(){
 
 	if(vertexnessSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
+		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
 		castingCommand.Do();
 		command.SetInput(castingCommand.GetOutput());
 	}else{
@@ -1006,7 +1033,9 @@ void TissueTracker::DoTectonics(){
 
 void TissueTracker::DoCurrent(){
 
-	this->DoSurfaceSegmentation();
+	//this->DoSurfaceSegmentation();
+	this->DoLateralImageSegmentation();
+	this->DoCLAHE();
 
     this->DoAnisotropicDiffusion();
 
@@ -1050,6 +1079,19 @@ void TissueTracker::UpdateDisplay(){
     	originalDrawer.SetRenderer(m_CurrentRenderer);
     	originalDrawer.SetRawImage(m_Project->GetRawImage(m_CurrentFrame));
     	originalDrawer.Draw();
+    }
+
+    if(this->m_pUI->showLHCBox->isChecked() && m_Project->IsLateralImageVolumeSegmentedReady(m_CurrentFrame)){
+        	RawImageDrawer originalDrawer;
+        	originalDrawer.SetRenderer(m_CurrentRenderer);
+        	originalDrawer.SetRawImage(m_Project->GetLateralImageVolumeSegmentedImage(m_CurrentFrame));
+        	originalDrawer.Draw();
+        }
+    if(this->m_pUI->showCLAHECBox->isChecked() && m_Project->IsCLAHEDReady(m_CurrentFrame)){
+            	RawImageDrawer originalDrawer;
+            	originalDrawer.SetRenderer(m_CurrentRenderer);
+            	originalDrawer.SetRawImage(m_Project->GetCLAHEDImage(m_CurrentFrame));
+            	originalDrawer.Draw();
     }
 
     if(this->m_pUI->showSurfaceSegmentedCBox->isChecked() && m_Project->IsSurfaceSegmentedReady(m_CurrentFrame)){

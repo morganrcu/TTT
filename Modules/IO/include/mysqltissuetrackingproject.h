@@ -262,6 +262,17 @@ public:
 		storeImageInTable<SurfaceSegmentedImageType>(surfaceSegmentedImage,
 				"SurfaceSegmentedImages", frame);
 	}
+	inline void AddLateralImageVolumeSegmented(unsigned int frame,
+				const typename SurfaceSegmentedImageType::Pointer & surfaceSegmentedImage) {
+			storeImageInTable<SurfaceSegmentedImageType>(surfaceSegmentedImage,
+					"LateralImageVolumeSegmentedImages", frame);
+		}
+	inline void AddCLAHED(unsigned int frame,
+				const typename SurfaceSegmentedImageType::Pointer & surfaceSegmentedImage) {
+			storeImageInTable<SurfaceSegmentedImageType>(surfaceSegmentedImage,
+					"CLAHEDImages", frame);
+		}
+
 
 	inline void AddDiffused(unsigned int frame,
 			const typename DiffusedImageType::Pointer & diffusedImage) {
@@ -312,7 +323,8 @@ public:
 
 			std::auto_ptr<sql::PreparedStatement> insert_stmt(
 					m_DB->prepareStatement(insertString));
-
+			std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
+			transStatement->execute("START TRANSACTION;");
 			for (PointIterator it = localMaxPoints->Begin();
 					it != localMaxPoints->End(); it++) {
 
@@ -325,7 +337,7 @@ public:
 				insert_stmt->setInt(5, p[2]);
 				insert_stmt->execute();
 			}
-
+			transStatement->execute("COMMIT;");
 		} catch (sql::SQLException &e) {
 			/*
 			 The MySQL Connector/C++ throws three different exceptions:
@@ -361,6 +373,7 @@ public:
 			deleteTissue_stmt->setInt(2, frame); //t==0
 			deleteTissue_stmt->setInt(3, 0); //t==0
 			deleteTissue_stmt->execute();
+			//transStatement->execute("COMMIT;");
 		} catch (sql::SQLException &e) {
 			/*
 			 The MySQL Connector/C++ throws three different exceptions:
@@ -1150,6 +1163,17 @@ typename RawImageType::Pointer GetRawImage(unsigned int frame) {
 	return m_RawImage;
 }
 
+inline typename RawImageType::Pointer GetLateralImageVolumeSegmentedImage(unsigned int frame){
+	m_SurfaceSegmentedImage = readImageFromTable<RawImageType>("LateralImageVolumeSegmentedImages",frame);
+	return m_SurfaceSegmentedImage;
+}
+
+inline typename RawImageType::Pointer GetCLAHEDImage(unsigned int frame){
+	m_SurfaceSegmentedImage = readImageFromTable<RawImageType>("CLAHEDImages",frame);
+	return m_SurfaceSegmentedImage;
+}
+
+
 inline typename RawImageType::Pointer GetSurfaceSegmentedImage(unsigned int frame) {
 	m_SurfaceSegmentedImage = readImageFromTable<RawImageType>("SurfaceSegmentedImages",frame);
 	return m_SurfaceSegmentedImage;
@@ -1611,7 +1635,12 @@ inline bool IsSCReady(unsigned int frame) {
 inline bool IsSurfaceSegmentedReady(unsigned int frame) {
 	return this->isImageInTable("SurfaceSegmentedImages",frame);
 }
-
+inline bool IsLateralImageVolumeSegmentedReady(unsigned int frame){
+	return this->isImageInTable("LateralImageVolumeSegmentedImages",frame);
+}
+inline bool IsCLAHEDReady(unsigned int frame){
+	return this->isImageInTable("CLAHEDImages",frame);
+}
 inline bool IsDiffusedReady(unsigned int frame) {
 	return this->isImageInTable("DiffusedImages",frame);
 }

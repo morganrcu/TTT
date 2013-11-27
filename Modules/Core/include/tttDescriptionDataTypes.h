@@ -242,6 +242,10 @@ public:
 	 */
 	int m_ID;
 	/**
+	 * Parent Track ID
+	 */
+	int m_ParentID;
+	/**
 	 * Velocity vector of the cell
 	 */
 	itk::Vector<double, 3> m_Velocity;
@@ -254,11 +258,13 @@ public:
 		ar & boost::serialization::base_object<Cell>(*this);
 		ar & m_ID;
 		ar & m_Velocity;
+		ar & m_ParentID;
 	}
 	/**
 	 * Default constructor initializing fields to default values
 	 */
 	TrackedCell() {
+		m_ParentID=-1;
 		m_ID = -1;
 		m_Velocity.Fill(0);
 	}
@@ -268,6 +274,7 @@ public:
 	TrackedCell(const TrackedCell & other) : Cell(other) {
 		this->m_Velocity = other.m_Velocity;
 		this->m_ID = other.m_ID;
+		this->m_ParentID=other.m_ParentID;
 	}
 };
 

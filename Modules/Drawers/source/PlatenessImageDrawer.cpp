@@ -32,16 +32,14 @@ void ttt::PlatenessImageDrawer::Draw(){
         vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
 
         compositeOpacity->AddPoint(0.0,0.0);
-        compositeOpacity->AddPoint(0.3,1.0);
-        compositeOpacity->AddPoint(0.31,0.0);
-        compositeOpacity->AddPoint(1.0,0.0);
+
+        compositeOpacity->AddPoint(1.0,1.0);
 
         volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.
 
         vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
-        color->AddRGBPoint(0.0  ,0.0,0.0,1.0);
-        color->AddRGBPoint(0.15 ,1.0,0.0,0.0);
-        color->AddRGBPoint(1.0,1.0,1.0,1.0);
+        color->AddRGBPoint(0.0,0.0,0.0,0.0);
+        color->AddRGBPoint(1.0,1.0,0.0,0.0);
 
         volumeProperty->SetColor(color);
 

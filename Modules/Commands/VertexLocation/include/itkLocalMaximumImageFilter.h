@@ -113,14 +113,6 @@ public:
   /** Get the radius of the neighborhood used to compute the mean */
   itkGetConstReferenceMacro(Threshold, InputPixelType);
 
-  /** accept the input image */
-  void SetInput( const InputImageType * inputImage );
-
-  /** Some typedefs associated with the output mesh. */
-  void GenerateOutputInformation(void);
-
-  /** get the output image */
-  InputImageType * GetLocalMaximaImage( void );
 
 
 protected:
@@ -139,7 +131,6 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
   void  GenerateData ();
-  //void ThreadedGenerateData(const InputImageRegionType & outputRegionForThread, int threadId);
 
 private:
   LocalMaximumImageFilter(const Self&); //purposely not implemented
@@ -148,7 +139,7 @@ private:
   InputSizeType m_Radius;
   InputPixelType m_Threshold;
 
-  InputImagePointer m_BinaryImage;
+  //InputImagePointer m_BinaryImage;
 };
 
 } // end namespace itk

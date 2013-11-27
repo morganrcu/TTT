@@ -18,6 +18,8 @@ include_directories( ../Commands/Ellipses/include/)
 include_directories( ../Commands/DataCasting/include/)
 include_directories( ../Commands/ComputeDomains/include/)
 include_directories( ../Commands/Tectonics/include/)
+include_directories( ../Commands/LateralImageVolumeSegmentation/include/)
+include_directories( ../Commands/CLAHE/include/)
 include_directories( ../Commands/Base/include/)
 include_directories( ../Commands/ObjectnessMeasurementBase/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
@@ -45,6 +47,8 @@ SET(TTTGUI_SRCS
 QT4_WRAP_UI(TTTGUI_UI_HDRS tissuetracker.ui  )
 QT4_WRAP_CPP(TTTGUI_MOC_SRCS ${TTTGUI_MOC_HDRS} )
 
+#QT5_GENERATE_MOC(TTTGUI_MOC_SRCS ${TTTGUI_MOC_HDRS} )
+
 #include_directories( ${CMAKE_BINARY_DIR} .)
 # and finally this will run moc:
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
@@ -66,11 +70,14 @@ TARGET_LINK_LIBRARIES( TTTGUI
     TTTTectonics
     TTTCellGraph
     TTTSurfaceSegmentation
+    TTTLateralImageVolumeSegmentation
+    TTTCLAHE
     ${ITK_LIBRARIES} 
     ${VTK_LIBRARIES} 
     mysqlcppconn 
     ${QT_LIBRARIES} 
     ${Boost_LIBRARIES}
+
 )
 
 INSTALL(TARGETS TTTGUI DESTINATION bin )

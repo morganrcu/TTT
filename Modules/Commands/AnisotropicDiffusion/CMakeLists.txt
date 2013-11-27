@@ -9,3 +9,7 @@ include_directories(../../Core/include/)
 set(TTTAnisotropicDiffusion_SRCS source/AnisotropicDiffusionCommand.cpp)
 
 add_library(TTTAnisotropicDiffusion ${TTTAnisotropicDiffusion_SRCS})
+
+add_executable(TTTAnisotropicDiffusionTest test/AnisotropicDiffusionCommandTest.cpp)
+
+target_link_libraries(TTTAnisotropicDiffusionTest ${ITK_LIBRARIES}  TTTAnisotropicDiffusion )

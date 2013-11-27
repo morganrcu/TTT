@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>1459</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -111,14 +111,94 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>-605</y>
-          <width>256</width>
-          <height>2381</height>
+          <y>0</y>
+          <width>267</width>
+          <height>2522</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
+          <widget class="QGroupBox" name="lateralHistogramToolbox">
+           <property name="title">
+            <string>Lateral Histogram</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout_7">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lhLowThresholdlbl">
+              <property name="text">
+               <string>Relative Low Threshold</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="lhLowThresholdtxt">
+              <property name="text">
+               <string>0.2</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="lhButton">
+              <property name="text">
+               <string>Segment</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="claheGroupBox">
+           <property name="title">
+            <string>CLAHE</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout_9">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="claheRadiuslbl">
+              <property name="text">
+               <string>Radius</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="claheRadiustxt">
+              <property name="text">
+               <string>1.0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="claheSlopelbl">
+              <property name="text">
+               <string>Max Slope</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="claheSlopetxt">
+              <property name="text">
+               <string>3</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="claheButton">
+              <property name="text">
+               <string>Equalize</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QGroupBox" name="ssGroupBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="mouseTracking">
             <bool>true</bool>
            </property>
@@ -972,8 +1052,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>256</width>
-          <height>656</height>
+          <width>230</width>
+          <height>687</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -984,6 +1064,20 @@
            </property>
            <property name="checked">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="showLHCBox">
+           <property name="text">
+            <string>Lateral Image Segmentation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="showCLAHECBox">
+           <property name="text">
+            <string>CLAHE</string>
            </property>
           </widget>
          </item>

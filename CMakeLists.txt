@@ -21,12 +21,23 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS graph)
 
+
+
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 FIND_PACKAGE(Qt4 REQUIRED)
 #SET( QT_USE_QTXML TRUE )
+SET( QT_USE_QTSQL TRUE )
 INCLUDE(${QT_USE_FILE})
+#set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#find_package(Qt5Widgets REQUIRED)
+#include_directories(${Qt5Widgets_INCLUDE_DIRS})
+#add_definitions(${Qt5Widgets_DEFINITIONS})
+# Add compiler flags for building executables (-fPIE)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 add_subdirectory(Modules/GUI)
 
@@ -45,6 +56,9 @@ add_subdirectory(Modules/Commands/Tectonics)
 add_subdirectory(Modules/Commands/Tracking)
 add_subdirectory(Modules/Commands/VertexLocation)
 add_subdirectory(Modules/Commands/Vertexness)
+add_subdirectory(Modules/Commands/LateralImageVolumeSegmentation)
+add_subdirectory(Modules/Commands/CLAHE)
+add_subdirectory(Modules/Commands/Surface)
 add_subdirectory(Modules/Interactors)
 add_subdirectory(Modules/IO)
 

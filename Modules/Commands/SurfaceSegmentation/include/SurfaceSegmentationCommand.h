@@ -20,7 +20,6 @@
 #ifndef SURFACESEGMENATIONCOMMAND_H_
 #define SURFACESEGMENATIONCOMMAND_H_
 #include <itkImage.h>
-#include <itkImage.h>
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkAndImageFilter.h>

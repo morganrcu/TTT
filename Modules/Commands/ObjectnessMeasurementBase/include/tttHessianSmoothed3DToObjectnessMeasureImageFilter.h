@@ -103,7 +103,8 @@ protected:
   HessianSmoothed3DToObjectnessMeasureImageFilter();
   ~HessianSmoothed3DToObjectnessMeasureImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
-  
+  virtual void EnlargeOutputRequestedRegion(DataObject *output);
+  virtual void GenerateInputRequestedRegion();
   virtual void BeforeThreadedGenerateData();
   /** Generate Data */
   virtual void ThreadedGenerateData(const OutputRegionType& windowRegion, ThreadIdType threadId);

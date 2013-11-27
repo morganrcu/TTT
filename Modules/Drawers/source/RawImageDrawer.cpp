@@ -47,15 +47,15 @@ void ttt::RawImageDrawer::Draw() {
 
 	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	compositeOpacity->AddPoint(0.0, 0.0);
-	compositeOpacity->AddPoint(80.0, 1.0);
-	compositeOpacity->AddPoint(80.1, 0.0);
-	compositeOpacity->AddPoint(255.0, 0.0);
+	//compositeOpacity->AddPoint(80.0, 1.0);
+	//compositeOpacity->AddPoint(80.1, 0.0);
+	compositeOpacity->AddPoint(255.0, 1.0);
 	volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.*/
 
 	vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<
 			vtkColorTransferFunction>::New();
-	color->AddRGBPoint(0.0, 0.0, 0.0, 1.0);
-	color->AddRGBPoint(40.0, 1.0, 0.0, 0.0);
+	color->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+	//color->AddRGBPoint(40.0, 1.0, 0.0, 0.0);
 	color->AddRGBPoint(255.0, 1.0, 1.0, 1.0);
 	volumeProperty->SetColor(color);
 

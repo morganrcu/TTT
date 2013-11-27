@@ -27,36 +27,6 @@
 #define EPSILON  1e-03
 
 #include "itkImageFileWriter.h"
-template<class ImageType> void writeImage(
-		const typename ImageType::Pointer & img, const std::string & prefix, const std::string & sufix) {
-	typedef unsigned char WritePixelType;
-	typedef itk::Image<WritePixelType, 3> WriteImageType;
-	typedef itk::ImageFileWriter<ImageType> WriterType;
-//	typedef itk::VTKImageIO ImageIOWriterType;
-#if 0
-	typedef itk::RescaleIntensityImageFilter<ImageType, WriteImageType> RescalerType;
-#endif
-	std::stringstream outputFormat(std::stringstream::in | std::stringstream::out);
-
-	outputFormat << prefix << "-" << sufix << ".mha";
-	std::string filename;
-	outputFormat >> filename;
-	{
-#if 0
-		typename RescalerType::Pointer rescaler1 = RescalerType::New();
-		rescaler1->SetInput(img);
-		rescaler1->SetOutputMinimum(0);
-		rescaler1->SetOutputMaximum(255);
-		rescaler1->Update();
-#endif
-		typename WriterType::Pointer writer1 = WriterType::New();
-//		ImageIOWriterType::Pointer imageIOWriter1 = ImageIOWriterType::New();
-		writer1->SetFileName(filename);
-//		writer1->SetImageIO(imageIOWriter1);
-		writer1->SetInput(img);
-		writer1->Update();
-	}
-}
 namespace ttt
 {
 
@@ -100,7 +70,7 @@ HessianSmoothed3DToObjectnessMeasureImageFilter<TObjectnessMeasurementFunction, 
   // walk the region of eigen values and get the vesselness measure
   EigenValueArrayType eigenValue;
 
-  ImageRegionConstIterator< EigenValueImageType > it(eigenImage, windowRegion );
+  ImageRegionConstIteratorWithIndex< EigenValueImageType > it(eigenImage, windowRegion );
   ImageRegionIterator< OutputImageType > oit( output, windowRegion );
 
 
@@ -108,11 +78,40 @@ HessianSmoothed3DToObjectnessMeasureImageFilter<TObjectnessMeasurementFunction, 
   oit.GoToBegin();
   while (!it.IsAtEnd())
     {
-	  oit.Set(m_ObjectnessMeasurementFunction->ComputeObjectProperty(it.Get()));
+	  typename InputImageType::IndexType index = it.GetIndex();
+	  typename EigenValueImageType::PixelType pixel = it.Get();
+	  float objectProperty=m_ObjectnessMeasurementFunction->ComputeObjectProperty(pixel);
+	  oit.Set(objectProperty);
 	  ++it;
 	  ++oit;
     }
 }
+template<class TObjectnessMeasurementFunction,typename TPixel>
+void
+HessianSmoothed3DToObjectnessMeasureImageFilter<TObjectnessMeasurementFunction,TPixel>
+::EnlargeOutputRequestedRegion(DataObject *output)
+{
+  Superclass::EnlargeOutputRequestedRegion(output);
+  output->SetRequestedRegionToLargestPossibleRegion();
+}
+
+
+template<class TObjectnessMeasurementFunction,typename TPixel>
+void
+HessianSmoothed3DToObjectnessMeasureImageFilter<TObjectnessMeasurementFunction,TPixel>
+::GenerateInputRequestedRegion()
+{
+  Superclass::GenerateInputRequestedRegion();
+  if ( this->GetInput() )
+    {
+    typename InputImageType::Pointer image =
+      const_cast< InputImageType * >( this->GetInput() );
+    image->SetRequestedRegionToLargestPossibleRegion();
+    }
+}
+
+
+
 template<class TObjectnessMeasurementFunction,typename TPixel>
 void
 HessianSmoothed3DToObjectnessMeasureImageFilter<TObjectnessMeasurementFunction,TPixel>::AfterThreadedGenerateData(){

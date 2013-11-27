@@ -61,7 +61,7 @@ void SQLNewProjectDialog::addFiles(){
 
 	ReaderType::Pointer reader=ReaderType::New();
 
-    QStringList files = QFileDialog::getOpenFileNames(this, tr("Select Tiff Files to add..."), QDir::currentPath(),"Images (*.tif )");
+    QStringList files = QFileDialog::getOpenFileNames(this, tr("Select Tiff Files to add..."), QDir::currentPath(),"Images (*.mha *.tif *.tiff )");
 
     QStringList list = files;
     QStringList::Iterator it = list.begin();

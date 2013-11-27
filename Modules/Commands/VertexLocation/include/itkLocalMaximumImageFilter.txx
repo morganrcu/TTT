@@ -47,7 +47,7 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
 */
 
 
-  m_BinaryImage = InputImageType::New();
+  //m_BinaryImage = InputImageType::New();
 
   this->m_Radius.Fill(1);
   this->m_Threshold = 0.005;
@@ -55,7 +55,7 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
 }
 
 
-
+#if 0
 
 /**
  *
@@ -98,107 +98,81 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
             const_cast< InputImageType * >( inputImage ) );
 
 }
+#endif
 
 
 
 
-
-template <class TInputImage, class TOutputMesh>
-void
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::GenerateData()
-{
-
-  OutputMeshPointer           mesh      = this->GetOutput();
-  InputImageConstPointer      input     = this->GetInput(0);
-
-  m_BinaryImage->SetRegions( input->GetLargestPossibleRegion() );
-  m_BinaryImage->CopyInformation( input );
-  m_BinaryImage->Allocate();
-
-  PointsContainerPointer      points    = PointsContainer::New();
-  PointDataContainerPointer   pointData = PointDataContainer::New();
-
-  //Set background value for binary local maxima image
-  OutputImageIterator it2( m_BinaryImage, input->GetRequestedRegion() );
-  for (it2.GoToBegin(); !it2.IsAtEnd(); ++it2)
-    {
-    it2.Set(0);
-    }
-
-
-  unsigned int i;
-  ConstantBoundaryCondition<InputImageType> cbc;
-  cbc.SetConstant( NumericTraits<InputPixelType>::NonpositiveMin() );
-
-  ConstNeighborhoodIterator<InputImageType> bit;
-  ImageRegionIterator<InputImageType> it;
-
-
-  // Find the data-set boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
-  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
-  faceList = bC(input, input->GetRequestedRegion(), m_Radius);
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
-
-
-  // Process each of the boundary faces.  These are N-d regions which border
-  // the edge of the buffer.
-  for (fit=faceList.begin(); fit != faceList.end(); ++fit)
-    {
-    bit = ConstNeighborhoodIterator<InputImageType>(m_Radius,
-                                                    input, *fit);
-    unsigned int neighborhoodSize = bit.Size();
-    it = ImageRegionIterator<InputImageType>(m_BinaryImage, *fit);
-    bit.OverrideBoundaryCondition(&cbc);
-    bit.GoToBegin();
-
-    while ( ! bit.IsAtEnd() )
-      {
-      bool isMaximum = true;
-      InputPixelType centerValue = bit.GetCenterPixel();  //NumericTraits<InputRealType>::NonpositiveMin();
-      for (i = 0; i < neighborhoodSize; ++i)
-        {
-        InputPixelType tmp = bit.GetPixel(i);
-        
-        // if we find a neighbor with a larger value than the center, tthe center is not a maximum...
-        if (tmp > centerValue)
-          {
-          isMaximum = false;
-          break; 
-          }
-        }
-
-      if (isMaximum & (centerValue>m_Threshold))
-        {
-        InputIndexType maxIndex = it.GetIndex();
-        PointType point;
-        point[0]=maxIndex[0];
-        point[1]=maxIndex[1];
-        point[2]=maxIndex[2];
-//        input->TransformIndexToPhysicalPoint( maxIndex , point );
-
-        it.Set( static_cast<OutputPixelType>(1.0) );
-        points->push_back( point ); 
-        pointData->push_back( centerValue );
-        }
-
-      ++bit;
-      ++it;
-      }
-    }
+template<class TInputImage, class TOutputMesh>
+void LocalMaximumImageFilter<TInputImage, TOutputMesh>::GenerateData() {
 
 
 
-  mesh->SetPoints( points );
-  mesh->SetPointData( pointData );
+	OutputMeshPointer mesh = this->GetOutput();
+	InputImageConstPointer input = this->GetInput();
 
-  // This indicates that the current BufferedRegion is equal to the
-  // requested region. This action prevents useless rexecutions of
-  // the pipeline.
-  mesh->SetBufferedRegion( mesh->GetRequestedRegion() );
+	PointsContainerPointer points = PointsContainer::New();
+	PointDataContainerPointer pointData = PointDataContainer::New();
 
+	unsigned int i;
+	ConstantBoundaryCondition<InputImageType> cbc;
+	cbc.SetConstant(NumericTraits<InputPixelType>::NonpositiveMin());
+
+	ConstNeighborhoodIterator<InputImageType> bit;
+
+	// Find the data-set boundary "faces"
+	typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
+	NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
+	faceList = bC(input, input->GetRequestedRegion(), m_Radius);
+
+	typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+
+	// Process each of the boundary faces.  These are N-d regions which border
+	// the edge of the buffer.
+	for (fit = faceList.begin(); fit != faceList.end(); ++fit) {
+
+		bit = ConstNeighborhoodIterator<InputImageType>(m_Radius, input, *fit);
+		unsigned int neighborhoodSize = bit.Size();
+
+		bit.OverrideBoundaryCondition(&cbc);
+		bit.GoToBegin();
+
+		while (!bit.IsAtEnd()) {
+			bool isMaximum = true;
+			InputPixelType centerValue = bit.GetCenterPixel(); //NumericTraits<InputRealType>::NonpositiveMin();
+			if (centerValue > m_Threshold) {
+				for (i = 0; i < neighborhoodSize; ++i) {
+					InputPixelType tmp = bit.GetPixel(i);
+
+					// if we find a neighbor with a larger value than the center, tthe center is not a maximum...
+					if (tmp > centerValue) {
+						isMaximum = false;
+						break;
+					}
+				}
+				if (isMaximum) {
+					InputIndexType maxIndex = bit.GetIndex();
+					PointType point;
+					point[0] = maxIndex[0];
+					point[1] = maxIndex[1];
+					point[2] = maxIndex[2];
+
+					points->push_back(point);
+					pointData->push_back(centerValue);
+				}
+			}
+			++bit;
+
+		}
+	}
+
+	mesh->SetPoints(points);
+	mesh->SetPointData(pointData);
+
+	// This indicates that the current BufferedRegion is equal to the
+	// requested region. This action prevents useless rexecutions of
+	// the pipeline.
+	mesh->SetBufferedRegion(mesh->GetRequestedRegion());
 
 }
 
@@ -217,6 +191,7 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
   os << indent << "Threshold: " << m_Threshold << std::endl;
 
 }
+
 
 } // end namespace itk
 

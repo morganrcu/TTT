@@ -78,6 +78,15 @@ private slots:
     void UpdateDisplay();
 
     /**
+     * TODO
+     */
+    void DoLateralImageSegmentation();
+
+    /**
+     * TODO
+     */
+    void DoCLAHE();
+    /**
      * Captures the click event from Surface Segmentation button, causing the system to perform the surface segmentation of current frame
      */
     void DoSurfaceSegmentation();
