@@ -35,6 +35,8 @@ public:
 	inline void SetTrackedDescriptor(const TrackedTissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
+	virtual void Show();
+	virtual void Hide();
 
 };
 }

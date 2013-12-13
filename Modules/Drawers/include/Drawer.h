@@ -47,6 +47,20 @@ public:
 	inline void SetRenderer(const vtkSmartPointer<vtkRenderer> & renderer){
 		m_Renderer=renderer;
 	}
+
+	virtual void Show()=0;
+
+	virtual void Hide()=0;
+
+	virtual void SetVisibility(bool visible){
+		if(visible){
+			Show();
+		}else{
+			Hide();
+		}
+
+	}
+
 };
 }
 #endif

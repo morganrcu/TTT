@@ -41,6 +41,8 @@ public:
 		m_TrackedTissueDescriptor=trackedTissueDescriptor;
 	}
 	virtual void Draw();
+	virtual void Show();
+	virtual void Hide();
 
 };
 }

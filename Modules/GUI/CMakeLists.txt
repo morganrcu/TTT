@@ -6,13 +6,14 @@ include_directories( ../Core/include/)
 include_directories( ../Drawers/include/)
 include_directories( ../Interactors/include/)
 include_directories( ../Tectonics/include/)
+include_directories( ../Features/include/)
 include_directories( ../Commands/Tracking/include/)
 include_directories( ../Commands/SurfaceSegmentation/include/)
 include_directories( ../Commands/AnisotropicDiffusion/include/)
 include_directories( ../Commands/Plateness/include/)
 include_directories( ../Commands/Vertexness/include/)
 include_directories( ../Commands/VertexLocation/include/)
-include_directories( ../Commands/AdherensJunctionSegmentation/include/)
+include_directories( ../Commands/AdherensJunctionSegmentationDijkstra/include/)
 include_directories( ../Commands/CellGraph/include/)
 include_directories( ../Commands/Ellipses/include/)
 include_directories( ../Commands/DataCasting/include/)
@@ -39,6 +40,8 @@ SET(TTTGUI_SRCS
     source/tissuetracker.cpp
     source/sqlnewprojectdialog.cpp
     source/sqlopenprojectdialog.cpp
+    
+    
     source/main.cpp
     )
 
@@ -60,7 +63,7 @@ TARGET_LINK_LIBRARIES( TTTGUI
     TTTComputeDomains 
     TTTAnisotropicDiffusion 
     TTTTracking 
-    TTTAdherensJunctionSegmentation 
+    TTTAdherensJunctionSegmentationDijkstra
     TTTPlateness 
     TTTCore
     TTTVertexLocation

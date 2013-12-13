@@ -14,46 +14,24 @@
 //    along with TTT Tissue Tracker.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DiffusedImageDrawer.h"
-#include <itkImageToVTKImageFilter.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkSmartVolumeMapper.h>
 #include <vtkVolumeProperty.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-//template<class TDiffusedImage>
-//DiffusedImageDrawer<TDiffusedImage>::DiffusedImageDrawer(vtkSmartPointer<vtkRenderer> & renderer, const typename TDiffusedImage::Pointer & diffusedImage)
+
 ttt::DiffusedImageDrawer::DiffusedImageDrawer(){
+
 }
-//template<class TDiffusedImage>
-//void DiffusedImageDrawer<TDiffusedImage>::Draw(){
-void ttt::DiffusedImageDrawer::Draw() {
-	typedef itk::ImageToVTKImageFilter<DiffusedImageType> ImageToVTKType;
-	typename ImageToVTKType::Pointer tovtk = ImageToVTKType::New();
 
-	tovtk->SetInput(m_DiffusedImage);
-	tovtk->Update();
-
-	vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volumeMapper->SetBlendModeToComposite();
-
-	volumeMapper->SetInputData(tovtk->GetOutput());
-	//volumeMapper->SetInput(tovtk->GetOutput());
-	volumeMapper->Update();
-
-	vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<
-			vtkVolumeProperty>::New();
+vtkSmartPointer<vtkVolumeProperty> ttt::DiffusedImageDrawer::GetVolumeProperty(){
+	vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 	volumeProperty->ShadeOff();
 	volumeProperty->SetInterpolationType(VTK_LINEAR_INTERPOLATION);
 
-	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<
-			vtkPiecewiseFunction>::New();
-#if 0
-	zcompositeOpacity->AddPoint(0.0,0.0);
-	compositeOpacity->AddPoint(80.0,1.0);
-	compositeOpacity->AddPoint(80.1,0.0);
-	compositeOpacity->AddPoint(255.0,0.0);
-#endif
+	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
+
 	compositeOpacity->AddPoint(0.0, 0.0);
 	compositeOpacity->AddPoint(0.3, 1.0);
 	compositeOpacity->AddPoint(0.31, 0.0);
@@ -61,22 +39,14 @@ void ttt::DiffusedImageDrawer::Draw() {
 
 	volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.
 
-	vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<
-			vtkColorTransferFunction>::New();
-#if 0
-	color->AddRGBPoint(0.0 ,0.0,0.0,1.0);
-	color->AddRGBPoint(40.0 ,1.0,0.0,0.0);
-	color->AddRGBPoint(255.0,1.0,1.0,1.0);
-#endif
+	vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
+
 	color->AddRGBPoint(0.0, 0.0, 0.0, 1.0);
 	color->AddRGBPoint(0.15, 1.0, 0.0, 0.0);
 	color->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
 
 	volumeProperty->SetColor(color);
-
-	vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
-	volume->SetMapper(volumeMapper);
-	volume->SetProperty(volumeProperty);
-	m_Renderer->AddViewProp(volume);
-
+	return volumeProperty;
 }
+
+

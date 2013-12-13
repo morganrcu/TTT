@@ -21,43 +21,39 @@
 #include <itkFixedArray.h>
 #include "tttDescriptionDataTypes.h"
 #include "Drawer.h"
-
+#include "Colorer.h"
 namespace ttt{
 class PrimalGraphDrawer: public Drawer {
 public:
 	typedef itk::FixedArray<float,3> SpacingType;
+
+
 private:
 	TissueDescriptor::Pointer m_Descriptor;
-	SpacingType m_Spacing;
 
 	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonVertexType> Actor2SkeletonVertexType;
-	Actor2SkeletonVertexType  m_Actor2SkeletonVertex;//vtkTogiaaVertex; // map from actor to svt in listS graph used for validation of primal
+	Actor2SkeletonVertexType  m_Actor2SkeletonVertex;
 
 	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonEdgeType> Actor2SkeletonEdgeType;
-	Actor2SkeletonEdgeType m_Actor2SkeletonEdge;// vtkTowgiaaEdge;
+	Actor2SkeletonEdgeType m_Actor2SkeletonEdge;
+
+	Colorer<ttt::SkeletonEdgeType> *  m_pEdgeColorer;
+	Colorer<ttt::SkeletonVertexType> *  m_pVertexColorer;
+
+public:
+	inline void SetEdgeColorer(Colorer<ttt::SkeletonEdgeType> * colorer){
+		m_pEdgeColorer=colorer;
+	}
+
+	inline void SetVertexColorer(Colorer<ttt::SkeletonVertexType> * colorer){
+		m_pVertexColorer=colorer;
+	}
 
 #if 0
-	//typedef boost::tuple<giaa::SkeletonVertexType, giaa::SkeletonVertexType> SkeletonEdgeType;
-
-	typedef std::map<vtkActor*, giaa::SkeletonVertexType> Actor2SkeletonVertexType;
-	Actor2SkeletonVertexType m_Actor2SkeletonVertex; //actorTogiaavertex;// map for actor to svt in vecS graph used for Primal
-
-	typedef boost::tuple<giaa::SkeletonVertexType, giaa::SkeletonVertexType> SkeletonEdgeType;
-	typedef std::map<SkeletonEdgeType, vtkActor*> SkeletonEdge2ActorType;
-
-	SkeletonEdge2ActorType m_SkeletonEdge2Actor;// svtToactor_edge;
-
-	typedef std::map<giaa::SkeletonVertexType, vtkActor*> SkeletonVertex2ActorType;
-	SkeletonVertex2ActorType m_SkeletonVertex2Actor;// giaaTovtkVertexToPrimal;
-
-	typedef std::map<SkeletonEdgeLsType, vtkActor*> SkeletonEdgeLs2ActorType;
-	SkeletonEdgeLs2ActorType m_SkeletonEdgeLs2Actor; //  giaaTovtkEdge;
-
-#endif
-public:
 	static PrimalGraphDrawer* New(){
 		return new PrimalGraphDrawer;
 	}
+#endif
 	PrimalGraphDrawer(){
 
 	}
@@ -65,27 +61,35 @@ public:
 	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
-	inline void SetSpacing(const SpacingType & spacing ){
-		m_Spacing=spacing;
-	}
+
 	inline bool IsVertex(const vtkSmartPointer<vtkActor> & actor){
 		return m_Actor2SkeletonVertex.count(actor) >0;
 	}
+
 	inline bool IsEdge(const vtkSmartPointer<vtkActor> & actor){
 		return m_Actor2SkeletonEdge.count(actor) >0;
 	}
+
 	inline SkeletonVertexType GetActorSkeletonVertex(const vtkSmartPointer<vtkActor> & actor){
 		assert(IsVertex(actor));
 		return m_Actor2SkeletonVertex[actor];
 	}
+
 	inline SkeletonEdgeType GetActorSkeletonEdge(const vtkSmartPointer<vtkActor> & actor){
 		assert(IsEdge(actor));
 		return m_Actor2SkeletonEdge[actor];
 	}
+
+	void DrawVertex(const ttt::SkeletonVertexType & vertex);
+	inline void DrawEdge(const ttt::SkeletonEdgeType & edge);
+
+	virtual void Reset();
 	virtual ~PrimalGraphDrawer(){
 
 	}
 	virtual void Draw();
+	virtual void Show();
+	virtual void Hide();
 };
 }
 

@@ -19,23 +19,24 @@
 #ifndef ORIGINAL_IMAGE_DRAWER_H
 #define ORIGINAL_IMAGE_DRAWER_H
 #include <itkImage.h>
-#include "Drawer.h"
+#include "ScalarVolumeDrawer.h"
 namespace ttt{
-//template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
-class RawImageDrawer : public Drawer {
+class RawImageDrawer : public ScalarVolumeDrawer<itk::Image<unsigned char,3> > {
 
 private:
 	typedef itk::Image<unsigned char,3> OriginalImageType;
-	typename OriginalImageType::Pointer m_OriginalImage;
+	vtkSmartPointer<vtkVolumeProperty> m_VolumeProperty;
 public:
+	/**
+	 * Does nothing
+	 */
 	RawImageDrawer();
-	inline void SetRawImage(const typename OriginalImageType::Pointer & originalImage){
-		m_OriginalImage=originalImage;
-	}
-	virtual void Draw();
+
 	virtual ~RawImageDrawer(){
 
 	}
+protected:
+	virtual vtkSmartPointer<vtkVolumeProperty> GetVolumeProperty();
 };
 }
 #endif

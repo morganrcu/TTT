@@ -25,94 +25,27 @@ NIH grants R21 MH67054 and P41 RR13218.
 
 #include "itkNumericTraits.h"
 
-
+#include <iostream>
 namespace itk
 {
 
-template <class TInputImage, class TOutputMesh>
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::LocalMaximumImageFilter()
+template <class TInputImage> LocalMaximumImageFilter< TInputImage>::LocalMaximumImageFilter()
 {
-
-  // Modify superclass default values, can be overridden by subclasses
-  this->SetNumberOfRequiredInputs(1);
-
-  PointDataContainerPointer  pointData  = PointDataContainer::New();
-  OutputMeshPointer mesh = this->GetOutput();
-  mesh->SetPointData( pointData.GetPointer() );
-/*
-  this->SetNumberOfRequiredOutputs( 2 );
-  this->SetNthOutput( 0, this->MakeOutput( 0 ) );
-  this->SetNthOutput( 1, this->MakeOutput( 1 ) );
-*/
-
-
-  //m_BinaryImage = InputImageType::New();
 
   this->m_Radius.Fill(1);
   this->m_Threshold = 0.005;
 
+  m_LocalMaxima = LocalMaximaContainerType::New();
 }
 
 
-#if 0
-
-/**
- *
- */
-template <class TInputImage, class TOutputMesh>
-void
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::GenerateOutputInformation()
-{
-}
 
 
-/*******************************************************
- *
- * get the output image
- *
- *****************************************************/
-template <class TInputImage, class TOutputMesh>
-typename LocalMaximumImageFilter< TInputImage, TOutputMesh>::InputImageType *
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::GetLocalMaximaImage()
-  {
-  return this->m_BinaryImage;
-  }
+template<class TInputImage> void LocalMaximumImageFilter<TInputImage>::GenerateData() {
 
 
-
-/**
- *
- */
-template <class TInputImage, class TOutputMesh>
-void
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::SetInput( const InputImageType * inputImage )
-{
-
-  // This const_cast is needed due to the lack of
-  // const-correctness in the ProcessObject.
-  this->SetNthInput( 0,
-            const_cast< InputImageType * >( inputImage ) );
-
-}
-#endif
-
-
-
-
-template<class TInputImage, class TOutputMesh>
-void LocalMaximumImageFilter<TInputImage, TOutputMesh>::GenerateData() {
-
-
-
-	OutputMeshPointer mesh = this->GetOutput();
 	InputImageConstPointer input = this->GetInput();
 
-	PointsContainerPointer points = PointsContainer::New();
-	PointDataContainerPointer pointData = PointDataContainer::New();
 
 	unsigned int i;
 	ConstantBoundaryCondition<InputImageType> cbc;
@@ -151,37 +84,24 @@ void LocalMaximumImageFilter<TInputImage, TOutputMesh>::GenerateData() {
 					}
 				}
 				if (isMaximum) {
-					InputIndexType maxIndex = bit.GetIndex();
-					PointType point;
-					point[0] = maxIndex[0];
-					point[1] = maxIndex[1];
-					point[2] = maxIndex[2];
+					ttt::AdherensJunctionVertex::Pointer maxIndex = ttt::AdherensJunctionVertex::New();
+					maxIndex->SetPosition(bit.GetIndex());
 
-					points->push_back(point);
-					pointData->push_back(centerValue);
+					m_LocalMaxima->push_back(maxIndex);
 				}
 			}
 			++bit;
 
 		}
 	}
-
-	mesh->SetPoints(points);
-	mesh->SetPointData(pointData);
-
-	// This indicates that the current BufferedRegion is equal to the
-	// requested region. This action prevents useless rexecutions of
-	// the pipeline.
-	mesh->SetBufferedRegion(mesh->GetRequestedRegion());
-
 }
 
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutputMesh>
+template <class TInputImage>
 void
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
+LocalMaximumImageFilter< TInputImage>
 ::PrintSelf(
   std::ostream& os,
   Indent indent) const

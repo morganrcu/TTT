@@ -16,6 +16,9 @@ class PrimalGraphInteractor : public vtkInteractorStyleTrackballCamera {
 protected:
 	vtkSmartPointer<PrimalGraphDrawer> m_Drawer;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
+	vtkSmartPointer<vtkActor> m_PickedVertex;
+	vtkSmartPointer<vtkProperty> m_PickedVertexProperty;
+
 public:
 	PrimalGraphInteractor();
 	virtual ~PrimalGraphInteractor();

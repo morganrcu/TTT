@@ -20,18 +20,40 @@
 #define DUAL_GRAPH_DRAWER_H_
 #include "tttDescriptionDataTypes.h"
 #include "Drawer.h"
+#include "Colorer.h"
 namespace ttt{
 class DualGraphDrawer: public Drawer {
 public:
 	typedef itk::FixedArray<float,3> SpacingType;
+
 private:
 	TissueDescriptor::Pointer m_Descriptor;
 	SpacingType m_Spacing;
+
+	typedef boost::tuple<ttt::CellVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellVertexSphereMapperAndActor ;
+	typedef boost::tuple<ttt::CellEdgeType, vtkSmartPointer<vtkLineSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellEdgeLineMapperAndActor ;
+
+
+    std::list<CellVertexSphereMapperAndActor> m_CellVertexSphereMapperAndActorList;
+    std::list<CellEdgeLineMapperAndActor> m_CellEdgeLineMapperAndActorList;
+
+	Colorer<ttt::SkeletonEdgeType> *  m_pEdgeColorer;
+	Colorer<ttt::SkeletonVertexType> *  m_pVertexColorer;
+
+public:
+	inline void SetEdgeColorer(Colorer<ttt::CellEdgeType> * colorer){
+		m_pEdgeColorer=colorer;
+	}
+
+	inline void SetVertexColorer(Colorer<ttt::CellVertexType> * colorer){
+		m_pVertexColorer=colorer;
+	}
 
 public:
 	static DualGraphDrawer* New(){
 		return new DualGraphDrawer;
 	}
+
 	DualGraphDrawer(){
 
 	}
@@ -39,13 +61,14 @@ public:
 	inline void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
-	inline void SetSpacing(const SpacingType & spacing ){
-		m_Spacing=spacing;
-	}
+
 	virtual ~DualGraphDrawer(){
 
 	}
 	virtual void Draw();
+	virtual void Show();
+	virtual void Hide();
+	virtual void Reset();
 };
 }
 

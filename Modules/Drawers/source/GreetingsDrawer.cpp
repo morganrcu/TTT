@@ -42,3 +42,10 @@ void ttt::GreetingsDrawer::Draw() {
     m_Renderer->AddActor(textActor);
 
 }
+
+void ttt::GreetingsDrawer::Show(){
+	//TODO
+}
+void ttt::GreetingsDrawer::Hide(){
+	//TODO
+}

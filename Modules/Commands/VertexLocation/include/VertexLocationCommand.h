@@ -9,6 +9,7 @@
 #include <itkImage.h>
 #include <itkPointSet.h>
 #include "itkLocalMaximumImageFilter.h"
+#include "tttDescriptionDataTypes.h"
 namespace ttt{
 /**
  * \class VertexLocationCommand
@@ -21,16 +22,13 @@ public:
 	 * TODO
 	 */
 	typedef itk::Image<float,3> VertexnessImageType;
-	/**
-	 * TODO
-	 */
-    typedef itk::PointSet<VertexnessImageType::PixelType, 3> PointsetType;
+
 
 private:
     /**
      * TODO
      */
-    typedef itk::LocalMaximumImageFilter<VertexnessImageType, PointsetType> LocalMaxFilterType;
+    typedef itk::LocalMaximumImageFilter<VertexnessImageType> LocalMaxFilterType;
     /**
      * TODO
      */
@@ -42,7 +40,7 @@ private:
     /**
      * TODO
      */
-    PointsetType::Pointer m_VertexLocations;
+    ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
     /**
      * TODO
      */
@@ -75,7 +73,7 @@ public:
 	 * TODO
 	 * @return
 	 */
-	virtual PointsetType::Pointer GetLocalMaxima(){
+	virtual ttt::AdherensJunctionVertices::Pointer GetLocalMaxima(){
 		return m_VertexLocations;
 	}
 	/**

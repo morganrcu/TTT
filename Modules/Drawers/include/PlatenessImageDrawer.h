@@ -20,23 +20,23 @@
 #define PLATENESS_IMAGE_DRAWER_H
 
 #include <itkImage.h>
-#include "Drawer.h"
+
+#include "ScalarVolumeDrawer.h"
 namespace ttt{
-//template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
-class PlatenessImageDrawer : public Drawer {
+
+class PlatenessImageDrawer : public ScalarVolumeDrawer<itk::Image<float,3> > {
 
 private:
 	typedef itk::Image<float,3> PlatenessImageType;
-	typename PlatenessImageType::Pointer m_PlatenessImage;
+	vtkSmartPointer<vtkVolumeProperty> m_VolumeProperty;
 public:
 	PlatenessImageDrawer();
-	inline void SetPlatenessImage(const typename PlatenessImageType::Pointer & platenessImage){
-		m_PlatenessImage=platenessImage;
-	}
-	virtual void Draw();
+
 	virtual ~PlatenessImageDrawer(){
 
 	}
+protected:
+	virtual vtkSmartPointer<vtkVolumeProperty> GetVolumeProperty();
 };
 
 }

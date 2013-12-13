@@ -1,6 +1,13 @@
 #include <vtkProperty.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkRenderWindow.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
+#include <vtkCamera.h>
+#include <vtkAxesActor.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkCubeSource.h>
+
 #include "sqlopenprojectdialog.h"
 
 #include "tissuetracker.h"
@@ -15,7 +22,7 @@
 #include "VertexnessCommand.h"
 #include "DataCastingCommand.h"
 #include "VertexLocationCommand.h"
-#include "AdherensJunctionSegmentationCommand.h"
+#include "AdherensJunctionSegmentationDijkstraCommand.h"
 #include "CellGraphCommand.h"
 #include "EllipsesCommand.h"
 #include "ComputeDomainsCommand.h"
@@ -23,33 +30,30 @@
 #include "TrackingCommand.h"
 #include "TectonicsCommand.h"
 
-#include "GreetingsDrawer.h"
-#include "RawImageDrawer.h"
-#include "DiffusedImageDrawer.h"
-#include "PlatenessImageDrawer.h"
-#include "VertexnessImageDrawer.h"
-#include "VertexLocationsDrawer.h"
-#include "PrimalGraphDrawer.h"
-#include "DualGraphDrawer.h"
 
-#include "MotionVectorDrawer.h"
-#include "EllipseDrawer.h"
-#include "DomainStrainRatesDrawer.h"
+#include "AdherensJunctionEdgeOrientation.h"
+#include "CellOrder.h"
+#include "CellArea.h"
+
+#include "FeatureColorer.h"
+#include "DefaultColorer.h"
+
 
 using namespace std;
+
+#include "VertexSelectionInteractor.h"
+#include "VertexAdditionInteractor.h"
 
 
 /**
  * Creates a new TissueTracker
  * Initializes all data structures employed in the application and sets up the UI
  */
-TissueTracker::TissueTracker(QWidget *parent) :
-    QMainWindow(parent),
-    m_pUI(new Ui::TissueTracker)
+TissueTracker::TissueTracker(QWidget *parent) :   QMainWindow(parent),  m_pUI(new Ui::TissueTracker)
 {
+
+	m_Project=0;
     m_pUI->setupUi(this);
-
-
 
 
     m_CurrentRenderer = vtkSmartPointer<vtkRenderer>::New();
@@ -57,24 +61,23 @@ TissueTracker::TissueTracker(QWidget *parent) :
 
     m_RenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     m_RenderWindow->AddRenderer(m_CurrentRenderer);
+    m_RenderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
 
     m_RenderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
     m_RenderWindowInteractor->SetRenderWindow(m_RenderWindow);
     m_RenderWindowInteractor->Initialize();
 
 
+    vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+
+    m_CurrentRenderer->AddActor(axes);
+
     m_pUI->m_vtkview->SetRenderWindow(m_RenderWindow);
-
-    //SET UP MAIN VTK DISPLAY
-
-    GreetingsDrawer greetingsDrawer;
-    greetingsDrawer.SetRenderer(m_CurrentRenderer);
-
-    greetingsDrawer.Draw();
-
-
     m_pUI->m_vtkview->show();
 
+    m_GreetingsDrawer.SetRenderer(m_CurrentRenderer);
+    m_GreetingsDrawer.Draw();
+    m_GreetingsDrawer.Show();
 
     //CONNECT UI SLOTS
 
@@ -82,26 +85,25 @@ TissueTracker::TissueTracker(QWidget *parent) :
     connect(m_pUI->actionNew,  SIGNAL(triggered()), this, SLOT(NewProject()));
 
 
-
-
     //connect(m_pUI->actionColor,SIGNAL(triggered()), this, SLOT(ChangeColor()));
 	//connect(m_pUI->actionSave, SIGNAL(triggered()), this, SLOT(Save()));
 
     //connect(m_pUI->actionModify, SIGNAL(triggered()), this, SLOT(DoModification()));
-    connect(m_pUI->showOriginalCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showLHCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showCLAHECBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showDiffusedCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showSurfaceSegmentedCBox, SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showPlatenessCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showVertexnessCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showVertexLocationsCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showLevelSetCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showSegmentationCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showSkeletonCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
+    connect(m_pUI->showOriginalCBox, SIGNAL(toggled(bool)), this, SLOT(SetShowOriginalImage(bool)));
+    connect(m_pUI->showSurfaceSegmentedCBox, SIGNAL(toggled(bool)), this, SLOT(SetShowSurfaceSegmentedImage(bool)));
+    connect(m_pUI->showLHCBox, SIGNAL(toggled(bool)), this, SLOT(SetShowLateralImageVolumeSegmentedImage(bool)));
+    connect(m_pUI->showCLAHECBox, SIGNAL(toggled(bool)), this, SLOT(SetShowCLAHEDImage(bool)));
+    connect(m_pUI->showDiffusedCBox, SIGNAL(toggled(bool)), this, SLOT(SetShowDiffusedImage(bool)));
+    connect(m_pUI->showPlatenessCBox,SIGNAL(toggled(bool)), this, SLOT(SetShowPlatenessImage(bool)));
+    connect(m_pUI->showVertexnessCBox,SIGNAL(toggled(bool)), this, SLOT(SetShowVertexnessImage(bool)));
+    connect(m_pUI->showVertexLocationsCBox,SIGNAL(toggled(bool)), this, SLOT(SetShowVertexLocations(bool)));
+    connect(m_pUI->showPrimalCBox,SIGNAL(toggled(bool)), this, SLOT(SetShowPrimalGraph(bool)));
+    connect(m_pUI->showDualCBox,SIGNAL(toggled(bool)), this, SLOT(SetShowDualGraph(bool)));
+#if 0
+
     connect(m_pUI->showEllipseCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showPrimalCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
-    connect(m_pUI->showDualCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
+
+
     connect(m_pUI->showSimpleCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showPolygonMapCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showRosettesCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
@@ -113,16 +115,23 @@ TissueTracker::TissueTracker(QWidget *parent) :
     connect(m_pUI->showJxDegMapCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showTrackingCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
     connect(m_pUI->showTectonicsCBox,SIGNAL(toggled(bool)), this, SLOT(UpdateDisplay()));
+#endif
+    connect(m_pUI->screenshotButton,SIGNAL(clicked()),this,SLOT(TakeScreenshot()));
+    connect(m_pUI->resetViewButton,SIGNAL(clicked()),this,SLOT(ResetView()));
 
+
+
+
+
+    connect(m_pUI->lhButton,SIGNAL(clicked()),this,SLOT(DoLateralImageSegmentation()));
+    connect(m_pUI->claheButton,SIGNAL(clicked()),this,SLOT(DoCLAHE()));
     connect(m_pUI->ssbutton,SIGNAL(clicked()),this, SLOT(DoSurfaceSegmentation()));
     connect(m_pUI->adbutton,SIGNAL(clicked()),this,SLOT(DoAnisotropicDiffusion()));
     connect(m_pUI->ptnessbutton,SIGNAL(clicked()),this,SLOT(DoPlateness()));
     connect(m_pUI->vtxnessbutton,SIGNAL(clicked()),this,SLOT(DoVertexness()));
+    connect(m_pUI->vlocatorbutton,SIGNAL(clicked()),this,SLOT(DoVertexLocation()));
+
     connect(m_pUI->primalButton,SIGNAL(clicked()),this,SLOT(DoPrimalCalculation()));
-
-    connect(m_pUI->lhButton,SIGNAL(clicked()),this,SLOT(DoLateralImageSegmentation()));
-    connect(m_pUI->claheButton,SIGNAL(clicked()),this,SLOT(DoCLAHE()));
-
     connect(m_pUI->dualButton,SIGNAL(clicked()),this,SLOT(DoDualCalculation()));
     connect(m_pUI->trackingButton,SIGNAL(clicked()),this,SLOT(DoTracking()));
 
@@ -131,15 +140,15 @@ TissueTracker::TissueTracker(QWidget *parent) :
     connect(m_pUI->tectonicsButton,SIGNAL(clicked()),this,SLOT(DoTectonics()));
 
     //connect(m_pUI->finalizeButton,SIGNAL(clicked()),this,SLOT(DoFinalize()));
-    connect(m_pUI->vlocatorbutton,SIGNAL(clicked()),this,SLOT(DoVertexLocation()));
+
     //connect(m_pUI->lvlsetbutton,SIGNAL(clicked()),this,SLOT(DoLevelSet()));
     //connect(m_pUI->lvlsetthreshbutton,SIGNAL(clicked()),this,SLOT(DoThresholding()));
-    ///connect(m_pUI->sklbutton,SIGNAL(clicked()),this,SLOT(DoSkeletonization()));
-    connect(m_pUI->validateButton,SIGNAL(clicked()),this,SLOT(DoValidation()));
+    //connect(m_pUI->sklbutton,SIGNAL(clicked()),this,SLOT(DoSkeletonization()));
+    //connect(m_pUI->validateButton,SIGNAL(clicked()),this,SLOT(DoValidation()));
 
-    connect(m_pUI->insertButton,SIGNAL(clicked()),this,SLOT(DoInsert()));
-    connect(m_pUI->deleteButton,SIGNAL(clicked()),this,SLOT(DoDeletion()));
-    connect(m_pUI->moveButton,SIGNAL(clicked()),this,SLOT(DoMove()));
+    //connect(m_pUI->insertButton,SIGNAL(clicked()),this,SLOT(DoInsert()));
+    //connect(m_pUI->deleteButton,SIGNAL(clicked()),this,SLOT(DoDeletion()));
+    //connect(m_pUI->moveButton,SIGNAL(clicked()),this,SLOT(DoMove()));
 
 
 
@@ -174,15 +183,20 @@ TissueTracker::TissueTracker(QWidget *parent) :
     connect(m_pUI->timeSlider,SIGNAL(valueChanged(int)),this,SLOT(SetFrame( int))); 
     //connect(m_pUI->timeSlider2,SIGNAL(valueChanged(int)),this,SLOT(SetFrame2( int)));
 
+    connect(m_pUI->selectVertexButton,SIGNAL(clicked()),this,SLOT(SelectVertex()));
+    connect(m_pUI->addVertexButton,SIGNAL(clicked()),this,SLOT(AddVertex()));
+    connect(m_pUI->deleteVertexButton,SIGNAL(clicked()),this,SLOT(DeleteVertex()));
     m_CurrentFrame=0;
 
-    m_DrawOriginal=false;
-    m_DrawDiffused=false;
-    m_DrawVesselness=false;
-    m_DrawVertexness=false;
-    m_DrawLevelset=false;
-    m_DrawSegmentation=false;
-    m_DrawSkeleton=false;
+
+	m_StandardInteractor = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	m_VertexAdditionInteractor= vtkSmartPointer<VertexAdditionInteractor>::New();
+	m_VertexSelectionInteractor=vtkSmartPointer<VertexSelectionInteractor>::New();
+
+	m_pVertexAddedCallback= new VertexAddedCallback;
+	m_pVertexSelectedCallback = new VertexSelectedCallback;
+	m_pVertexUnselectedCallback = new VertexUnselectedCallback;
+
 
 }
 
@@ -230,6 +244,7 @@ void TissueTracker::OpenFile(){
 		SetupNavigation();
 		SetFrame(1);
 	}
+
 }
 
 
@@ -239,42 +254,22 @@ void TissueTracker::OpenFile(){
  */
 void TissueTracker::UpdateControls(){
 
-    this->m_pUI->adbutton->setEnabled(
-                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
-                );
-    this->m_pUI->adinputgroupBox->setEnabled(
-    			this->m_Project->IsDiffusedReady(m_CurrentFrame));
+    this->m_pUI->adbutton->setEnabled(this->m_Project->IsLateralImageVolumeSegmentedImageReady());
+    this->m_pUI->adinputgroupBox->setEnabled(this->m_Project->IsDiffusedImageReady());
 
-    this->m_pUI->ptnessbutton->setEnabled(
-                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
-                );
+    this->m_pUI->ptnessbutton->setEnabled(this->m_Project->IsLateralImageVolumeSegmentedImageReady());
     this->m_pUI->ptnessinputgroupBox->setEnabled(
-        			this->m_Project->IsDiffusedReady(m_CurrentFrame));
+        			this->m_Project->IsDiffusedImageReady());
     this->m_pUI->vtxnessbutton->setEnabled(
-                this->m_Project->IsCLAHEDReady(m_CurrentFrame)
+                this->m_Project->IsLateralImageVolumeSegmentedImageReady()
                 );
     this->m_pUI->vtxnessinputgroupBox->setEnabled(
-            			this->m_Project->IsDiffusedReady(m_CurrentFrame));
+            			this->m_Project->IsDiffusedImageReady());
 
     this->m_pUI->vlocatorbutton->setEnabled(
-                this->m_Project->IsVertexnessReady(m_CurrentFrame)
+                this->m_Project->IsVertexnessImageReady()
                 );
 
-#ifndef VINODTH_STYLE
-    this->m_pUI->lvlsetbutton->setEnabled(
-                //this->m_Project->IsVertexLocationsReady(m_CurrentFrame) &
-                //this->m_Project->IsPlatenessReady(m_CurrentFrame)
-                true
-                );
-    this->m_pUI->lvlsetthreshbutton->setEnabled(
-                //this->m_Project->IsLevelSetReady(m_CurrentFrame)
-                true
-                );
-    this->m_pUI->sklbutton->setEnabled(
-                //this->m_Project->IsThresholdedReady(m_CurrentFrame)
-                true
-                );
-#endif
     this->m_pUI->primalButton->setEnabled(
                 //this->m_Project->IsSkeletonReady(m_CurrentFrame)
                 true
@@ -292,13 +287,6 @@ TissueTracker::~TissueTracker()
 {
     delete m_pUI;
 }
-
-#ifdef OUT_OF_CONTROL
-void TissueTracker::Save(){
-    std::cout<< m_CurrentFrame <<std::endl;
-    m_Project->AddTissueDescriptor(m_CurrentFrame,descriptor);
-}
-#endif
 
 /**
  * Update navigation information on the UI
@@ -322,7 +310,6 @@ void TissueTracker::SetupNavigation(){
     this->m_pUI->configurationDock->setEnabled(true);
     this->m_pUI->viewOptionsDock->setEnabled(true);
     this->m_pUI->showSegmentationCBox->setEnabled(true);
-    //this->m_pUI->adGroupBox->setEnabled(true);
 }
 void TissueTracker::SetFrame( int frame){
     std::cout << "Slot SetFrame activated. Frame: " << frame << std::endl;
@@ -339,6 +326,7 @@ void TissueTracker::SetFrame( int frame){
 void TissueTracker::SetupCurrentFrame(){
     //this->m_pUI->timeSlider->setValue(m_CurrentFrame+1);
 
+	m_CurrentRenderer->RemoveAllViewProps();
 
     QString currentFrame("%1");
     currentFrame=currentFrame.arg(m_CurrentFrame+1);
@@ -359,8 +347,15 @@ void TissueTracker::SetupCurrentFrame(){
       }
     }
 #endif
+    m_Project->SetFrame(m_CurrentFrame);
+
     this->UpdateControls();
     this->UpdateDisplay();
+    this->UpdateVisibility();
+
+    this->SetupVertexAdditionInteractor();
+    this->SetupVertexSelectionInteractor();
+    this->SetupStandardInteractor();
 }
 
 void TissueTracker::DoLateralImageSegmentation(){
@@ -369,9 +364,10 @@ void TissueTracker::DoLateralImageSegmentation(){
 	float threshold= (float)atof(this->m_pUI->lhLowThresholdtxt->text().toStdString().c_str());
 
 	command.SetRelativeThreshold(threshold);
-	command.SetInputImage(m_Project->GetRawImage(m_CurrentFrame));
+	command.SetInputImage(m_Project->GetRawImage());
 	command.Do();
-	m_Project->AddLateralImageVolumeSegmented(m_CurrentFrame,command.GetOutput());
+	m_Project->SetLateralImageVolumeSegmentedImage(command.GetOutput());
+	this->DrawLateralImageVolumeSegmentedImage();
 }
 
 void TissueTracker::DoCLAHE(){
@@ -381,9 +377,10 @@ void TissueTracker::DoCLAHE(){
 
 	command.SetRadius(radius);
 	command.SetMaxSlope(maxSlope);
-	command.SetInputImage(m_Project->GetLateralImageVolumeSegmentedImage(m_CurrentFrame));
+	command.SetInputImage(m_Project->GetLateralImageVolumeSegmentedImage());
 	command.Do();
-	m_Project->AddCLAHED(m_CurrentFrame,command.GetOutputImage());
+	m_Project->SetCLAHEDImage(command.GetOutputImage());
+	this->DrawCLAHEDImage();
 }
 
 void TissueTracker::DoSurfaceSegmentation(){
@@ -397,19 +394,18 @@ void TissueTracker::DoSurfaceSegmentation(){
 	command.SetVarXY(sigmaxy);
 	command.SetVarZ(sigmaz);
 	command.SetThres(threshold);
-	assert(m_Project->GetRawImage(m_CurrentFrame));
-	command.SetInputImage(m_Project->GetRawImage(m_CurrentFrame));
+	assert(m_Project->GetRawImage());
+	command.SetInputImage(m_Project->GetRawImage());
 
 	command.Do();
 
 	command.GetOuputBinary();
-	m_Project->AddSurfaceSegmented(m_CurrentFrame,command.GetOutputImage());
+	m_Project->SetSurfaceSegmentedImage(command.GetOutputImage());
     this->m_pUI->showSurfaceSegmentedCBox->setChecked(true);
 
     this->UpdateControls();
-    this->UpdateDisplay();
-//    this->m_pUI->ptnessGroupBox->setEnabled(true);
-//    this->m_pUI->vtxnessGroupBox->setEnabled(true);
+
+    this->DrawSurfaceSegmentedImage();
 }
 
 
@@ -431,25 +427,26 @@ void TissueTracker::DoAnisotropicDiffusion(){
 
 	if(diffuseSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		assert(m_Project->GetLateralImageVolumeSegmentedImage());
+		castingCommand.SetInput(m_Project->GetLateralImageVolumeSegmentedImage());
 		castingCommand.Do();
 		command.SetInputImage(castingCommand.GetOutput());
 
 	}else{
-		assert(m_Project->GetDiffusedImage(m_CurrentFrame));
-		command.SetInputImage(m_Project->GetDiffusedImage(m_CurrentFrame));
+		assert(m_Project->GetDiffusedImage());
+		command.SetInputImage(m_Project->GetDiffusedImage());
 
 	}
 	command.Do();
 
 
-	m_Project->AddDiffused(m_CurrentFrame,command.GetOutputImage());
+	m_Project->SetDiffusedImage(command.GetOutputImage());
 
 	this->m_pUI->showDiffusedCBox->setChecked(true);
 
 	this->UpdateControls();
-	this->UpdateDisplay();
+
+	this->DrawDiffusedImage();
 }
 
 void TissueTracker::DoPlateness(){
@@ -467,24 +464,24 @@ void TissueTracker::DoPlateness(){
 	command.SetSigmaSteps(sigmasteps);
 	if(platenessSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		assert(m_Project->GetLateralImageVolumeSegmentedImage());
+		castingCommand.SetInput(m_Project->GetLateralImageVolumeSegmentedImage());
 		castingCommand.Do();
 		command.SetInput(castingCommand.GetOutput());
 	}else{
-		assert(m_Project->GetDiffusedImage(m_CurrentFrame));
-		command.SetInput(m_Project->GetDiffusedImage(m_CurrentFrame));
+		assert(m_Project->GetDiffusedImage());
+		command.SetInput(m_Project->GetDiffusedImage());
 	}
 
 	command.Do();
 
-	m_Project->AddPlateness(m_CurrentFrame,command.GetPlatenessImage());
+	m_Project->SetPlatenessImage(command.GetPlatenessImage());
 	//m_Project->AddOrientation(m_CurrentFrame,command.GetOrientationImage());
 
 	this->m_pUI->showPlatenessCBox->setChecked(true);
 
 	this->UpdateControls();
-	this->UpdateDisplay();
+	this->DrawPlatenessImage();
 }
 
 void TissueTracker::DoVertexness(){
@@ -503,24 +500,24 @@ void TissueTracker::DoVertexness(){
 
 	if(vertexnessSurfaceSegmented){
 		DataCastingCommand castingCommand;
-		assert(m_Project->GetCLAHEDImage(m_CurrentFrame));
-		castingCommand.SetInput(m_Project->GetCLAHEDImage(m_CurrentFrame));
+		assert(m_Project->GetLateralImageVolumeSegmentedImage());
+		castingCommand.SetInput(m_Project->GetLateralImageVolumeSegmentedImage());
 		castingCommand.Do();
 		command.SetInput(castingCommand.GetOutput());
 	}else{
-		assert(m_Project->GetDiffusedImage(m_CurrentFrame));
-		command.SetInput(m_Project->GetDiffusedImage(m_CurrentFrame));
+		assert(m_Project->GetDiffusedImage());
+		command.SetInput(m_Project->GetDiffusedImage());
 	}
 
     command.Do();
-    m_Project->AddVertexness(m_CurrentFrame,command.GetVertexnessImage());
+    m_Project->SetVertexnessImage(command.GetVertexnessImage());
 
     this->m_pUI->showVertexnessCBox->setChecked(true);
 
 //this->m_pUI->vlocatorGroupBox->setEnabled(true);
 
     this->UpdateControls();
-    this->UpdateDisplay();
+    this->DrawVertexnessImage();
 }
 
 
@@ -533,42 +530,125 @@ void TissueTracker::DoVertexLocation(){
     VertexLocationCommand command;
 
     command.SetLocalMaxThreshold(realThres);
-    assert(m_Project->GetVertexnessImage(m_CurrentFrame));
-    command.SetVertexnessImage(m_Project->GetVertexnessImage(m_CurrentFrame));
+    assert(m_Project->GetVertexnessImage());
+    command.SetVertexnessImage(m_Project->GetVertexnessImage());
     command.Do();
-    m_Project->AddVertexLocations(m_CurrentFrame,command.GetLocalMaxima());
+    m_Project->SetVertexLocations(command.GetLocalMaxima());
 
     this->m_pUI->showVertexLocationsCBox->setChecked(true);
 
     this->UpdateControls();
-    this->UpdateDisplay();
+    this->DrawVertexLocations();
+}
+
+void TissueTracker::SetInteractionModeToStandard(){
+
+	m_RenderWindowInteractor->SetInteractorStyle(m_StandardInteractor);
+}
+void TissueTracker::SetInteractionModeToAddVertex(){
+
+	m_RenderWindowInteractor->SetInteractorStyle(m_VertexAdditionInteractor);
+}
+
+void TissueTracker::SetInteractionModeToVertexSelection(){
+	m_RenderWindowInteractor->SetInteractorStyle(m_VertexSelectionInteractor);
 }
 
 
+void TissueTracker::SetupStandardInteractor(){
+	m_StandardInteractor= vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+}
+void TissueTracker::SetupVertexSelectionInteractor(){
+
+	m_VertexSelectionInteractor=vtkSmartPointer<VertexSelectionInteractor>::New();
+
+	vtkSmartPointer<vtkPointWidget> pointWidget= vtkSmartPointer<vtkPointWidget>::New();
+	m_pVertexSelectedCallback=new VertexSelectedCallback;
+	m_pVertexSelectedCallback->SetUI(this->m_pUI);
+	m_pVertexSelectedCallback->SetTissueTracker(this);
+	m_pVertexSelectedCallback->SetPointWidget(pointWidget);
+	m_pVertexSelectedCallback->SetVertexLocationsDrawer(&m_VertexLocationsDrawer);
+
+	m_pVertexUnselectedCallback->SetUI(this->m_pUI);
+	m_pVertexUnselectedCallback->SetTissueTracker(this);
+	m_pVertexUnselectedCallback->SetPointWidget(pointWidget);
+
+	m_VertexSelectionInteractor->SetVertexSelectedCallback(m_pVertexSelectedCallback);
+	m_VertexSelectionInteractor->SetVertexUnselectedCallback(m_pVertexUnselectedCallback);
+	m_VertexSelectionInteractor->SetRenderer(m_CurrentRenderer);
+}
+
+void TissueTracker::SetupVertexAdditionInteractor(){
+
+	m_VertexAdditionInteractor=vtkSmartPointer<VertexAdditionInteractor>::New();
+
+	m_VertexAdditionInteractor->SetAdherensJunctionVertices(m_Project->GetVertexLocations());
+	m_VertexAdditionInteractor->SetVertexLocationsDrawer(&m_VertexLocationsDrawer);
+	m_VertexAdditionInteractor->SetVertexAddedCallback(m_pVertexAddedCallback);
+	this->m_pVertexAddedCallback->SetUI(this->m_pUI);
+	this->m_pVertexAddedCallback->SetTissueTracker(this);
+
+	m_VertexAdditionInteractor->SetVertexAddedCallback(m_pVertexAddedCallback);
+	m_VertexAdditionInteractor->SetRenderer(m_CurrentRenderer);
+
+
+}
+
+
+void TissueTracker::AddVertex(){
+	this->SetInteractionModeToAddVertex();
+}
+
+void TissueTracker::SelectVertex(){
+
+	this->SetInteractionModeToVertexSelection();
+
+}
+
+
+void TissueTracker::DeleteVertex(){
+	vtkSmartPointer<vtkActor> toRemove=this->m_VertexSelectionInteractor->GetPickedVertexActor();
+
+	m_VertexSelectionInteractor->UnsetSelection();
+	if(toRemove){
+		ttt::AdherensJunctionVertices::Pointer vertices=this->m_Project->GetVertexLocations();
+		ttt::AdherensJunctionVertex::Pointer toRemoveVertex=this->m_VertexLocationsDrawer.GetVertexFromActor(toRemove);
+		m_VertexLocationsDrawer.EraseAdherensJunctionVertex(toRemoveVertex);
+		ttt::AdherensJunctionVertices::iterator toRemoveIt= std::find(vertices->begin(),vertices->end(),toRemoveVertex);
+		vertices->erase(toRemoveIt);
+		this->m_RenderWindow->Render();
+	}
+}
+
+void TissueTracker::FinishVertex(){
+	this->SetInteractionModeToStandard();
+}
+
 void TissueTracker::DoPrimalCalculation(){
 
-	AdherensJunctionSegmentationCommand command;
+	AdherensJunctionSegmentationDijkstraCommand command;
 
-	assert(m_Project->GetVertexLocations(m_CurrentFrame));
-	assert(m_Project->GetPlatenessImage(m_CurrentFrame));
+	//assert(m_Project->GetVertexLocations(m_CurrentFrame));
+	assert(m_Project->GetPlatenessImage());
 
-	command.SetVertexLocations(m_Project->GetVertexLocations(m_CurrentFrame));
-	command.SetPlatenessImage(m_Project->GetPlatenessImage(m_CurrentFrame));
+	command.SetVertexLocations(m_Project->GetVertexLocations());
+	command.SetPlatenessImage(m_Project->GetPlatenessImage());
+	command.SetVertexnessImage(m_Project->GetVertexnessImage());
 	command.Do();
 
 	assert(command.GetTissueDescriptor());
 
-	m_Project->AddTissueDescriptor(m_CurrentFrame,command.GetTissueDescriptor());
+	m_Project->SetTissueDescriptor(command.GetTissueDescriptor());
 
 	this->m_pUI->showPrimalCBox->setChecked(true);
+	this->DrawPrimalGraph();
 	this->UpdateControls();
-	this->UpdateDisplay();
 
 }
 
 
 void TissueTracker::DoValidation(){
-
+#if 0
 
 	class PGSISomethingSelected : public PrimalGraphStandardInteractor::SomethingSelected {
 	private:
@@ -624,10 +704,11 @@ void TissueTracker::DoValidation(){
 	 m_RenderWindowInteractor->SetInteractorStyle(m_PrimalGraphStandardInteractor);
 
 	 m_RenderWindowInteractor->Start();
-
+#endif
 }
 
 void TissueTracker::DoInsert(){
+#if 0
 	m_pUI->insertButton->setEnabled(false);
 	m_pUI->moveButton->setEnabled(false);
 	m_pUI->deleteButton->setEnabled(false);
@@ -673,17 +754,51 @@ void TissueTracker::DoInsert(){
 	assert(origin);
 
 	m_PrimalGraphInsertionInteractor->SetOrigin(origin);
-	assert(m_Project->GetTissueDescriptor(m_CurrentFrame));
-	m_PrimalGraphInsertionInteractor->SetTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame));
+	assert(m_Project->GetTissueDescriptor());
+	m_PrimalGraphInsertionInteractor->SetTissueDescriptor(m_Project->GetTissueDescriptor());
 	m_PrimalGraphInsertionInteractor->Init();
 	m_RenderWindowInteractor->SetInteractorStyle(m_PrimalGraphInsertionInteractor);
 
 	m_RenderWindowInteractor->Start();
+#endif
+}
 
+void TissueTracker::ResetView(){
+	vtkSmartPointer<vtkCamera> aCamera = m_CurrentRenderer->GetActiveCamera();
+	aCamera->SetViewUp (0, 0, -1);
+	aCamera->SetPosition (0, 1, 0);
+	aCamera->SetFocalPoint (0, 0, 0);
+	aCamera->Azimuth(30.0);
+	aCamera->Elevation(30.0);
+
+	std::cout << "Reset" << std::endl;
+	//vtkSmartPointer<vtkCamera> camera=m_CurrentRenderer->GetActiveCamera();
+	//m_CurrentRenderer->ResetCamera();
+
+	//m_CurrentRenderer->ResetCameraClippingRange();
+	m_RenderWindow->Render();
 }
 
 
+void TissueTracker::TakeScreenshot(){
+
+	// Screenshot
+	  vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	  windowToImageFilter->SetInput(m_RenderWindow);
+	  windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+	  windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+	  windowToImageFilter->Update();
+
+	  vtkSmartPointer<vtkPNGWriter> writer =  vtkSmartPointer<vtkPNGWriter>::New();
+	  QString fileName=QFileDialog::getSaveFileName(this,"Select file...");
+	  writer->SetFileName(fileName.toStdString().c_str());
+	  writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+	  writer->Write();
+
+}
+
 void TissueTracker::DoMove(){
+#if 0
 	m_pUI->insertButton->setEnabled(false);
 	m_pUI->moveButton->setEnabled(false);
 	m_pUI->deleteButton->setEnabled(false);
@@ -733,53 +848,27 @@ void TissueTracker::DoMove(){
 		m_PrimalGraphMoveInteractor->SetRenderer(m_CurrentRenderer);
 
 		m_PrimalGraphMoveInteractor->SetPrimalGraphDrawer(m_PrimalGraphDrawer);
-		m_PrimalGraphMoveInteractor->SetTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame));
+		m_PrimalGraphMoveInteractor->SetTissueDescriptor(m_Project->GetTissueDescriptor());
 
 		vtkSmartPointer<vtkActor> target=m_PrimalGraphStandardInteractor->GetSelectedVertex();
 		assert(target);
 		m_PrimalGraphMoveInteractor->SetTarget(target);
 
-		assert(m_Project->GetTissueDescriptor(m_CurrentFrame));
+		assert(m_Project->GetTissueDescriptor());
 
 
 
 		m_RenderWindowInteractor->SetInteractorStyle(m_PrimalGraphMoveInteractor);
 
 		m_RenderWindowInteractor->Start();
+#endif
 }
-#if 0
-#if 0
-void TissueTracker::DoLevelSet(){
-
-    m_Facade.SetVertexnessImage(m_Project->GetVertexnessImage(m_CurrentFrame));
-    m_Facade.SetOrientationImage(m_Project->GetOrientationImage(m_CurrentFrame));
-    m_Facade.SetPlatenessImage(m_Project->GetPlatenessImage(m_CurrentFrame));
-
-    m_Facade.SetLevelSetSigma(this->m_pUI->lvlsetsigmatxt->text().toDouble());
-    std::cout<<"got here in levelset"<<std::endl;
-    m_Facade.DoLevelSet();
-    m_Project->AddLevelSet(m_CurrentFrame,m_Facade.GetLevelSetImage());
-
-    this->m_pUI->showLevelSetCBox->setChecked(true);
-
-    this->UpdateControls();
-    this->UpdateDisplay();
-
-    this->m_pUI->lvlsetthreshGroupBox->setEnabled(true);
-#endif
-#ifdef OUT_OF_CONTROL
-    m_levelsetdone=true;
-#endif
-
-}
-#endif
-
-
 
 void TissueTracker::DoDeletion(){
+#if 0
 	assert(m_PrimalGraphStandardInteractor->IsSelectedEdge() ||m_PrimalGraphStandardInteractor->IsSelectedVertex()  );
 
-	TissueDescriptor::Pointer descriptor = m_Project->GetTissueDescriptor(m_CurrentFrame);
+	TissueDescriptor::Pointer descriptor = m_Project->GetTissueDescriptor();
 
 	if(m_PrimalGraphStandardInteractor->IsSelectedEdge()){
 		vtkSmartPointer<vtkActor> edgeActor=m_PrimalGraphStandardInteractor->GetSelectedEdge();
@@ -792,103 +881,22 @@ void TissueTracker::DoDeletion(){
 		boost::remove_vertex(toDelete,*descriptor->m_SkeletonGraph);
 	}
 	m_Project->AddTissueDescriptor(m_CurrentFrame,descriptor);
+
 	this->UpdateDisplay();
 	DoValidation();
+#endif
 }
 
 void TissueTracker::DoDualCalculation(){
 	CellGraphCommand command;
 
-	assert(m_Project->GetTissueDescriptor(m_CurrentFrame));
-	command.SetPrimalGraph(m_Project->GetTissueDescriptor(m_CurrentFrame));
+	assert(m_Project->GetTissueDescriptor());
+	command.SetPrimalGraph(m_Project->GetTissueDescriptor());
 	command.Do();
 
-	m_Project->AddTissueDescriptor(m_CurrentFrame,command.GetGraphs());
+	m_Project->SetTissueDescriptor(command.GetGraphs());
+	this->DrawDualGraph();
 }
-
-
-#if 0
-void TissueTracker::DoThresholding(){
-
-    double value = this->m_pUI->lvlsetthreshslider->value();
-    std::cout << "Threshold: " << value <<std::endl;
-
-    m_Facade.SetLevelsetThreshold(value);
-
-    m_Facade.SetLevelSetImage(m_Project->GetLevelSetImage(m_CurrentFrame));
-    m_Facade.DoThresholding();
-
-    m_Project->AddThresholded(m_CurrentFrame,m_Facade.GetThresholdedImage());
-
-    this->m_pUI->showSegmentationCBox->setChecked(true);
-
-    this->UpdateControls();
-    this->UpdateDisplay();
-    this->m_pUI->sklGroupBox->setEnabled(true);
-}
-
-void TissueTracker::DoSkeletonization(){
-
-    m_Facade.SetThresholdedImage(m_Project->GetThresholdedImage(m_CurrentFrame));
-    m_Facade.DoSkeletonization();
-    m_Project->AddSkeleton(m_CurrentFrame,m_Facade.GetSkeletonImage());
-    this->m_pUI->showSkeletonCBox->setChecked(true);
-    this->UpdateControls();
-    this->UpdateDisplay();
-}
-
-
-void TissueTracker::DoPrimalGiaaCalculation(){
-
-#ifdef OUT_OF_CONTROL
-    std::cout<<"Clicked primal"<<std::endl;
-    m_Facade.SetSkeletonImage(m_Project->GetSkeletonImage(m_CurrentFrame));
-    m_Facade.DoPrimalCalculation();
-    std::cout << "Just did primal" << std::endl;  
-    m_Project->AddTissueDescriptor(m_CurrentFrame,m_Facade.GetTissueDescription());
-    descriptor = this->m_Project->GetTissueDescriptor(m_CurrentFrame);
-    std::cout << "num edges" << std::endl;
-    std::cout << boost::num_edges(descriptor->m_SkeletonGraph_listS) << std::endl;
-    std::cout << boost::num_vertices(descriptor->m_SkeletonGraph_listS) << std::endl;  
-    this->DoFinalize();
-    std::cout << "added desc " << std::endl;
-    m_Spacing = m_Project->GetSpacing();
-
-    this->m_pUI->showPrimalCBox->setChecked(true);      
-    this->UpdateControls();
-    this->UpdateDisplay();
-#endif
-}
-#endif
-#if 0
-
-void TissueTracker::DoModSim(){
-#if 0
-	// Render composite. In default mode. For coverage.
-	vtkSmartPointer<ValidationInteractor> style = vtkSmartPointer<ValidationInteractor>::New();
-	style->SetDefaultRenderer(m_CurrentRenderer);
-    renderWindowInteractor->SetRenderWindow (m_RenderWindow);
-    renderWindowInteractor->SetInteractorStyle(style);
-    renderWindowInteractor->Initialize();
-    std::cout << "Initialized" << std::endl;
-    renderWindowInteractor->Start();
-
-#endif
-}
-
-#endif
-#if 0
-void TissueTracker::DoSelection(){
-
-/*vtkSmartPointer<DualInteractor> style = vtkSmartPointer<DualInteractor>::New();
-renderWindowInteractor->SetRenderWindow (m_RenderWindow);
-renderWindowInteractor->SetInteractorStyle(style);
-renderWindowInteractor->Initialize();
-std::cout << "Initialized" << std::endl;
-renderWindowInteractor->Start();*/
-}
-#endif
-
 
 
 
@@ -904,7 +912,8 @@ void TissueTracker::DoTracking(){
 	observations.resize(numFrames);
 
 	for(int i=0;i<numFrames;i++){
-		observations[i]=m_Project->GetTissueDescriptor(i);
+		m_Project->SetFrame(i);
+		observations[i]=m_Project->GetTissueDescriptor();
 	}
 
 	trackingCommand.SetObservedTissues(observations);
@@ -915,7 +924,8 @@ void TissueTracker::DoTracking(){
 	int frame=0;
 	for(std::vector<TrackedTissueDescriptor::Pointer>::iterator it = tracked.begin(); it!=tracked.end();it++){
 
-		m_Project->AddTrackedTissueDescriptor(frame++,*it);
+		m_Project->SetFrame(frame++);
+		m_Project->SetTrackedTissueDescriptor(*it);
 	}
 
 #if 0
@@ -970,8 +980,8 @@ void TissueTracker::DoTracking(){
 }
 void TissueTracker::DoEllipses(){
 	EllipsesCommand<TrackedTissueDescriptor> command;
-	assert(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
-	command.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	assert(m_Project->GetTrackedTissueDescriptor());
+	command.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
 	command.Do();
 
 	m_Project->AddTrackedEllipses(m_CurrentFrame,command.GetEllipses());
@@ -984,24 +994,24 @@ void TissueTracker::DoDomains(){
 	ComputeDomainsCommand command;
 	unsigned int order= (unsigned int)atoi(this->m_pUI->ordertxt->text().toStdString().c_str());
 	command.SetOrder(order);
-	command.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	command.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
 	command.Do();
 	m_Project->AddTrackedDomains(m_CurrentFrame,command.GetDomains());
 
 }
 
 void TissueTracker::DoTectonics(){
-
+#if 0
 	ComputeDomainsCommand domainsCommand;
 
 	unsigned int order= (unsigned int)atoi(this->m_pUI->ordertxt->text().toStdString().c_str());
 	domainsCommand.SetOrder(order);
-	domainsCommand.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	domainsCommand.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
 	domainsCommand.Do();
 
 	TectonicsCommand tectonicsCommand;
 	tectonicsCommand.SetDomains(domainsCommand.GetDomains());
-	tectonicsCommand.SetCurrentTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	tectonicsCommand.SetCurrentTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
 	if(m_CurrentFrame==0){
 		tectonicsCommand.SetEllipsesCurrent(m_Project->GetTrackedEllipses(m_CurrentFrame));
 		tectonicsCommand.SetEllipsesNext(m_Project->GetTrackedEllipses(m_CurrentFrame+1));
@@ -1028,14 +1038,14 @@ void TissueTracker::DoTectonics(){
 	tectonicsCommand.Do();
 
 	m_Project->AddDomainStrainRates(m_CurrentFrame,tectonicsCommand.GetDomainStrainRates());
-
+#endif
 }
 
 void TissueTracker::DoCurrent(){
 
 	//this->DoSurfaceSegmentation();
 	this->DoLateralImageSegmentation();
-	this->DoCLAHE();
+	//this->DoCLAHE();
 
     this->DoAnisotropicDiffusion();
 
@@ -1061,130 +1071,274 @@ void TissueTracker::DoCurrent(){
 
 
 void TissueTracker::DoAll(){
-    for(unsigned int frame=0;frame<m_Project->GetNumFrames();frame++){
+    for(unsigned int frame=m_CurrentFrame;frame<m_Project->GetNumFrames();frame++){
   		this->SetFrame(frame+1);
   		DoCurrent();
 
     }
 }
 
+
+void TissueTracker::DrawOriginalImage(){
+    if(m_Project->IsRawImageReady()){
+    	m_OriginalImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_OriginalImageDrawer.SetImage(m_Project->GetRawImage());
+    	m_OriginalImageDrawer.Draw();
+    	this->m_pUI->showOriginalCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showOriginalCBox->setEnabled(false);
+    }
+
+}
+void TissueTracker::SetShowOriginalImage(bool state){
+	m_OriginalImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawLateralImageVolumeSegmentedImage(){
+    if(m_Project->IsLateralImageVolumeSegmentedImageReady()){
+    	m_LateralImageVolumeSegmentedImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_LateralImageVolumeSegmentedImageDrawer.SetImage(m_Project->GetLateralImageVolumeSegmentedImage());
+    	m_LateralImageVolumeSegmentedImageDrawer.Draw();
+    	this->m_pUI->showLHCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showLHCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowLateralImageVolumeSegmentedImage(bool state){
+	m_LateralImageVolumeSegmentedImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+void TissueTracker::DrawCLAHEDImage(){
+    if(m_Project->IsCLAHEDImageReady()){
+    	m_CLAHEDImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_CLAHEDImageDrawer.SetImage(m_Project->GetCLAHEDImage());
+    	m_CLAHEDImageDrawer.Draw();
+    	this->m_pUI->showCLAHECBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showCLAHECBox->setEnabled(false);
+    }
+}
+
+void TissueTracker::SetShowCLAHEDImage(bool state){
+	m_CLAHEDImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawSurfaceSegmentedImage(){
+    if(m_Project->IsSurfaceSegmentedImageReady()){
+    	m_SurfaceSegmentedImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_SurfaceSegmentedImageDrawer.SetImage(m_Project->GetSurfaceSegmentedImage());
+    	m_SurfaceSegmentedImageDrawer.Draw();
+    	this->m_pUI->showSurfaceSegmentedCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showSurfaceSegmentedCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowSurfaceSegmentedImage(bool state){
+	m_SurfaceSegmentedImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawDiffusedImage(){
+    if(this->m_Project->IsDiffusedImageReady()){
+    	m_DiffusedImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_DiffusedImageDrawer.SetImage(m_Project->GetDiffusedImage());
+    	m_DiffusedImageDrawer.Draw();
+    	this->m_pUI->showDiffusedCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showDiffusedCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowDiffusedImage(bool state){
+	m_DiffusedImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawPlatenessImage(){
+    if(m_Project->IsPlatenessImageReady()){
+    	m_PlatenessImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_PlatenessImageDrawer.SetImage(m_Project->GetPlatenessImage());
+    	m_PlatenessImageDrawer.Draw();
+    	this->m_pUI->showPlatenessCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showPlatenessCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowPlatenessImage(bool state){
+	m_PlatenessImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawVertexnessImage(){
+    if( this->m_Project->IsVertexnessImageReady()){
+    	m_VertexnessImageDrawer.SetRenderer(m_CurrentRenderer);
+    	m_VertexnessImageDrawer.SetImage(m_Project->GetVertexnessImage());
+    	m_VertexnessImageDrawer.Draw();
+    	this->m_pUI->showVertexnessCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showVertexnessCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowVertexnessImage(bool state){
+	m_VertexnessImageDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawVertexLocations(){
+    if( m_Project->IsVertexLocationsReady()){
+    	m_VertexLocationsDrawer.SetRenderer(m_CurrentRenderer);
+    	m_VertexLocationsDrawer.SetVertexLocations(m_Project->GetVertexLocations());
+    	m_VertexLocationsDrawer.SetSpacing(m_Project->GetSpacing());
+    	m_VertexLocationsDrawer.Draw();
+    	this->m_pUI->showVertexLocationsCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showVertexLocationsCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowVertexLocations(bool state){
+	m_VertexLocationsDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+
+void TissueTracker::DrawPrimalGraph(){
+    if( m_Project->IsTissueDescriptorReady()){
+
+    	typedef AdherensJunctionEdgeOrientation<ttt::TissueDescriptor> OrientationFeatureType;
+    	typename OrientationFeatureType::Pointer orientationFeature = OrientationFeatureType::New();
+
+    	orientationFeature->SetTissueDescriptor(m_Project->GetTissueDescriptor());
+    	orientationFeature->Compute();
+
+    	FeatureColorer<OrientationFeatureType> edgeColorer;
+    	edgeColorer.SetFeature(orientationFeature);
+    	m_PrimalGraphDrawer.SetEdgeColorer(&edgeColorer);
+
+    	DefaultColorer<ttt::SkeletonVertexType> vertexColorer;
+    	m_PrimalGraphDrawer.SetVertexColorer(&vertexColorer);
+
+
+    	m_PrimalGraphDrawer.SetRenderer(m_CurrentRenderer);
+    	m_PrimalGraphDrawer.SetTissueDescriptor(m_Project->GetTissueDescriptor());
+    	m_PrimalGraphDrawer.Draw();
+
+    	this->m_pUI->showPrimalCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showPrimalCBox->setEnabled(false);
+    }
+}
+
+void TissueTracker::SetShowPrimalGraph(bool state){
+	m_PrimalGraphDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+void TissueTracker::DrawDualGraph(){
+    if( m_Project->IsTissueDescriptorReady()){
+
+    	typedef CellArea<ttt::TissueDescriptor> CellOrderFeatureType;
+    	typename CellOrderFeatureType::Pointer cellOrderFeature = CellOrderFeatureType::New();
+
+    	cellOrderFeature->SetTissueDescriptor(m_Project->GetTissueDescriptor());
+    	cellOrderFeature->Compute();
+
+    	FeatureColorer<CellOrderFeatureType> vertexColorer;
+    	vertexColorer.SetFeature(cellOrderFeature);
+    	m_DualGraphDrawer.SetVertexColorer(&vertexColorer);
+#if 0
+    	DefaultColorer<ttt::CellVertexType> vertexColorer;
+    	m_DualGraphDrawer.SetVertexColorer(&vertexColorer);
+#endif
+    	DefaultColorer<ttt::CellEdgeType> edgeColorer;
+    	m_DualGraphDrawer.SetEdgeColorer(&edgeColorer);
+
+
+
+    	m_DualGraphDrawer.SetRenderer(m_CurrentRenderer);
+    	m_DualGraphDrawer.SetTissueDescriptor(m_Project->GetTissueDescriptor());
+    	m_DualGraphDrawer.Draw();
+
+    	this->m_pUI->showDualCBox->setEnabled(true);
+    }else{
+    	this->m_pUI->showDualCBox->setEnabled(false);
+    }
+}
+void TissueTracker::SetShowDualGraph(bool state){
+	m_DualGraphDrawer.SetVisibility(state);
+	this->m_RenderWindow->Render();
+}
+void TissueTracker::UpdateVisibility(){
+#if 0
+	this->m_pUI->showOriginalCBox->setEnabled(m_Project->IsRawImageReady());
+	this->m_pUI->showCLAHECBox->setEnabled(m_Project->IsCLAHEDImageReady());
+	this->m_pUI->showSurfaceSegmentedCBox->setEnabled(m_Project->IsSurfaceSegmentedImageReady());
+	this->m_pUI->showLHCBox->setEnabled(m_Project->IsLateralImageVolumeSegmentedImageReady());
+	this->m_pUI->showDiffusedCBox->setEnabled(m_Project->IsDiffusedImageReady());
+	this->m_pUI->showPlatenessCBox->setEnabled(m_Project->IsPlatenessImageReady());
+	this->m_pUI->showVertexnessCBox->setEnabled(m_Project->IsVertexnessImageReady());
+#endif
+
+	this->m_OriginalImageDrawer.SetVisibility(this->m_pUI->showOriginalCBox->isEnabled() & this->m_pUI->showOriginalCBox->isChecked());
+	this->m_CLAHEDImageDrawer.SetVisibility(this->m_pUI->showCLAHECBox->isEnabled() & this->m_pUI->showCLAHECBox->isChecked());
+	this->m_LateralImageVolumeSegmentedImageDrawer.SetVisibility(this->m_pUI->showLHCBox->isEnabled() & this->m_pUI->showLHCBox->isChecked());
+	//this->m_SurfaceSegmentedImageDrawer.SetVisibility(this->m_pUI->showSurfaceSegmentedCBox->isEnabled() & this->m_pUI->showSurfaceSegmentedCBox->isChecked());
+	this->m_DiffusedImageDrawer.SetVisibility(this->m_pUI->showDiffusedCBox->isEnabled() & this->m_pUI->showDiffusedCBox->isChecked());
+	this->m_PlatenessImageDrawer.SetVisibility(this->m_pUI->showPlatenessCBox->isEnabled() && this->m_pUI->showPlatenessCBox->isChecked());
+	this->m_VertexnessImageDrawer.SetVisibility(this->m_pUI->showVertexnessCBox->isEnabled() && this->m_pUI->showVertexnessCBox->isChecked());
+	this->m_RenderWindowInteractor->Render();
+}
 void TissueTracker::UpdateDisplay(){
 
     vtkSmartPointer<vtkRenderWindow> renWin = this->m_pUI->m_vtkview->GetRenderWindow();
 
-    m_CurrentRenderer->RemoveAllViewProps();
-
-    if(this->m_pUI->showOriginalCBox->isChecked() && m_Project->IsRawReady(m_CurrentFrame)){
-    	RawImageDrawer originalDrawer;
-    	originalDrawer.SetRenderer(m_CurrentRenderer);
-    	originalDrawer.SetRawImage(m_Project->GetRawImage(m_CurrentFrame));
-    	originalDrawer.Draw();
-    }
-
-    if(this->m_pUI->showLHCBox->isChecked() && m_Project->IsLateralImageVolumeSegmentedReady(m_CurrentFrame)){
-        	RawImageDrawer originalDrawer;
-        	originalDrawer.SetRenderer(m_CurrentRenderer);
-        	originalDrawer.SetRawImage(m_Project->GetLateralImageVolumeSegmentedImage(m_CurrentFrame));
-        	originalDrawer.Draw();
-        }
-    if(this->m_pUI->showCLAHECBox->isChecked() && m_Project->IsCLAHEDReady(m_CurrentFrame)){
-            	RawImageDrawer originalDrawer;
-            	originalDrawer.SetRenderer(m_CurrentRenderer);
-            	originalDrawer.SetRawImage(m_Project->GetCLAHEDImage(m_CurrentFrame));
-            	originalDrawer.Draw();
-    }
-
-    if(this->m_pUI->showSurfaceSegmentedCBox->isChecked() && m_Project->IsSurfaceSegmentedReady(m_CurrentFrame)){
-    	RawImageDrawer originalDrawer;
-    	originalDrawer.SetRenderer(m_CurrentRenderer);
-    	originalDrawer.SetRawImage(m_Project->GetSurfaceSegmentedImage(m_CurrentFrame));
-    	originalDrawer.Draw();
-    }
-
-    if(this->m_pUI->showDiffusedCBox->isChecked() && this->m_Project->IsDiffusedReady(m_CurrentFrame)){
-    	//DiffusedImageDrawer<giaa::TissueSegmentation::DiffusedImageType> diffusedDrawer(m_CurrentRenderer,m_Project->GetDiffusedImage(m_CurrentFrame));
-    	DiffusedImageDrawer diffusedDrawer;
-    	diffusedDrawer.SetRenderer(m_CurrentRenderer);
-    	diffusedDrawer.SetDiffusedImage(m_Project->GetDiffusedImage(m_CurrentFrame));
-    	diffusedDrawer.Draw();
-
-    }
-
-    if(this->m_pUI->showPlatenessCBox->isChecked() && m_Project->IsPlatenessReady(m_CurrentFrame)){
-    	PlatenessImageDrawer platenessDrawer;
-    	platenessDrawer.SetRenderer(m_CurrentRenderer);
-    	platenessDrawer.SetPlatenessImage(m_Project->GetPlatenessImage(m_CurrentFrame));
-    	platenessDrawer.Draw();
-    }
-
-    if(this->m_pUI->showVertexnessCBox->isChecked() && this->m_Project->IsVertexnessReady(m_CurrentFrame)){
-    	VertexnessImageDrawer vertexnessDrawer;
-
-    	vertexnessDrawer.SetRenderer(m_CurrentRenderer);
-    	vertexnessDrawer.SetVertexnessImage(m_Project->GetVertexnessImage(m_CurrentFrame));
-    	vertexnessDrawer.Draw();
-    }
-
-    if(this->m_pUI->showVertexLocationsCBox->isChecked() && m_Project->IsVertexLocationsReady(m_CurrentFrame)){
-    	VertexLocationsDrawer vertexLocationsDrawer;
-    	vertexLocationsDrawer.SetRenderer(m_CurrentRenderer);
-    	vertexLocationsDrawer.SetVertexLocations(m_Project->GetVertexLocations(m_CurrentFrame));
-    	vertexLocationsDrawer.SetSpacing(m_Project->GetSpacing());
-    	vertexLocationsDrawer.Draw();
-    }
 #if 0
-    if(this->m_pUI->showLevelSetCBox->isChecked() && m_Project->IsLevelSetReady(m_CurrentFrame)){
+    vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
 
-    }
 
-    if(this->m_pUI->showSegmentationCBox->isChecked() && this->m_Project->IsThresholdedReady(m_CurrentFrame)){
-
-    }
-    if(this->m_pUI->showSkeletonCBox && this->m_Project->IsSkeletonReady(m_CurrentFrame)){
-
-    }
+    m_CurrentRenderer->AddActor(axes);
 #endif
+    this->DrawOriginalImage();
+    this->DrawLateralImageVolumeSegmentedImage();
+    this->DrawCLAHEDImage();
+    this->DrawSurfaceSegmentedImage();
+    this->DrawDiffusedImage();
+    this->DrawPlatenessImage();
+    this->DrawVertexnessImage();
+    this->DrawVertexLocations();
+    this->DrawPrimalGraph();
+    this->DrawDualGraph();
 
-    if(this->m_pUI->showPrimalCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
+#if 0
+    if( this->m_Project->IsTissueDescriptorReady()){
 
-    	m_PrimalGraphDrawer = PrimalGraphDrawer::New();
 
-    	m_PrimalGraphDrawer->SetRenderer(m_CurrentRenderer);
-    	m_PrimalGraphDrawer->SetTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame));
-    	m_PrimalGraphDrawer->SetSpacing(m_Project->GetSpacing());
-    	m_PrimalGraphDrawer->Draw();
     }
 
-    if(this->m_pUI->showSimpleCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
+    if( this->m_Project->IsTissueDescriptorReady()){
 
     }
 
-    if(this->m_pUI->showDualCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
+    if(this->m_Project->IsTissueDescriptorReady()){
 
-    	DualGraphDrawer dualGraphDrawer;
-    	dualGraphDrawer.SetRenderer(m_CurrentRenderer);
-    	dualGraphDrawer.SetTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame));
-    	dualGraphDrawer.SetSpacing(m_Project->GetSpacing());
-    	dualGraphDrawer.Draw();
+
     }
-    if(this->m_pUI->showTrackingCBox->isChecked() && this->m_Project->IsTrackedTissueDescriptorReady(m_CurrentFrame)){
+    if(this->m_Project->IsTrackedTissueDescriptorReady()){
     	if(!m_TrackingDrawer) m_TrackingDrawer=TrackingDrawer::New();
     	assert(m_TrackingDrawer);
     	m_TrackingDrawer->SetRenderer(m_CurrentRenderer);
-    	m_TrackingDrawer->SetTrackedDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+    	m_TrackingDrawer->SetTrackedDescriptor(m_Project->GetTrackedTissueDescriptor());
     	m_TrackingDrawer->Draw();
 
 
     }
-    if(this->m_pUI->showMotionVectorCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
+    if( this->m_Project->IsTissueDescriptorReady()){
 
     	MotionVectorDrawer motionVectorDrawer;
     	motionVectorDrawer.SetRenderer(m_CurrentRenderer);
-    	motionVectorDrawer.SetTrackedDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+    	motionVectorDrawer.SetTrackedDescriptor(m_Project->GetTrackedTissueDescriptor());
     	motionVectorDrawer.Draw();
 
     }
-    if(this->m_pUI->showEllipseCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
+    if( this->m_Project->IsTissueDescriptorReady()){
     	EllipseDrawer ellipseDrawer;
 
     	ellipseDrawer.SetRenderer(m_CurrentRenderer);
@@ -1192,47 +1346,14 @@ void TissueTracker::UpdateDisplay(){
     	ellipseDrawer.Draw();
 
     }
-    if(this->m_pUI->showTectonicsCBox->isChecked() && this->m_Project->IsDomainStrainRatesReady(m_CurrentFrame)){
+    if(this->m_Project->IsDomainStrainRatesReady()){
     	DomainStrainRatesDrawer domainStrainRatesDrawer;
 
     	domainStrainRatesDrawer.SetRenderer(m_CurrentRenderer);
-    	domainStrainRatesDrawer.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
-    	domainStrainRatesDrawer.SetDomainStrainRates(m_Project->GetDomainStrainRates(m_CurrentFrame));
+    	domainStrainRatesDrawer.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+    	domainStrainRatesDrawer.SetDomainStrainRates(m_Project->GetDomainStrainRates());
     	domainStrainRatesDrawer.Draw();
     }
-
-    if(this->m_pUI->showAreaMapCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-
-    }
-
-    if(this->m_pUI->showPolygonMapCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-
-    }
-
-    if(this->m_pUI->showRosettesCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-
-
-    }
-
-    if(this->m_pUI->showEdgeVariationMapCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-    
-    }
-
-
-    if(this->m_pUI->showClusterMapCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-        
-
-    }
-
-    if(this->m_pUI->showJxDegMapCBox->isChecked() && this->m_Project->IsTissueDescriptorReady(m_CurrentFrame)){
-
-    }
-
-    if(this->m_pUI->showSecondChannelCBox->isChecked() && m_Project->IsSCReady(m_CurrentFrame)){
-        
-    }
-
-    //m_CurrentRenderer->ResetCamera();
-    // Render composite. In default mode. For coverage.
+#endif
     renWin->Render();
 }

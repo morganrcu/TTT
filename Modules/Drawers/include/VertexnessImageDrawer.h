@@ -20,24 +20,28 @@
 #define VERTEXNESS_IMAGE_DRAWER_H
 
 #include <itkImage.h>
-#include "Drawer.h"
+#include "ScalarVolumeDrawer.h"
 namespace ttt{
-//template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
-class VertexnessImageDrawer : public Drawer {
+
+class VertexnessImageDrawer :  public ScalarVolumeDrawer<itk::Image<float,3> > {
 
 private:
+	vtkSmartPointer<vtkVolumeProperty> m_VolumeProperty;
 	typedef itk::Image<float,3> VertexnessImageType;
-	typename VertexnessImageType::Pointer m_VertexnessImage;
+
 public:
-	//VertexnessImageDrawer(vtkSmartPointer<vtkRenderer> & renderer,);
+	/**
+	 * Does nothing
+	 */
 	VertexnessImageDrawer();
-	inline void SetVertexnessImage(const typename VertexnessImageType::Pointer & vertexnessImage){
-		m_VertexnessImage=vertexnessImage;
-	}
-	virtual void Draw();
+	/**
+	 * Does nothing
+	 */
 	virtual ~VertexnessImageDrawer(){
 
 	}
+protected:
+	virtual vtkSmartPointer<vtkVolumeProperty> GetVolumeProperty();
 };
 }
 #endif

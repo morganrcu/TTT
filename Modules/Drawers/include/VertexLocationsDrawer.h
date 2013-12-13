@@ -19,30 +19,137 @@
 #ifndef VERTEX_LOCATIONS_DRAWER_H
 #define VERTEX_LOCATIONS_DRAWER_H
 
+#include <vtkPolyDataMapper.h>
+#include <vtkSphereSource.h>
+#include <vtkActor.h>
 
-#include <itkPointSet.h>
+#include <itkIndex.h>
 #include "Drawer.h"
+#include <vector>
+#include <boost/tuple/tuple.hpp>
+#include "tttDescriptionDataTypes.h"
 namespace ttt{
-//template<class OriginalImageType> class OriginalImageDrawer : public Drawer {
+
 class VertexLocationsDrawer : public Drawer {
+public:
+	typedef boost::tuple<ttt::AdherensJunctionVertex::Pointer, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
 
 private:
-    typedef itk::PointSet<float, 3> PointSetType;
     typedef itk::FixedArray<float,3> SpacingType;
 
-    PointSetType::Pointer m_VertexLocations;
+    ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
     SpacingType m_Spacing;
+
+
+
+
+    std::list<VertexSphereMapperAndActor> m_VertexSphereMapperAndActorList;
+
+
 public:
+	static VertexLocationsDrawer* New(){
+		return new VertexLocationsDrawer;
+	}
+
     VertexLocationsDrawer(){
 
     }
-    inline void SetVertexLocations(const PointSetType::Pointer & vertexLocations){
+
+    void Reset(){
+
+
+    	for(std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();it!=m_VertexSphereMapperAndActorList.end();++it){
+    		m_Renderer->RemoveActor(it->get<3>());
+    	}
+    	m_VertexSphereMapperAndActorList.clear();
+
+
+    }
+    inline void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & vertexLocations){
     	m_VertexLocations=vertexLocations;
     }
     inline void SetSpacing(const SpacingType & spacing){
     	m_Spacing=spacing;
     }
-	virtual void Draw();
+
+    AdherensJunctionVertex::Pointer GetVertexFromActor(const vtkSmartPointer<vtkActor> & actor){
+    	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
+    	bool found=false;
+
+    	while(!found && it!=m_VertexSphereMapperAndActorList.end()){
+    		if(it->get<3>()==actor){
+    			found=true;
+    		}else{
+    			++it;
+    		}
+    	}
+    	assert(found);
+    	return it->get<0>();
+   	}
+
+
+    vtkSmartPointer<vtkSphereSource> GetSphereSourceFromActor(const vtkSmartPointer<vtkActor> & actor){
+    	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
+    	bool found=false;
+
+    	while(!found && it!=m_VertexSphereMapperAndActorList.end()){
+    		if(it->get<3>()==actor){
+    			found=true;
+    		}else{
+    			++it;
+    		}
+    	}
+    	assert(found);
+    	return it->get<1>();
+    }
+
+    vtkSmartPointer<vtkPolyDataMapper> GetMapperFromActor(const vtkSmartPointer<vtkActor> & actor){
+    	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
+    	bool found=false;
+
+    	while(!found && it!=m_VertexSphereMapperAndActorList.end()){
+    		if(it->get<3>()==actor){
+    			found=true;
+    		}else{
+    			++it;
+    		}
+    	}
+    	assert(found);
+    	return it->get<2>();
+    }
+
+    virtual void Show(){
+    	for(std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();it!=m_VertexSphereMapperAndActorList.end();it++){
+    		it->get<3>()->VisibilityOn();
+    	}
+    }
+    virtual void Hide(){
+    	for(std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();it!=m_VertexSphereMapperAndActorList.end();it++){
+    		it->get<3>()->VisibilityOff();
+    	}
+    }
+
+    VertexSphereMapperAndActor DrawAdherensJunctionVertex(const ttt::AdherensJunctionVertex::Pointer & vertex);
+
+    void EraseAdherensJunctionVertex(const ttt::AdherensJunctionVertex::Pointer & vertex){
+    	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
+    	bool found=false;
+
+    	while(!found && it!=m_VertexSphereMapperAndActorList.end()){
+    		if(it->get<0>()==vertex){
+    			found=true;
+    		}else{
+    			++it;
+    		}
+    	}
+    	assert(found);
+    	m_Renderer->RemoveActor(it->get<3>());
+    	m_VertexSphereMapperAndActorList.erase(it);
+
+    }
+
+    virtual void Draw();
+
 	virtual ~VertexLocationsDrawer(){
 
 	}

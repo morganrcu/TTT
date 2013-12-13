@@ -13,7 +13,7 @@ void ttt::VertexLocationCommand::Do(){
 	m_VertexLocator->SetRadius(radius);
 	m_VertexLocator->SetThreshold(m_LocalMaxThreshold);
 	m_VertexLocator->SetInput(m_Input);
-	m_VertexLocator->Update();
+	m_VertexLocator->GenerateData();//FIXME
 
 	m_VertexLocations=m_VertexLocator->GetOutput();
 

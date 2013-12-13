@@ -44,7 +44,8 @@ void SQLNewProjectDialog::accept(){
 		reader->SetFileName(file.toStdString());
 		reader->Update();
 
-		m_NewProject->AddRawImage(row,reader->GetOutput());
+		m_NewProject->SetRawImage(reader->GetOutput());
+		m_NewProject->SetFrame(row);
 
 	}
 	m_Accepted=true;

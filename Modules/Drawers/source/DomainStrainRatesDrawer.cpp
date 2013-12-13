@@ -88,3 +88,10 @@ void ttt::DomainStrainRatesDrawer::Draw(){
 		m_Renderer->AddActor(minorActor);
 	}
 }
+
+void ttt::DomainStrainRatesDrawer::Show(){
+	//TODO
+}
+void ttt::DomainStrainRatesDrawer::Hide(){
+	//TODO
+}

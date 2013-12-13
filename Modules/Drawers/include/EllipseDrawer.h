@@ -42,7 +42,8 @@ public:
 	inline void SetEllipses(const EllipseMapTypePointer & ellipses){
 		m_Ellipses=ellipses;
 	}
-
+	virtual void Show();
+	virtual void Hide();
 };
 }
 

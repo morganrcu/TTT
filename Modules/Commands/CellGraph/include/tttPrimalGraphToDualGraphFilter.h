@@ -98,9 +98,7 @@ public:
 				m_Total;
 		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[2] /=
 				m_Total;
-		std::cout << "Centroide en: "
-				<< boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid
-				<< std::endl;
+		std::cout << "Centroide en: " << boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid 	<< std::endl;
 	}
 
 	/**
@@ -117,10 +115,6 @@ public:
 				boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[2];
 		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddSkeletonPoint(
 				v);
-		//std::cout << "Adding SkeletonPoint to: " << m_CurrentVertex << " " << v << ": Total is: " <<  boost::get(CellPropertyTag(),m_Dual,m_CurrentVertex).GetNumSkeletonPoints() << std::endl;
-		BGL_FORALL_VERTICES(vt,m_Dual,CellGraph){
-		std::cout << "Number of Cells in " << vt << " is " << boost::get(CellPropertyTag(),m_Dual,vt).GetNumSkeletonPoints() << std::endl;
-	}
 
 		m_Total++;
 	}

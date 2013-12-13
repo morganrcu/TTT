@@ -3,6 +3,7 @@ Project(TTTDrawers)
 include_directories(include)
 
 include_directories(../Core/include/)
+include_directories(../Features/include/)
 
 set(TTTDrawers_SRCS 
 	source/DiffusedImageDrawer.cpp
@@ -15,7 +16,6 @@ set(TTTDrawers_SRCS
 	source/PlatenessImageDrawer.cpp
 	source/PrimalGraphDrawer.cpp
 	source/RawImageDrawer.cpp
-	source/TrackingDrawer.cpp
 	source/VertexLocationsDrawer.cpp
 	source/VertexnessImageDrawer.cpp
 	)

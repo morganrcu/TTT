@@ -168,3 +168,9 @@ void ttt::EllipseDrawer::Draw(){
         }
 #endif
 }
+void ttt::EllipseDrawer::Show(){
+	//TODO
+}
+void ttt::EllipseDrawer::Hide(){
+	//TODO
+}

@@ -30,6 +30,10 @@ public:
 
 	}
 	void Draw();
+
+	virtual void Show();
+	virtual void Hide();
+
 };
 }
 #endif

@@ -35,7 +35,7 @@ public:
 	/**
 	 * TODO
 	 */
-	typedef itk::PointSet<float,3> PointSetType;
+	typedef std::vector< itk::Index<3> > IndexSetType;
 	/**
 		 * TODO
 		 */
@@ -44,7 +44,7 @@ private:
 	/**
 	 * TODO
 	 */
-	PointSetType::Pointer m_Locations;
+	ttt::AdherensJunctionVertices::Pointer m_Locations;
 	/**
 	 * TODO
 	 */
@@ -59,6 +59,8 @@ public:
 	 */
 	AdherensJunctionSegmentationCommand(){
 		m_Descriptor=ttt::TissueDescriptor::New();
+		m_K=10;
+		m_Threshold=.6;
 	}
 	/**
 	 * TODO
@@ -78,7 +80,7 @@ public:
 	 * TODO
 	 * @param locations
 	 */
-	inline void SetVertexLocations(const PointSetType::Pointer & locations){
+	inline void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & locations){
 		m_Locations=locations;
 	}
 	/**
@@ -94,6 +96,12 @@ public:
 	 */
 	inline ttt::TissueDescriptor::Pointer GetTissueDescriptor(){
 		return m_Descriptor;
+	}
+	inline void SetK(unsigned int k){
+		m_K=k;
+	}
+	inline void SetThreshold(float threshold){
+		m_Threshold=threshold;
 	}
 private:
 	/**
@@ -116,11 +124,14 @@ private:
 	/**
 	 * TODO
 	 */
-	double angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts);
+	double angleBetween2Lines(const itk::Point<double,3> & A,const itk::Point<double,3> & B,const itk::Point<double,3> & C);
 	/**
 	 * TODO
 	 */
 	double distitkpt(itk::Point<float,3> pta, itk::Point<float,3> ptb);
+
+	int m_K;
+	double m_Threshold;
 };
 }
 

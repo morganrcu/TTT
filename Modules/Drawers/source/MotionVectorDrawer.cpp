@@ -136,4 +136,9 @@ void ttt::MotionVectorDrawer::Draw(){
 	}
 }
 
-
+void ttt::MotionVectorDrawer::Show(){
+	//TODO
+}
+void ttt::MotionVectorDrawer::Hide(){
+	//TODO
+}

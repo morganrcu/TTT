@@ -17,7 +17,9 @@ NIH grants R21 MH67054 and P41 RR13218.
 
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIteratorWithIndex.h"
-
+#include "itkMacro.h"
+#include "tttDescriptionDataTypes.h"
+#include <vector>
 
 namespace itk
 {
@@ -41,9 +43,8 @@ namespace itk
  *
  * \ingroup IntensityImageFilters
  */
-template <class TInputImage, class TOutputMesh>
-class ITK_EXPORT LocalMaximumImageFilter :
-    public ImageToMeshFilter<TInputImage,TOutputMesh>
+template <class TInputImage>
+class ITK_EXPORT LocalMaximumImageFilter : public itk::ProcessObject
 {
 public:
 
@@ -61,42 +62,27 @@ public:
   typedef typename InputImageType::Pointer          InputImagePointer;
   typedef typename InputImageType::ConstPointer     InputImageConstPointer;
   typedef typename InputImageType::RegionType       InputImageRegionType;
-  typedef ImageRegionConstIteratorWithIndex<InputImageType>
-                                                    InputImageIterator;
+  typedef ImageRegionConstIteratorWithIndex<InputImageType> InputImageIterator;
 
-  /** Some typedefs associated with the output mesh. */
-  typedef TOutputMesh OutputMeshType;
-  typedef typename OutputMeshType::PointType        PointType;
-  typedef typename OutputMeshType::Pointer          OutputMeshPointer;
-  typedef typename OutputMeshType::ConstPointer     OutputMeshConstPointer;
-  typedef typename OutputMeshType::PointsContainer  PointsContainer;
-  typedef typename OutputMeshType::PointIdentifier  PointIdentifier;
-  typedef typename PointsContainer::Pointer         PointsContainerPointer;
-  typedef typename PointsContainer::Iterator        PointsContainerIterator;
-  typedef typename OutputMeshType::PointDataContainer PointDataContainer;
-  typedef typename PointDataContainer::Pointer      PointDataContainerPointer;
-  typedef typename PointDataContainer::Iterator     PointDataContainerIterator;
 
+  typedef typename ttt::AdherensJunctionVertices LocalMaximaContainerType;
+
+  typedef typename LocalMaximaContainerType::Pointer LocalMaximaContainerPointerType;
 
   /** Image typedef support. */
   typedef typename InputImageType::PixelType InputPixelType;
-  typedef typename OutputMeshType::PixelType OutputPixelType;
-
-
-//  typedef Image< OutputPixelType, ImageDimension >  OutputImageType;
 
 
 
   typedef typename InputImageType::SizeType InputSizeType;
   typedef typename InputImageType::IndexType InputIndexType;
 
-  typedef ImageRegionIteratorWithIndex<InputImageType>
-                                                    OutputImageIterator;
+  typedef ImageRegionIteratorWithIndex<InputImageType> OutputImageIterator;
 
 
   /** Standard class typedefs. */
   typedef LocalMaximumImageFilter Self;
-  typedef ImageToMeshFilter< InputImageType, OutputMeshType> Superclass;
+  typedef itk::ProcessObject Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
@@ -114,7 +100,12 @@ public:
   itkGetConstReferenceMacro(Threshold, InputPixelType);
 
 
-
+  itkGetObjectMacro(Input,InputImageType);
+  itkSetObjectMacro(Input,InputImageType);
+  inline LocalMaximaContainerPointerType GetOutput(){
+	  return m_LocalMaxima;
+  }
+  void  GenerateData ();
 protected:
   LocalMaximumImageFilter();
   virtual ~LocalMaximumImageFilter() {}
@@ -130,7 +121,9 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void  GenerateData ();
+
+
+
 
 private:
   LocalMaximumImageFilter(const Self&); //purposely not implemented
@@ -139,6 +132,9 @@ private:
   InputSizeType m_Radius;
   InputPixelType m_Threshold;
 
+  typename InputImageType::Pointer m_Input;
+
+  LocalMaximaContainerPointerType m_LocalMaxima;
   //InputImagePointer m_BinaryImage;
 };
 

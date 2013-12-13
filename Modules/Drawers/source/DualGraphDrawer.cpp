@@ -20,7 +20,21 @@
 #include <boost/graph/iteration_macros.hpp>
 #include "DualGraphDrawer.h"
 
+void ttt::DualGraphDrawer::Reset(){
+
+	for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		m_Renderer->RemoveActor(it->get<3>());
+	}
+	for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+		m_Renderer->RemoveActor(it->get<3>());
+	}
+	m_CellVertexSphereMapperAndActorList.clear();
+	m_CellEdgeLineMapperAndActorList.clear();
+
+}
+
 void ttt::DualGraphDrawer::Draw() {
+	this->Reset();
 	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,ttt::CellGraph){
 		itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
 		vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
@@ -31,13 +45,19 @@ void ttt::DualGraphDrawer::Draw() {
 		sphereMapper->SetInputConnection(newSphere->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
-		sphereActor->GetProperty()->SetColor(0,0,0);
-		if(boost::degree(v,*m_Descriptor->m_CellGraph) == 1) {
-			sphereActor->GetProperty()->SetColor(0,0,1);
-		}
+		double color[3];
+
+		m_pVertexColorer->GetObjectColor(v,color);
+
+		sphereActor->GetProperty()->SetColor(color);
 		sphereActor->SetMapper(sphereMapper);
+
 		m_Renderer->AddActor(sphereActor);
+		sphereActor->VisibilityOff();
+		CellVertexSphereMapperAndActor tuple = boost::make_tuple(v,newSphere,sphereMapper,sphereActor);
+		m_CellVertexSphereMapperAndActorList.push_back(tuple);
 	}
+
 	BGL_FORALL_EDGES(e,*m_Descriptor->m_CellGraph,ttt::CellGraph){
 		vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
 		itk::Point<double,3> a= boost::get(ttt::CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).m_Centroid;
@@ -52,9 +72,18 @@ void ttt::DualGraphDrawer::Draw() {
 
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
+		double color[3];
+
+		m_pEdgeColorer->GetObjectColor(e,color);
+
+		actor->GetProperty()->SetColor(color);
+
 		actor->GetProperty()->SetColor(0,0,0);
 		actor->GetProperty()->SetLineWidth(3);
+		actor->VisibilityOff();
 		m_Renderer->AddActor(actor);
+		CellEdgeLineMapperAndActor tuple = boost::make_tuple(e,newLine,mapper,actor);
+		m_CellEdgeLineMapperAndActorList.push_back(tuple);
 	}
 #ifdef OUT_OF_CONTROL
 	std::cout << "in dual cbox" << std::endl;
@@ -353,4 +382,23 @@ void ttt::DualGraphDrawer::Draw() {
 	}
 }
 #endif
+}
+
+void ttt::DualGraphDrawer::Show(){
+
+	for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		it->get<3>()->VisibilityOn();
+	}
+
+	for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+		it->get<3>()->VisibilityOn();
+	}
+}
+void ttt::DualGraphDrawer::Hide(){
+	for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		it->get<3>()->VisibilityOff();
+	}
+	for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+		it->get<3>()->VisibilityOff();
+	}
 }

@@ -23,6 +23,7 @@
 #include "itkVector.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
+#include "itkDataObject.h"
 
 #include <set>
 #include <boost/graph/adj_list_serialize.hpp>
@@ -49,6 +50,63 @@ template<class Archive> void serialize(Archive & ar,
 #endif
 
 namespace ttt {
+
+class AdherensJunctionVertex : public itk::DataObject{
+public:
+	/**
+	 * Location of the point in pixel coordinates
+	 */
+	typedef itk::Index<3> IndexType;
+	typedef AdherensJunctionVertex Self;
+	typedef itk::SmartPointer<Self> Pointer;
+	typedef itk::SmartPointer<const Self> ConstPointer;
+	typedef itk::DataObject Superclass;
+
+	itkTypeMacro(Self,Superclass);
+	itkNewMacro(Self);
+
+	itkGetConstReferenceMacro(Position,IndexType);
+	itkSetMacro(Position,IndexType);
+protected:
+	/**
+	 * Default constructor. The attributes are fixed to default values
+	 */
+	AdherensJunctionVertex() {
+		m_Position.Fill(-1);
+	}
+	/**
+	 * Position of the point in 3D pixel coordinates
+	 */
+
+	IndexType m_Position;
+
+private:
+	AdherensJunctionVertex(const Self &);
+
+};
+
+
+class AdherensJunctionVertices : public itk::DataObject, public std::vector<AdherensJunctionVertex::Pointer>{
+public:
+	typedef AdherensJunctionVertices Self;
+	typedef itk::SmartPointer<Self> Pointer;
+	typedef itk::SmartPointer<const Self> ConstPointer;
+	typedef itk::DataObject Superclass;
+
+	itkTypeMacro(Self,Superclass);
+	itkNewMacro(Self);
+protected:
+	/**
+	 * Default constructor. The attributes are fixed to default values
+	 */
+	AdherensJunctionVertices() : std::vector<AdherensJunctionVertex::Pointer>(0){
+
+	}
+
+private:
+	AdherensJunctionVertices(const Self &);
+};
+
 /**
  * \brief Class to represent a point in the adherens junction graph
  */
@@ -58,7 +116,7 @@ public:
 	/**
 	 * Location of the point in pixel coordinates
 	 */
-	typedef itk::Point<double, 3> PointType;
+	typedef itk::Point<float, 3> PointType;
 
 	/**
 	 * Default constructor. The attributes are fixed to default values
@@ -398,8 +456,38 @@ public:
 	boost::shared_ptr<DualGraphType> m_CellGraph;
 };
 
+
 typedef TemplateTissueDescriptor<SkeletonGraph,CellGraph> TissueDescriptor;
 typedef TemplateTissueDescriptor<SkeletonGraph,TrackedCellGraph> TrackedTissueDescriptor;
+
+template<class T> struct TissueDescriptorTraits{
+
+};
+
+template<> struct TissueDescriptorTraits<TissueDescriptor>{
+	typedef ttt::SkeletonVertexType SkeletonVertexType;
+	typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
+	typedef ttt::SkeletonEdgeType SkeletonEdgeType;
+	typedef ttt::SkeletonPointProperty SkeletonPointPropertyType;
+
+	typedef ttt::CellVertexType CellVertexType;
+	typedef ttt::CellPropertyTag CellPropertyTagType;
+	typedef ttt::CellEdgeType CellEdgeType;
+	typedef ttt::CellProperty CellPropertyType;
+	typedef ttt::Cell CellType;
+};
+
+template<> struct TissueDescriptorTraits<TrackedTissueDescriptor>{
+	typedef ttt::SkeletonVertexType SkeletonVertexType;
+	typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
+	typedef ttt::SkeletonEdgeType SkeletonEdgeType;
+	typedef ttt::SkeletonPointProperty SkeletonPointProperty;
+
+	typedef ttt::TrackedCellVertexType CellVertexType;
+	typedef ttt::TrackedCellPropertyTag CellPropertyTag;
+	typedef ttt::TrackedCellEdgeType CellEdgeType;
+	typedef ttt::TrackedCellProperty CellProperty;
+};
 
 TrackedTissueDescriptor::DualGraphVertexDescriptorType CellID2VertexDescriptor(int ID,const TrackedTissueDescriptor::Pointer & descriptor);
 

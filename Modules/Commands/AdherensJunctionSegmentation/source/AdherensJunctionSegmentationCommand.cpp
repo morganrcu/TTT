@@ -13,53 +13,17 @@
 
 
 void ttt::AdherensJunctionSegmentationCommand::InitDefGraph() {
-	typedef double PixelType;
-	bool cross;
-#if 0
-	boost::graph_traits<ttt::SkeletonGraph>::edge_iterator ei, ei_end,enext;
-
-	boost::tie(ei, ei_end) = boost::edges(m_Descriptor->m_SkeletonGraph);
-	for (enext = ei; ei != ei_end; ei = enext) {
-		++enext;
-		remove_edge(*ei, m_Descriptor->m_SkeletonGraph);
-	}
-
-	BGL_FORALL_VERTICES(v, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph)
-	{
-		boost::clear_vertex(v, *m_Descriptor->m_SkeletonGraph);
-	}
-
-	boost::graph_traits<ttt::SkeletonGraph>::vertex_iterator vi, vi_end, next;
-	boost::tie(vi, vi_end) = vertices(*m_Descriptor->m_SkeletonGraph);
-	for (next = vi; vi != vi_end; vi = next) {
-		++next;
-		remove_vertex(*vi, *m_Descriptor->m_SkeletonGraph);
-	}
-
-
-	std::cout << "num vertices before initdef "
-			<< boost::num_vertices(*m_Descriptor->m_SkeletonGraph)
-			<< std::endl;
-	std::cout << "num edges before initdef "
-			<< boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
-#endif
 	m_Descriptor->m_SkeletonGraph= boost::shared_ptr<ttt::SkeletonGraph>(new ttt::SkeletonGraph);
 
-	typedef typename PointSetType::PointsContainer PointsContainer;
-	PointsContainer::Pointer localMaxPoints = m_Locations->GetPoints();
-	typedef PointsContainer::Iterator PointIterator;
-	for (PointIterator it = localMaxPoints->Begin();
-			it != localMaxPoints->End(); it++) {
-		itk::Point<double, 3> pos;
+	for (typename ttt::AdherensJunctionVertices::iterator it = m_Locations->begin();it != m_Locations->end(); it++) {
+		itk::Point<float, 3> pos;
 
 		for (int i = 0; i < 3; i++) {
-			pos[i] = it.Value()[i];
+			pos[i] = (*it)->GetPosition()[i];
 		}
 		ttt::SkeletonPoint pt = ttt::SkeletonPoint(pos);
 		boost::add_vertex(pt,*(m_Descriptor->m_SkeletonGraph));
 	}
-	std::cout << "num vertices after initdef " << boost::num_vertices(*m_Descriptor->m_SkeletonGraph) << std::endl;
-	std::cout << "num edges after initdef " << boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
 }
 
 bool ttt::AdherensJunctionSegmentationCommand::IntersectLine(itk::Point<float ,3> l1posA, itk::Point<float, 3> l1posB, itk::Point<float, 3> l2posA, itk::Point<float, 3> l2posB ){
@@ -69,6 +33,7 @@ bool ttt::AdherensJunctionSegmentationCommand::IntersectLine(itk::Point<float ,3
     double x2 = l1posB[0];
     double x3 = l2posA[0];
     double x4 = l2posB[0];
+
     double y1 = l1posA[1];
     double y2 = l1posB[1];
     double y3 = l2posA[1];
@@ -79,7 +44,7 @@ bool ttt::AdherensJunctionSegmentationCommand::IntersectLine(itk::Point<float ,3
 
     bool cross = false;
 
-        double denom, numerA, numerB, uA, uB;
+    double denom, numerA, numerB, uA, uB;
 
 
         denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
@@ -135,19 +100,6 @@ void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 
 
 
-
-
-#if 0
-	std::cout << "num vertices before primal " << boost::num_vertices(*m_Descriptor->m_SkeletonGraph) << std::endl;
-	boost::graph_traits<ttt::SkeletonGraph>::edge_iterator ei, ei_end, enext;
-	boost::tie(ei, ei_end) = edges(*m_Descriptor->m_SkeletonGraph);
-
-	for (enext = ei; ei != ei_end; ei = enext) {
-		++enext;
-		remove_edge(*ei, *m_Descriptor->m_SkeletonGraph);
-	}
-#endif
-	int cont;
 	std::cout << "num edges before primal " << boost::num_edges(*m_Descriptor->m_SkeletonGraph) << std::endl;
 
 	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
@@ -156,122 +108,169 @@ void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 	}
 
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
-		ttt::SkeletonVertexType c1 = v;
-		itkpt pos1 = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, v).position;
+	BGL_FORALL_VERTICES(source,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+		//ttt::SkeletonVertexType c1 = source;
+		itkpt sourcePos = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, source).position;
 
 		std::vector<double> distances;
 		std::map<double, ttt::SkeletonVertexType> distovtmap;
 
-		BGL_FORALL_VERTICES(vt, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
-			if (vt != v) {
-				itkpt pos2 = boost::get(ttt::SkeletonPointPropertyTag(), *m_Descriptor->m_SkeletonGraph, vt).position;
-				double dist = sqrt(pow(pos1[0] - pos2[0], 2) + pow(pos1[1] - pos2[1], 2));//2D distances
+		BGL_FORALL_VERTICES(target, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+			if (target != source) {
+				itkpt targetPos = boost::get(ttt::SkeletonPointPropertyTag(), *m_Descriptor->m_SkeletonGraph, target).position;
+				double dist = sqrt(pow(sourcePos[0] - targetPos[0], 2) + pow(sourcePos[1] - targetPos[1], 2));//2D distances
 				distances.push_back(dist);
-				distovtmap[dist] = vt;
+				distovtmap[dist] = target;
 			}
 		}
+
 		std::sort(distances.begin(), distances.end());
 
-		for (int i = 0; i < 10; i++) {
+		for (int k = 0; k < m_K; k++) {
 
-			ttt::SkeletonVertexType vtof10 = distovtmap[distances[i]];
+			ttt::SkeletonVertexType target = distovtmap[distances[k]];
 
-			ttt::SkeletonVertexType c2 = vtof10;
-			itkpt pos3 = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, vtof10).position;
+			if(boost::edge(source,target,*m_Descriptor->m_SkeletonGraph).second) continue;
 
-			typename PlatenessImageType::IndexType pt1;
-			typename PlatenessImageType::IndexType pt2;
+			itkpt targetPos = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, target).position;
+
+			typename PlatenessImageType::IndexType sourcePt;
+			typename PlatenessImageType::IndexType targetPt;
 
 			for (int j = 0; j < 3; j++) {
-				pt1[j] = pos1[j];
-				pt2[j] = pos3[j];
+				sourcePt[j] = sourcePos[j];
+				targetPt[j] = targetPos[j];
 			}
 
 			double intensepix = 0;
 			double totalpix = 0;
-			itk::LineIterator<PlatenessImageType> it1(m_Plateness, pt1, pt2);
+			itk::LineIterator<PlatenessImageType> it1(m_Plateness, sourcePt, targetPt);
 			it1.GoToBegin();
+
 			while (!it1.IsAtEnd()) {
 				typename PlatenessImageType::IndexType pixelIndex;
 				PixelType pixel = it1.Get();
+				intensepix+=pixel;
+
+#if 0
 				//std::cout<< "pix val: "<< pixel<<std::endl;
 				if (pixel > .02) {
 					intensepix++;
 				}
+#endif
 				++it1;
 				totalpix++;
 			}
-			//std::cout<<"\n"<<std::endl;
+
 			double percent = (intensepix / totalpix);
-			std::cout << "percent " << percent << " " << i << "\n" << std::endl;
-			//scanf("%d",&cont);
+
 			cross = false;
-			if (percent > .6) {
+
+			if (percent > m_Threshold) {
 
 				BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
-					ttt::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
+					ttt::SkeletonVertexType edgeSource = boost::source(e,*m_Descriptor->m_SkeletonGraph);
 
-					ttt::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
+					ttt::SkeletonVertexType edgeTarget = boost::target(e,*m_Descriptor->m_SkeletonGraph);
 
 
-					itkpt l2posA = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
-					itkpt l2posB = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
+					itkpt edgeSourcePos = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, edgeSource).position;
+					itkpt edgeTargetPos= boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, edgeTarget).position;
 
-					cross = IntersectLine(pos1, pos3, l2posA, l2posB);
+					cross = IntersectLine(sourcePos, targetPos, edgeSourcePos, edgeTargetPos);
 					//std::cout << "cross: " << cross << std::endl;
 					if (cross) {
 						break;
 					}
 
-					if (l2posA[0] == pos1[0] && l2posA[1] == pos1[1]
-							&& l2posA[2] == pos1[2]) {
+#if 0
+					if (l2posA[0] == pos1[0] && l2posA[1] == pos1[1]&& l2posA[2] == pos1[2]) {
 						std::vector<itkpt> linepts;
 						linepts.push_back(l2posB);
 						linepts.push_back(pos3);
-						double ang = angleBetween2Lines(pos1, linepts) * 180.0
-								/ 3.14159;
+						double ang = angleBetween2Lines(pos1, linepts) * 180.0/ 3.14159;
 						std::cout << "angle is pos1 if " << ang << std::endl;
 						if (ang < 45) {
 							cross = true;
 							break;
 						}
-					}
-
-					else if (l2posB[0] == pos1[0] && l2posB[1] == pos1[1]
-							&& l2posB[2] == pos1[2]) {
+					}else if (l2posB[0] == pos1[0] && l2posB[1] == pos1[1] && l2posB[2] == pos1[2]) {
 						std::vector<itkpt> linepts;
 						linepts.push_back(l2posA);
 						linepts.push_back(pos3);
-						double ang = angleBetween2Lines(pos1, linepts) * 180.0
-								/ 3.1459;
+						double ang = angleBetween2Lines(pos1, linepts) * 180.0/ 3.1459;
 						std::cout << "angle is pos1 else" << ang << std::endl;
 						if (ang < 45) {
 							cross = true;
 							break;
 						}
 					}
+#endif
 
 				}
+				if(!cross){
+					boost::add_edge(source, target,*m_Descriptor->m_SkeletonGraph);
 
+					SkeletonGraph::adjacency_iterator neigh,neigh_end;
+					boost::tie(neigh,neigh_end)=boost::adjacent_vertices(source,*m_Descriptor->m_SkeletonGraph);
+
+					for(;neigh!=neigh_end;++neigh){
+						itkpt neighPos =  boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, *neigh).position;
+
+						double ang = angleBetween2Lines(sourcePos, targetPos,neighPos)* 180.0 / 3.14159;
+
+						if (ang < 45) {
+
+							double distpos3 = distitkpt(sourcePos, targetPos);
+
+							double distl2posB = distitkpt(targetPos, neighPos);
+							if (distpos3 < distl2posB) {
+								boost::tuple < ttt::SkeletonVertexType, ttt::SkeletonVertexType> delpair(source, *neigh);
+
+								vecdeledges.push_back(delpair);
+
+							} else {
+								cross = true;
+								break;
+							}
+						}
+					}
+					for (int i = 0; i < vecdeledges.size(); i++) {
+
+						//boost::tuple < ttt::SkeletonVertexType_lS, ttt::SkeletonVertexType_lS > pts = vecdeledges[i];
+						boost::tuple < ttt::SkeletonVertexType, ttt::SkeletonVertexType > pts = vecdeledges[i];
+						//ttt::SkeletonVertexType_lS src = boost::get<0>(pts);
+						ttt::SkeletonVertexType src = boost::get<0>(pts);
+						//ttt::SkeletonVertexType_lS tgt = boost::get<1>(pts);
+						ttt::SkeletonVertexType tgt = boost::get<1>(pts);
+						std::cout << "removing " << src << " " << tgt << std::endl;
+						//boost::remove_edge(src, tgt, m_Descriptor->m_SkeletonGraph_listS);
+						boost::remove_edge(src, tgt, *m_Descriptor->m_SkeletonGraph);
+					}
+					boost::add_edge(source, target,*m_Descriptor->m_SkeletonGraph);
+				}
+#if 0
 				if (!cross) {
 					vecdeledges.clear();
+
 					BGL_FORALL_EDGES(e, *m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+
 						ttt::SkeletonVertexType src = boost::source(e,*m_Descriptor->m_SkeletonGraph);
 						ttt::SkeletonVertexType tgt = boost::target(e,*m_Descriptor->m_SkeletonGraph);
 
 						itkpt l2posA = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, src).position;
 						itkpt l2posB = boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph, tgt).position;
 
-						if (l2posA[0] == pos3[0] && l2posA[1] == pos3[1]
-								&& l2posA[2] == pos3[2]) {
+						if (l2posA[0] == pos3[0] && l2posA[1] == pos3[1] && l2posA[2] == pos3[2]) {
+
 							std::vector<itkpt> linepts;
 							linepts.push_back(l2posB);
 							linepts.push_back(pos1);
-							double ang = angleBetween2Lines(pos3, linepts)
-									* 180.0 / 3.14159;
-							std::cout << "angle is pos3 if " << ang
-									<< std::endl;
+
+							double ang = angleBetween2Lines(pos3, linepts)* 180.0 / 3.14159;
+
+							std::cout << "angle is pos3 if " << ang << std::endl;
+
 							if (ang < 45) {
 								double distpos3 = distitkpt(pos1, pos3);
 								double distl2posB = distitkpt(pos3, l2posB);
@@ -290,15 +289,12 @@ void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 									break;
 								}
 							}
-						}
-
-						else if (l2posB[0] == pos3[0] && l2posB[1] == pos3[1]
-								&& l2posB[2] == pos3[2]) {
+						}else if (l2posB[0] == pos3[0] && l2posB[1] == pos3[1] 	&& l2posB[2] == pos3[2]) {
 							std::vector<itkpt> linepts;
 							linepts.push_back(l2posA);
 							linepts.push_back(pos1);
-							double ang = angleBetween2Lines(pos3, linepts)
-									* 180.0 / 3.1459;
+
+							double ang = angleBetween2Lines(pos3, linepts) * 180.0 / 3.1459;
 							std::cout << "angle is pos3 else " << ang
 									<< std::endl;
 							if (ang < 45) {
@@ -358,12 +354,14 @@ void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 						}
 						if (notfound) {
 							//boost::add_edge(v, vtof10,m_Descriptor->m_SkeletonGraph_listS);
-							boost::add_edge(v, vtof10,*m_Descriptor->m_SkeletonGraph);
+
 							svtedgemap[v].push_back(vtof10);
 							std::cout << "**** Adding edge **** " << vtof10 << std::endl;
 						}
 					}
 				}
+#endif
+
 
 			}
 		}
@@ -400,15 +398,15 @@ void ttt::AdherensJunctionSegmentationCommand::DoPrimalComputation() {
 	}
 }
 
-double ttt::AdherensJunctionSegmentationCommand::angleBetween2Lines(itk::Point<double,3> srcpt, std::vector<itk::Point<double,3> > linepts){
+double ttt::AdherensJunctionSegmentationCommand::angleBetween2Lines(const itk::Point<double,3> & A,const itk::Point<double,3> & B,const itk::Point<double,3> & C){
 
 
         typedef itk::Point<double, 3> itkpt;
-        itkpt tgt1 = linepts[0];
-        itkpt tgt2 = linepts[1];
+        itkpt tgt1 = B;
+        itkpt tgt2 = C;
 
-        double angle1 = atan2(srcpt[1] - tgt1[1],srcpt[0] - tgt1[0]);
-        double angle2 = atan2(srcpt[1] - tgt2[1],srcpt[0] - tgt2[0]);
+        //double angle1 = atan2(A[1] - B[1],A[0] - B[0]);
+        //double angle2 = atan2(A[1] - C[1],A[0] - C[0]);
 
 
         /*
@@ -417,12 +415,12 @@ double ttt::AdherensJunctionSegmentationCommand::angleBetween2Lines(itk::Point<d
         double angle2 = Math.atan2(line2.getY1() - line2.getY2(),
                                    line2.getX1() - line2.getX2());*/
 
-        float x1 = srcpt[0];
-        float y1 = srcpt[1];
-        float x2 = tgt1[0];
-        float y2 = tgt1[1];
-        float x3 = tgt2[0];
-        float y3 = tgt2[1];
+        float x1 = A[0];
+        float y1 = A[1];
+        float x2 = B[0];
+        float y2 = B[1];
+        float x3 = C[0];
+        float y3 = C[1];
 
         float dx21 = x2-x1;
         float dx31 = x3-x1;
