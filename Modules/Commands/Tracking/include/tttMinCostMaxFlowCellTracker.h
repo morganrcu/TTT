@@ -7,8 +7,6 @@
 #include <boost/bimap.hpp>
 #include <boost/bimap/set_of.hpp>
 
-
-
 namespace ttt {
 template <class ObservationType, class TrackType> class Mitosis{
 public:

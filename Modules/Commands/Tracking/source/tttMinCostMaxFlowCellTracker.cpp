@@ -56,7 +56,7 @@ public:
 			 vnl_sparse_matrix< double >::row aRow=m_A.get_row(r);
 
 			 for(unsigned int i=0;i<aRow.size();i++){
-				 std::cout << "I:" << i << " " << aRow[i].first << " " << aRow[i].second << std::endl;
+				 //std::cout << "I:" << i << " " << aRow[i].first << " " << aRow[i].second << std::endl;
 				 row.insert(aRow[i].first,aRow[i].second);
 			 }
 
@@ -90,8 +90,8 @@ public:
 		for (int iColumn=0;iColumn<numberColumns;iColumn++) {
 
 		    double value=solution[iColumn];
-		    if (fabs(value)>1.0e-7&&model.solver()->isInteger(iColumn))
-		      printf("%d has value %g\n",iColumn,value);
+		    //if (fabs(value)>1.0e-7&&model.solver()->isInteger(iColumn))
+		      //printf("%d has value %g\n",iColumn,value);
 
 		 }
 	}
@@ -156,7 +156,7 @@ void MinCostMaxFlowCellTracker::Track() {
 		std::map<ttt::TrackedCellVertexType, double> distances;
 
 
-
+		obsToTrack.clear();
 
 		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,CellGraph){
 			associationGraph.AddTrack(v);
@@ -164,7 +164,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			 * Destruction HYPOTHESIS
 			 */
 			//TODO Compute cost
-			associationGraph.AddTerminationHypothesis(v,10);
+			associationGraph.AddTerminationHypothesis(v,1000);
 
 		}
 
@@ -175,7 +175,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			 */
 			//TODO Compute cost
 
-			associationGraph.AddCreationHypothesis(v,10);
+			associationGraph.AddCreationHypothesis(v,1000);
 		}
 
 
@@ -244,15 +244,15 @@ void MinCostMaxFlowCellTracker::Track() {
 		vnl_vector<double> flowVector,costVector;
 		associationGraph.GetProblem(costVector,flowVector,flowMatrix);
 
-		std::cout << costVector<< std::endl;
+		//std::cout << costVector<< std::endl;
 
 
 		//std::cout << flowMatrix<< std::endl;
 		for(unsigned int r=0;r<flowMatrix.rows();r++){
 			for(unsigned int c=0;c<flowMatrix.cols();c++){
-				std::cout << flowMatrix.get(r,c) << "\t";
+			//	std::cout << flowMatrix.get(r,c) << "\t";
 			}
-			std::cout << "=" << flowVector.get(r) <<std::endl;
+			//std::cout << "=" << flowVector.get(r) <<std::endl;
 		}
 		CoinSolver solver(costVector,flowMatrix,flowVector);
 		solver.Solve();
@@ -282,6 +282,8 @@ void MinCostMaxFlowCellTracker::Track() {
            	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=it->first;
 
            	idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID]=it->first;
+
+           	obsToTrack[it->first]=n;
 		}
 
 		for(std::vector<CellVertexType>::iterator it= toCreate.begin();it!=toCreate.end();++it){
@@ -299,6 +301,8 @@ void MinCostMaxFlowCellTracker::Track() {
 			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=*it;
 
 			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID]=n;
+
+			obsToTrack[*it]=n;
 
 		}
 		for(std::vector<AssociationGraphType::MitosisType>::iterator it=mitosis.begin();it!=mitosis.end();++it){
@@ -318,6 +322,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ObservedCell=it->A;
 				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ID]=a;
 
+				obsToTrack[it->A]=a;
 			}
 			{
 			TrackedCellVertexType b = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
@@ -334,10 +339,16 @@ void MinCostMaxFlowCellTracker::Track() {
 					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B).m_SkeletonNodes;
 			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ObservedCell=it->B;
 			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ID]=b;
+			obsToTrack[it->B]=b;
 			}
 
 		}
 
+		BGL_FORALL_EDGES(e,*m_Observations[t]->m_CellGraph,CellGraph){
+			CellVertexType source = boost::source(e,*m_Observations[t]->m_CellGraph);
+			CellVertexType target = boost::target(e,*m_Observations[t]->m_CellGraph);
+			boost::add_edge(obsToTrack[source],obsToTrack[target],*m_Tracks[t]->m_CellGraph);
+		}
 	}
 
 #if 0

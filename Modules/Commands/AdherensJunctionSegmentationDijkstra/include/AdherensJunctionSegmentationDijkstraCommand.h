@@ -63,7 +63,7 @@ private:
 	typedef itk::Image<float,3> SpeedImageType;
 	typedef itk::Image<float,3> DistanceImageType;
 
-	typedef itk::Image<unsigned long,3> LabelImageType;
+	typedef itk::Image<int,3> LabelImageType;
 
 	typedef itk::Image<unsigned char,3> ColorImageType;
 

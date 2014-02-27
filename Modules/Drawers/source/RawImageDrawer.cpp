@@ -6,7 +6,6 @@
 #include <vtkColorTransferFunction.h>
 
 #include "RawImageDrawer.h"
-#include <QString>
 
 ttt::RawImageDrawer::RawImageDrawer(){
 

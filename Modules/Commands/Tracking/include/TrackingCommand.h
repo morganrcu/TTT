@@ -20,13 +20,14 @@
 #ifndef TRACKINGCOMMAND_H_
 #define TRACKINGCOMMAND_H_
 #include <vector>
-#include "giaaCellTracker.h"
+//#include "giaaCellTracker.h"
+#include "tttMinCostMaxFlowCellTracker.h"
 #include "tttDescriptionDataTypes.h"
 #include "AppCommand.h"
 namespace ttt{
 class TrackingCommand: public AppCommand {
 private:
-	CellTracker::Pointer m_Tracker;
+	ttt::MinCostMaxFlowCellTracker::Pointer m_Tracker;
 
 	std::vector<TissueDescriptor::Pointer> m_Input;
 

@@ -95,9 +95,17 @@ private:
 	double m_TimeDelta;
 
 	std::string m_WorkingDirectory;
+	std::string m_ProjectName;
+
 	int m_ProjectID;
 
 	unsigned int m_Frame;
+
+	std::string m_Host;
+	std::string m_DBName;
+	std::string m_User;
+	std::string m_Password;
+	unsigned int m_Port;
 public:
 
 	TissueTrackingProject() {
@@ -105,6 +113,21 @@ public:
 		m_TimeDelta = -1;
 		m_Frame=0;
 		m_Driver = sql::mysql::get_driver_instance();
+	}
+	void SetHost(const std::string & host){
+		m_Host=host;
+	}
+	void SetDBName(const std::string & dbname){
+		m_DBName=dbname;
+	}
+	void SetUser(const std::string & user){
+		m_User=user;
+	}
+	void SetPassword(const std::string & password){
+		m_Password=password;
+	}
+	void SetPort(unsigned int port){
+		m_Port = port;
 	}
 
 	void SetFrame(int frame){
@@ -116,8 +139,8 @@ public:
 
 		try {
 			m_DB = std::auto_ptr<sql::Connection>(
-					m_Driver->connect("localhost", "root", "tracker"));
-			m_DB->setSchema("TuftsTissueTracker");
+					m_Driver->connect(m_Host,m_User, m_Password));
+			m_DB->setSchema(m_DBName);
 			return true;
 		} catch (sql::SQLException &e) {
 			/*
@@ -143,7 +166,7 @@ public:
 			m_ProjectID = projectID;
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
 					m_DB->prepareStatement(
-							"SELECT spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,timeDelta,workingDirectory from Project WHERE Project.idProject=?"));
+							"SELECT spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,timeDelta,workingDirectory,name from Project WHERE Project.idProject=?"));
 
 			prep_stmt->setInt(1, m_ProjectID);
 
@@ -156,6 +179,7 @@ public:
 			m_Spacing[1] = res->getDouble("spacingY");
 			m_Spacing[2] = res->getDouble("spacingZ");
 			m_WorkingDirectory = res->getString("workingDirectory");
+			m_ProjectName = res->getString("name");
 			m_Region.SetIndex(0, 0);
 			m_Region.SetIndex(1, 0);
 			m_Region.SetIndex(2, 0);
@@ -348,7 +372,7 @@ public:
 		}
 
 		if(this->m_TrackedTissueDescriptorDirty){
-			this->StoreTrackedTissueDescriptor();
+			//this->StoreTrackedTissueDescriptor();
 		}
 	}
 	void Clear(){
@@ -360,7 +384,7 @@ public:
 		this->m_PlatenessImage=0;
 		this->m_VertexnessImage=0;
 		this->m_VertexLocations=0;
-		this->m_TrackedTissueDescriptor=0;
+		//this->m_TrackedTissueDescriptor=0;
 		this->m_TissueDescriptor=0;
 	}
 
@@ -1064,10 +1088,11 @@ public:
 
 	//////////////////////////////??TRACKED TISSUE DESCRIPTOR/////////////////////////////////////
 private:
-	TrackedTissueDescriptorType::Pointer m_TrackedTissueDescriptor;
+	TrackedTissueDescriptorType::Pointer m_TrackedTissueDescriptor[10];
 	bool m_TrackedTissueDescriptorDirty=false;
 public:
 	void LoadTrackedTissueDescriptor(){
+#if 0
 		m_TrackedTissueDescriptor = TrackedTissueDescriptorType::New();
 
 				{
@@ -1209,18 +1234,19 @@ public:
 								*m_TrackedTissueDescriptor->m_CellGraph);
 					}
 				}
+#endif
 	}
 	inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor() {
-		return m_TrackedTissueDescriptor;
+		return m_TrackedTissueDescriptor[m_Frame]; //FIXME
 	}
 
 	void SetTrackedTissueDescriptor(TrackedTissueDescriptorType::Pointer trackedTissueDescriptor){
-		m_TrackedTissueDescriptor=trackedTissueDescriptor;
+		m_TrackedTissueDescriptor[m_Frame]=trackedTissueDescriptor;
 		m_TrackedTissueDescriptorDirty=true;
-		StoreTrackedTissueDescriptor();
+		//StoreTrackedTissueDescriptor();
 	}
 	void StoreTrackedTissueDescriptor(){
-
+#if 0
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
 
@@ -1466,7 +1492,7 @@ public:
 					m_DB->prepareStatement(
 							insertTrackedCellToMembranePointString));
 
-			BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
+			BGL_FORALL_VERTICES(v,*m_TrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
 
 			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).Begin();
 					it!=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).End();
@@ -1499,6 +1525,7 @@ public:
 
 	}
 		transStatement->execute("COMMIT;");
+#endif
 	}
 
 
@@ -1895,9 +1922,324 @@ public:
 	inline SpacingType GetSpacing() {
 		return m_Spacing;
 	}
+	inline double GetTemporalScale(){
+		return m_TimeDelta;
+	}
 
-private:
+	inline std::string GetProjectName(){
+		return m_ProjectName;
+	}
 
+	void SetProjectName(const std::string & name){
+		try {
+
+				std::string query("UPDATE Project SET Project.name=? WHERE Project.idProject=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+				prep_stmt->setString(1, name); //IDproject==2
+				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+				prep_stmt->execute();
+			} catch (sql::SQLException &e) {
+								/*
+								 The MySQL Connector/C++ throws three different exceptions:
+
+								 - sql::MethodNotImplementedException (derived from sql::SQLException)
+								 - sql::InvalidArgumentException (derived from sql::SQLException)
+								 - sql::SQLException (derived from std::runtime_error)
+								 */
+								cout << "# ERR: SQLException in " << __FILE__;
+								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+								/* Use what() (derived from std::runtime_error) to fetch the error message */
+								cout << "# ERR: " << e.what();
+								cout << " (MySQL error code: " << e.getErrorCode();
+								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			}
+	}
+	void SetSpacingX(double spacingX){
+		m_Spacing[0]=spacingX;
+		try {
+
+			std::string query("UPDATE Project SET Project.spacingX=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+			prep_stmt->setDouble(1, spacingX); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+									/*
+									 The MySQL Connector/C++ throws three different exceptions:
+
+									 - sql::MethodNotImplementedException (derived from sql::SQLException)
+									 - sql::InvalidArgumentException (derived from sql::SQLException)
+									 - sql::SQLException (derived from std::runtime_error)
+									 */
+									cout << "# ERR: SQLException in " << __FILE__;
+									//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+									/* Use what() (derived from std::runtime_error) to fetch the error message */
+									cout << "# ERR: " << e.what();
+									cout << " (MySQL error code: " << e.getErrorCode();
+									cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+				}
+	}
+
+	void SetSpacingY(double spacingY){
+		m_Spacing[1]=spacingY;
+			try {
+
+				std::string query("UPDATE Project SET Project.spacingY=? WHERE Project.idProject=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+				prep_stmt->setDouble(1, spacingY); //IDproject==2
+				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+				prep_stmt->execute();
+			} catch (sql::SQLException &e) {
+										/*
+										 The MySQL Connector/C++ throws three different exceptions:
+
+										 - sql::MethodNotImplementedException (derived from sql::SQLException)
+										 - sql::InvalidArgumentException (derived from sql::SQLException)
+										 - sql::SQLException (derived from std::runtime_error)
+										 */
+										cout << "# ERR: SQLException in " << __FILE__;
+										//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+										/* Use what() (derived from std::runtime_error) to fetch the error message */
+										cout << "# ERR: " << e.what();
+										cout << " (MySQL error code: " << e.getErrorCode();
+										cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+					}
+		}
+	void SetSpacingZ(double spacingZ){
+		m_Spacing[2]=spacingZ;
+			try {
+
+				std::string query("UPDATE Project SET Project.spacingZ=? WHERE Project.idProject=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+				prep_stmt->setDouble(1, spacingZ); //IDproject==2
+				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+				prep_stmt->execute();
+			} catch (sql::SQLException &e) {
+										/*
+										 The MySQL Connector/C++ throws three different exceptions:
+
+										 - sql::MethodNotImplementedException (derived from sql::SQLException)
+										 - sql::InvalidArgumentException (derived from sql::SQLException)
+										 - sql::SQLException (derived from std::runtime_error)
+										 */
+										cout << "# ERR: SQLException in " << __FILE__;
+										//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+										/* Use what() (derived from std::runtime_error) to fetch the error message */
+										cout << "# ERR: " << e.what();
+										cout << " (MySQL error code: " << e.getErrorCode();
+										cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+					}
+		}
+	void SetSamplingRate(double rate){
+		try {
+
+				std::string query("UPDATE Project SET Project.timeDelta=? WHERE Project.idProject=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+				prep_stmt->setDouble(2, rate); //IDproject==2
+				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+				prep_stmt->execute();
+			} catch (sql::SQLException &e) {
+								/*
+								 The MySQL Connector/C++ throws three different exceptions:
+
+								 - sql::MethodNotImplementedException (derived from sql::SQLException)
+								 - sql::InvalidArgumentException (derived from sql::SQLException)
+								 - sql::SQLException (derived from std::runtime_error)
+								 */
+								cout << "# ERR: SQLException in " << __FILE__;
+								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+								/* Use what() (derived from std::runtime_error) to fetch the error message */
+								cout << "# ERR: " << e.what();
+								cout << " (MySQL error code: " << e.getErrorCode();
+								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			}
+	}
+	void SetHighestScale(double scale){
+		try {
+
+			std::string query("UPDATE Frame SET Frame.highestScale=? WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+			prep_stmt->setDouble(1, scale); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(3, m_Frame); //IDproject==2
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+							/*
+							 The MySQL Connector/C++ throws three different exceptions:
+
+							 - sql::MethodNotImplementedException (derived from sql::SQLException)
+							 - sql::InvalidArgumentException (derived from sql::SQLException)
+							 - sql::SQLException (derived from std::runtime_error)
+							 */
+							cout << "# ERR: SQLException in " << __FILE__;
+							//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+							/* Use what() (derived from std::runtime_error) to fetch the error message */
+							cout << "# ERR: " << e.what();
+							cout << " (MySQL error code: " << e.getErrorCode();
+							cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+	}
+	void SetLowestScale(double scale){
+			try {
+
+				std::string query("UPDATE Frame SET Frame.lowestScale=? WHERE Frame.idProject=? AND Frame.t=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+				prep_stmt->setDouble(1, scale); //IDproject==2
+				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+				prep_stmt->setInt(3, m_Frame); //IDproject==2
+				prep_stmt->execute();
+			} catch (sql::SQLException &e) {
+								/*
+								 The MySQL Connector/C++ throws three different exceptions:
+
+								 - sql::MethodNotImplementedException (derived from sql::SQLException)
+								 - sql::InvalidArgumentException (derived from sql::SQLException)
+								 - sql::SQLException (derived from std::runtime_error)
+								 */
+								cout << "# ERR: SQLException in " << __FILE__;
+								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+								/* Use what() (derived from std::runtime_error) to fetch the error message */
+								cout << "# ERR: " << e.what();
+								cout << " (MySQL error code: " << e.getErrorCode();
+								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			}
+		}
+	void SetScaleSteps(int nscales){
+				try {
+
+					std::string query("UPDATE Frame SET Frame.steps=? WHERE Frame.idProject=? AND Frame.t=?");
+					std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+
+					prep_stmt->setInt(1, nscales); //IDproject==2
+					prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+					prep_stmt->setInt(3, m_Frame); //IDproject==2
+					prep_stmt->execute();
+				} catch (sql::SQLException &e) {
+									/*
+									 The MySQL Connector/C++ throws three different exceptions:
+
+									 - sql::MethodNotImplementedException (derived from sql::SQLException)
+									 - sql::InvalidArgumentException (derived from sql::SQLException)
+									 - sql::SQLException (derived from std::runtime_error)
+									 */
+									cout << "# ERR: SQLException in " << __FILE__;
+									//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+									/* Use what() (derived from std::runtime_error) to fetch the error message */
+									cout << "# ERR: " << e.what();
+									cout << " (MySQL error code: " << e.getErrorCode();
+									cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+				}
+			}
+
+	double GetLowestScale(){
+		try {
+			std::string query("SELECT lowestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getDouble("lowestScale");
+		} catch (sql::SQLException &e) {
+					/*
+					 The MySQL Connector/C++ throws three different exceptions:
+
+					 - sql::MethodNotImplementedException (derived from sql::SQLException)
+					 - sql::InvalidArgumentException (derived from sql::SQLException)
+					 - sql::SQLException (derived from std::runtime_error)
+					 */
+					cout << "# ERR: SQLException in " << __FILE__;
+					//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+					/* Use what() (derived from std::runtime_error) to fetch the error message */
+					cout << "# ERR: " << e.what();
+					cout << " (MySQL error code: " << e.getErrorCode();
+					cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+		}
+		return -1;
+	}
+	double GetHighestScale(){
+		try {
+			std::string query("SELECT highestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getDouble("highestScale");
+		} catch (sql::SQLException &e) {
+					/*
+					 The MySQL Connector/C++ throws three different exceptions:
+
+					 - sql::MethodNotImplementedException (derived from sql::SQLException)
+					 - sql::InvalidArgumentException (derived from sql::SQLException)
+					 - sql::SQLException (derived from std::runtime_error)
+					 */
+					cout << "# ERR: SQLException in " << __FILE__;
+					//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+					/* Use what() (derived from std::runtime_error) to fetch the error message */
+					cout << "# ERR: " << e.what();
+					cout << " (MySQL error code: " << e.getErrorCode();
+					cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+		}
+		return -1;
+	}
+
+	int GetScaleSteps(){
+			try {
+				std::string query("SELECT steps FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(
+						m_DB->prepareStatement(query));
+
+				prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+				prep_stmt->setInt(2, m_Frame); //IDproject==2
+				prep_stmt->execute();
+
+				std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+				std::cout << res->rowsCount() << std::endl;
+				res->next();
+				return res->getInt("steps");
+			} catch (sql::SQLException &e) {
+						/*
+						 The MySQL Connector/C++ throws three different exceptions:
+
+						 - sql::MethodNotImplementedException (derived from sql::SQLException)
+						 - sql::InvalidArgumentException (derived from sql::SQLException)
+						 - sql::SQLException (derived from std::runtime_error)
+						 */
+						cout << "# ERR: SQLException in " << __FILE__;
+						//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+						/* Use what() (derived from std::runtime_error) to fetch the error message */
+						cout << "# ERR: " << e.what();
+						cout << " (MySQL error code: " << e.getErrorCode();
+						cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+			}
+			return -1;
+		}
 
 private:
 

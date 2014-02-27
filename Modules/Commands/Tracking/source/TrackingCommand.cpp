@@ -8,7 +8,7 @@
 #include <TrackingCommand.h>
 
 ttt::TrackingCommand::TrackingCommand() {
-	m_Tracker=CellTracker::New();
+	m_Tracker= ttt::MinCostMaxFlowCellTracker::New();
 }
 
 ttt::TrackingCommand::~TrackingCommand() {

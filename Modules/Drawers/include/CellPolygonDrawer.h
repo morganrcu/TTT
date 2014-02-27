@@ -29,7 +29,7 @@
 namespace ttt{
 template<class TissueDescriptor> class CellPolygonDrawer: public Drawer {
 
-	typedef typename TissueDescriptor::CellGraph CellGraph;
+	typedef typename TissueDescriptor::DualGraphType CellGraph;
 public:
 	CellPolygonDrawer(){
 

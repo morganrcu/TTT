@@ -45,10 +45,14 @@ public:
 		m_Image=image;
 	}
 
+	void Reset(){
+		if(m_Drawn) m_Renderer->RemoveViewProp(m_Volume);
+	}
+
 	void Draw(){
 		assert(m_Image);
 
-		if(m_Drawn) m_Renderer->RemoveViewProp(m_Volume);
+		Reset();
 
 		m_ToVTK = ImageToVTKType::New();
 		m_Volume = vtkSmartPointer<vtkVolume>::New();
@@ -74,13 +78,13 @@ public:
 	void Show(){
 		if(m_Drawn){
 			m_Volume->VisibilityOn();
-			m_Renderer->Render();
+//			m_Renderer->Render();
 		}
 	}
 	void Hide(){
 		if(m_Drawn){
 			m_Volume->VisibilityOff();
-			m_Renderer->Render();
+//			m_Renderer->Render();
 		}
 
 	}

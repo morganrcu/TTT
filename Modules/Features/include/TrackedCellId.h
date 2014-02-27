@@ -9,15 +9,29 @@
 #define CELLTRACKID_H_
 
 #include <tttDescriptionDataTypes.h>
+#include "TissueDescriptorFeature.h"
 class TrackedCellId : public TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double>  {
 
-private:
-	typename ttt::TrackedTissueDescriptor::Pointer m_TissueDescriptor;
-
 public:
-	void Compute(){
+	typedef TrackedCellId Self;
+	typedef TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double> Superclass;
+
+	typedef boost::shared_ptr<Self> Pointer;
+	TrackedCellId(){
+
+	}
+	virtual ~TrackedCellId(){
+
+	}
+	static Pointer New(){
+		return Pointer(new Self);
+	}
+	virtual void Compute(){
 		BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
-			this->at(v)=boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID;
+
+			std::cout << boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID << std::endl;
+			this->Insert(v,boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID);
+			//this->at(v)=boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID;
 		}
 	}
 };

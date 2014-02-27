@@ -9,7 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adjacency_iterator.hpp>
 
-#include <itkFastMarchingImageFilter.h>
+#include <itkMyFastMarchingImageFilter.h>
 #include <itkLineIterator.h>
 #include <itkImageFileWriter.h>
 #include <itkWatershedImageFilter.h>
@@ -130,7 +130,7 @@ private:
 
 void ttt::AdherensJunctionSegmentationDijkstraCommand::DoFastMarching(){
 
-	typedef itk::FastMarchingImageFilter<LevelSetImageType,PlatenessImageType> FastMarchingImageFilterType;
+	typedef ttt::FastMarchingImageFilter<LevelSetImageType,PlatenessImageType> FastMarchingImageFilterType;
 
 	FastMarchingImageFilterType::Pointer fastMarching = FastMarchingImageFilterType::New();
 	fastMarching->SetInput(m_Speed);
@@ -158,10 +158,15 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoFastMarching(){
 	fastMarching->Update();
 
 	m_LevelSet= fastMarching->GetOutput();
+	m_Labels = fastMarching->GetClusterImage();
+
+
 
 	itk::ImageRegionIterator<LevelSetImageType>  levelsetIterator(m_LevelSet,m_LevelSet->GetLargestPossibleRegion());
 
 	levelsetIterator.GoToBegin();
+
+
 
 	while(!levelsetIterator.IsAtEnd()){
 
@@ -171,6 +176,7 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoFastMarching(){
 
 		++levelsetIterator;
 	}
+
 	typedef itk::ImageFileWriter<LevelSetImageType> LevelSetWriterType;
 
 	LevelSetWriterType::Pointer levelSetWriter=LevelSetWriterType::New();
@@ -178,16 +184,23 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoFastMarching(){
 	levelSetWriter->SetFileName("LevelSet.mha");
 	levelSetWriter->SetInput(m_LevelSet);
 	levelSetWriter->Update();
+
+
+
+
 }
 
 void ttt::AdherensJunctionSegmentationDijkstraCommand::PruneLevelSet(double value){
 
 	itk::ImageRegionIterator<LevelSetImageType>  levelsetIterator(m_LevelSet,m_LevelSet->GetLargestPossibleRegion());
+	itk::ImageRegionIterator<LabelImageType>  labelIterator(m_Labels,m_Labels->GetLargestPossibleRegion());
 	while(!levelsetIterator.IsAtEnd()){
 		if(levelsetIterator.Value()>=value){
 			levelsetIterator.Set(-1);
+			labelIterator.Set(-1);
 		}
 		++levelsetIterator;
+		++labelIterator;
 	}
 }
 
@@ -232,8 +245,6 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoVertexSegmentation(){
 	colors->SetOrigin(m_Plateness->GetOrigin());
 	colors->Allocate();
 	colors->FillBuffer(COLOR_WHITE);
-
-
 
 	itk::ImageRegionConstIteratorWithIndex<LevelSetImageType>  levelsetConstIterator(m_LevelSet,m_LevelSet->GetLargestPossibleRegion());
 
@@ -283,15 +294,8 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoVertexSegmentation(){
 				colors->SetPixel(*it,COLOR_BLACK);
 			}
 		}
-
 		++levelsetConstIterator;
 	}
-
-
-
-
-
-
 }
 
 double ttt::AdherensJunctionSegmentationDijkstraCommand::ComputePath(const SkeletonVertexType & a, const SkeletonVertexType & b){
@@ -443,25 +447,33 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::BuildGraph(){
 	}
 #endif
 
-
+	vnl_matrix<unsigned char> tested(m_Locations->size(),m_Locations->size());
+	tested.fill(0);
 	itk::ImageRegionConstIteratorWithIndex<LabelImageType>  labelConstIterator(m_Labels,m_Labels->GetLargestPossibleRegion());
 
 	labelConstIterator.GoToBegin();
+	int k=0;
 	while(!labelConstIterator.IsAtEnd()){
+
 		if(labelConstIterator.Value()!=itk::NumericTraits< unsigned long >::max()){
+
 			Index current=labelConstIterator.GetIndex();
 			unsigned long currentValue=labelConstIterator.Value();
-			std::set<unsigned long> checked;
+
 			std::vector<Index> neighbors;
 			this->GetNeighbors(current,neighbors);
+
 			for(std::vector<Index>::iterator itNeigh=neighbors.begin();itNeigh!=neighbors.end();++itNeigh){
+
 				Index neigh = *itNeigh;
 				unsigned long neighValue=m_Labels->GetPixel(neigh);
-				if(neighValue!=itk::NumericTraits< unsigned long >::max() && neighValue!=currentValue ){
-					if(!boost::edge(currentValue,neighValue,*m_Descriptor->m_SkeletonGraph).second && checked.find(neighValue)==checked.end()){
-						double weight=this->ComputePath(currentValue,neighValue);
 
-						if(weight>0.1){
+				if(neighValue!=itk::NumericTraits< unsigned long >::max() && neighValue!=currentValue ){
+
+					if(!boost::edge(currentValue,neighValue,*m_Descriptor->m_SkeletonGraph).second && tested(neighValue,currentValue)==0 && tested(currentValue,neighValue)==0){
+
+						double weight=this->ComputePath(currentValue,neighValue);
+						if(weight>0.01){
 							std::cout << "(" << currentValue << "," <<  neighValue << ") = " << weight <<  std::endl;
 							boost::add_edge(currentValue,neighValue,*m_Descriptor->m_SkeletonGraph);
 						}else if(weight > 0){
@@ -469,8 +481,8 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::BuildGraph(){
 						}else{
 							std::cout << "Not found" << std::endl;
 						}
-						checked.insert(neighValue);
-
+						tested(neighValue,currentValue)=1;
+						tested(currentValue,neighValue)=1;
 					}
 				}
 			}
@@ -479,16 +491,18 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::BuildGraph(){
 	}
 }
 void ttt::AdherensJunctionSegmentationDijkstraCommand::StoreLabels(){
+#if 0
 	itk::ImageRegionIterator<LabelImageType>  labelIterator(m_Labels,m_Labels->GetLargestPossibleRegion());
 
 	labelIterator.GoToBegin();
 	while(!labelIterator.IsAtEnd()){
 
-		if(labelIterator.Value()==itk::NumericTraits< unsigned long >::max()){
+		if(labelIterator.Value()==itk::NumericTraits< int>::max()){
 			labelIterator.Set(m_Locations->size()+1);
 		}
 		++labelIterator;
 	}
+#endif
 	typedef itk::Image<float,3> FloatLabelImageType;
 	typedef itk::CastImageFilter<LabelImageType,FloatLabelImageType> CastType;
 
@@ -511,17 +525,17 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::Do() {
 	this->InitDefGraph();
 	this->DoFastMarching();
 
-	this->ComputeLevelsetThreshold(0.7);
+	this->ComputeLevelsetThreshold(0.3);
 	this->PruneLevelSet(m_LevelSetThreshold);
+	this->StoreLabels();
+	//this->AllocateLabelsImage();
 
-	this->AllocateLabelsImage();
-
-	this->DoVertexSegmentation();
+	//this->DoVertexSegmentation();
 
 	this->BuildGraph();
 
-	this->StoreLabels();
 
-	m_Labels->ReleaseData();
+
+	//m_Labels->ReleaseData();
 }
 

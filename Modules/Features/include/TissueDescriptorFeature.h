@@ -16,10 +16,10 @@ protected:
 	typename TissueDescriptorType::Pointer m_TissueDescriptor;
 
 public:
-	void SetTissueDescriptor(const typename TissueDescriptorType::Pointer & tissueDescriptor){
+	virtual void SetTissueDescriptor(const typename TissueDescriptorType::Pointer & tissueDescriptor){
 		m_TissueDescriptor=tissueDescriptor;
 	}
-	typename TissueDescriptorType::Pointer GetTissueDescriptor(){
+	virtual typename TissueDescriptorType::Pointer GetTissueDescriptor(){
 		return m_TissueDescriptor;
 	}
 

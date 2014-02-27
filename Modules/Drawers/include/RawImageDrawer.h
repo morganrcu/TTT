@@ -38,6 +38,7 @@ public:
 protected:
 	virtual vtkSmartPointer<vtkVolumeProperty> GetVolumeProperty();
 };
+
 }
 #endif
 /** @}*/

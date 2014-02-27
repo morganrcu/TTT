@@ -9,7 +9,6 @@ SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} -Wall)
 INCLUDE(CPack)
 
 FIND_PACKAGE(ITK REQUIRED)
-
 INCLUDE(${ITK_USE_FILE})
 
 FIND_PACKAGE(VTK REQUIRED)
@@ -21,25 +20,11 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS graph)
 
-
-
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
-FIND_PACKAGE(Qt4 REQUIRED)
-#SET( QT_USE_QTXML TRUE )
-SET( QT_USE_QTSQL TRUE )
-INCLUDE(${QT_USE_FILE})
-#set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#find_package(Qt5Widgets REQUIRED)
-#include_directories(${Qt5Widgets_INCLUDE_DIRS})
-#add_definitions(${Qt5Widgets_DEFINITIONS})
-# Add compiler flags for building executables (-fPIE)
+#add_subdirectory(Modules/GUI)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-add_subdirectory(Modules/GUI)
 
 add_subdirectory(Modules/Core)
 add_subdirectory(Modules/Drawers)
@@ -66,3 +51,4 @@ add_subdirectory(Modules/IO)
 add_subdirectory(Modules/Assesment/VertexLocationAssesment)
 add_subdirectory(Modules/Assesment/SegmentationAssesment)
 
+add_subdirectory(GUI/NewGUI)

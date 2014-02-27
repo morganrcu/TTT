@@ -15,6 +15,6 @@ set(TTTTracking_SRCS source/TrackingCommand.cpp
 
 add_executable(mincostmaxflowcelltrackertest source/mincostmaxflowcelltrackertest.cpp source/tttMinCostMaxFlowCellTracker.cpp)
 
-target_link_libraries(mincostmaxflowcelltrackertest ${ITK_LIBRARIES} Cbc CbcSolver Cgl Clp CoinUtils bz2 OsiCbc  OsiClp Osi ${ZLIB_LIBRARIES} lapack)
+target_link_libraries(mincostmaxflowcelltrackertest ${ITK_LIBRARIES} Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack)
  
 add_library(TTTTracking ${TTTTracking_SRCS})

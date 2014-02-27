@@ -121,8 +121,6 @@ TissueTracker::TissueTracker(QWidget *parent) :   QMainWindow(parent),  m_pUI(ne
 
 
 
-
-
     connect(m_pUI->lhButton,SIGNAL(clicked()),this,SLOT(DoLateralImageSegmentation()));
     connect(m_pUI->claheButton,SIGNAL(clicked()),this,SLOT(DoCLAHE()));
     connect(m_pUI->ssbutton,SIGNAL(clicked()),this, SLOT(DoSurfaceSegmentation()));

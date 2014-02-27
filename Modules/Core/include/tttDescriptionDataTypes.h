@@ -484,7 +484,7 @@ template<> struct TissueDescriptorTraits<TrackedTissueDescriptor>{
 	typedef ttt::SkeletonPointProperty SkeletonPointProperty;
 
 	typedef ttt::TrackedCellVertexType CellVertexType;
-	typedef ttt::TrackedCellPropertyTag CellPropertyTag;
+	typedef ttt::TrackedCellPropertyTag CellPropertyTagType;
 	typedef ttt::TrackedCellEdgeType CellEdgeType;
 	typedef ttt::TrackedCellProperty CellProperty;
 };

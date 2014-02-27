@@ -33,7 +33,7 @@ void drawPrimal(PlatenessImageType::Pointer & plateness, const ttt::TissueDescri
 	iren->SetRenderWindow(renWin);
 
 
-	ttt::PrimalGraphDrawer primalDrawer;
+	ttt::PrimalGraphDrawer<ttt::TissueDescriptor> primalDrawer;
 
 
 
