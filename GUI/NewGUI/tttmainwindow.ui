@@ -7,16 +7,16 @@
     <x>0</x>
     <y>0</y>
     <width>1024</width>
-    <height>768</height>
+    <height>769</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>TTTMainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QTabWidget" name="tabWidget">
+   <layout class="QVBoxLayout" name="verticalLayout_12">
+    <item>
+     <widget class="QTabWidget" name="stepsTabs">
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -26,13 +26,13 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_13">
         <item>
-         <widget class="QWidget" name="widget_4" native="true">
+         <widget class="QWidget" name="controlsWidget" native="true">
           <layout class="QFormLayout" name="formLayout">
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
            </property>
            <item row="0" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_3">
+            <widget class="QGroupBox" name="projectNamegroupBox">
              <property name="title">
               <string>Name</string>
              </property>
@@ -51,7 +51,7 @@
             </widget>
            </item>
            <item row="1" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox">
+            <widget class="QGroupBox" name="spatialPropertiesGroupBox">
              <property name="title">
               <string>Spatial Properties</string>
              </property>
@@ -67,7 +67,11 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="xDoubleSpinBox"/>
+               <widget class="QDoubleSpinBox" name="xDoubleSpinBox">
+                <property name="decimals">
+                 <number>7</number>
+                </property>
+               </widget>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="yLabel">
@@ -77,7 +81,11 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QDoubleSpinBox" name="yDoubleSpinBox"/>
+               <widget class="QDoubleSpinBox" name="yDoubleSpinBox">
+                <property name="decimals">
+                 <number>7</number>
+                </property>
+               </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="zLabel">
@@ -87,10 +95,14 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QDoubleSpinBox" name="zDoubleSpinBox"/>
+               <widget class="QDoubleSpinBox" name="zDoubleSpinBox">
+                <property name="decimals">
+                 <number>7</number>
+                </property>
+               </widget>
               </item>
               <item row="3" column="0" colspan="2">
-               <widget class="QLabel" name="label">
+               <widget class="QLabel" name="sizeLabel">
                 <property name="text">
                  <string>Size: </string>
                 </property>
@@ -100,7 +112,7 @@
             </widget>
            </item>
            <item row="2" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="temporalPropertiesGroupBox">
              <property name="title">
               <string>Temporal Properties</string>
              </property>
@@ -111,7 +123,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="incrementLabel">
                 <property name="text">
-                 <string>Increment:</string>
+                 <string>Sampling rate:</string>
                 </property>
                </widget>
               </item>
@@ -119,7 +131,7 @@
                <widget class="QDoubleSpinBox" name="incrementDoubleSpinBox"/>
               </item>
               <item row="1" column="0" colspan="2">
-               <widget class="QLabel" name="label_2">
+               <widget class="QLabel" name="projectLengthLabel">
                 <property name="text">
                  <string>Length:</string>
                 </property>
@@ -128,69 +140,75 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QPushButton" name="pushButton_5">
-             <property name="text">
-              <string>Save</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
         <item>
-         <widget class="QWidget" name="widget" native="true">
+         <widget class="QWidget" name="projectCentralWidget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QFrame" name="frame">
+            <widget class="QVTKWidget" name="projectQVTKView" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <zorder>widget_2</zorder>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_2" native="true">
-             <layout class="QGridLayout" name="gridLayout_2">
-              <item row="1" column="1">
-               <widget class="QPushButton" name="pushButton_2">
-                <property name="text">
-                 <string>Remove Frame</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="pushButton">
+            <widget class="QSlider" name="projectSlider">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableView" name="framesTable">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="buttonsWidget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="addFrameButton">
                 <property name="text">
                  <string>Add Frame...</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="3">
-               <widget class="QPushButton" name="pushButton_4">
+              <item>
+               <widget class="QPushButton" name="removeFrameButton">
                 <property name="text">
-                 <string>Move down</string>
+                 <string>Remove Frame</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
-               <widget class="QPushButton" name="pushButton_3">
+              <item>
+               <widget class="QPushButton" name="moveUpButton">
                 <property name="text">
                  <string>Move Up</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="4">
-               <widget class="QTableView" name="framesTable"/>
+              <item>
+               <widget class="QPushButton" name="moveDownButton">
+                <property name="text">
+                 <string>Move down</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -221,14 +239,20 @@
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="horizontalSlider">
+            <widget class="QSlider" name="membranessSlider">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_6">
+            <widget class="QPushButton" name="computeAllMembranessButton">
              <property name="text">
               <string>Apply To All</string>
              </property>
@@ -246,15 +270,71 @@
               <enum>QTabWidget::West</enum>
              </property>
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
-             <widget class="QWidget" name="tab">
+             <widget class="QWidget" name="rangeScaleTab">
+              <attribute name="title">
+               <string>Range</string>
+              </attribute>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QWidget" name="rangeScaleControls" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_6">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="stepsLabel">
+                    <property name="text">
+                     <string>Steps:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QSpinBox" name="stepsSpinBox">
+                    <property name="value">
+                     <number>4</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0" colspan="2">
+                   <widget class="QPushButton" name="rangeScalePreview">
+                    <property name="text">
+                     <string>Preview</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="widget_9" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <widget class="QVTKWidget" name="rangeScaleSelectionQVTKView" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="lowestScaleTab">
               <attribute name="title">
                <string>Lowest</string>
               </attribute>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
-                <widget class="QWidget" name="widget_6" native="true">
+                <widget class="QWidget" name="lowestScaleControls" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -266,17 +346,27 @@
                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                   </property>
                   <item row="0" column="0">
-                   <widget class="QLabel" name="scaleLabel">
+                   <widget class="QLabel" name="lowestScaleLabel">
                     <property name="text">
                      <string>Scale:</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QDoubleSpinBox" name="scaleDoubleSpinBox"/>
+                   <widget class="QDoubleSpinBox" name="lowestScaleDoubleSpinBox">
+                    <property name="minimum">
+                     <double>0.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>2.000000000000000</double>
+                    </property>
+                    <property name="value">
+                     <double>0.250000000000000</double>
+                    </property>
+                   </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="pushButton_7">
+                   <widget class="QPushButton" name="lowestScalePreview">
                     <property name="text">
                      <string>Preview</string>
                     </property>
@@ -295,12 +385,12 @@
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_2">
                   <item>
-                   <widget class="QFrame" name="frame_2">
-                    <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
+                   <widget class="QVTKWidget" name="lowestScaleSelectionQVTKView" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
                     </property>
                    </widget>
                   </item>
@@ -309,39 +399,47 @@
                </item>
               </layout>
               <zorder>widget_7</zorder>
-              <zorder>widget_6</zorder>
+              <zorder>lowestScaleControls</zorder>
              </widget>
-             <widget class="QWidget" name="tab_2">
+             <widget class="QWidget" name="highestScaleTab">
               <attribute name="title">
                <string>Highest</string>
               </attribute>
-             </widget>
-             <widget class="QWidget" name="tab_3">
-              <attribute name="title">
-               <string>Range</string>
-              </attribute>
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <layout class="QHBoxLayout" name="horizontalLayout_14">
                <item>
-                <widget class="QWidget" name="widget_8" native="true">
+                <widget class="QWidget" name="widget" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <layout class="QFormLayout" name="formLayout_6">
+                 <layout class="QFormLayout" name="formLayout_10">
                   <item row="0" column="0">
-                   <widget class="QLabel" name="label_3">
+                   <widget class="QLabel" name="highestScaleLabel">
                     <property name="text">
-                     <string>Steps:</string>
+                     <string>Scale:</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QSpinBox" name="spinBox"/>
+                   <widget class="QDoubleSpinBox" name="highestScaleDoubleSpinBox">
+                    <property name="minimum">
+                     <double>0.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>2.000000000000000</double>
+                    </property>
+                    <property name="singleStep">
+                     <double>0.010000000000000</double>
+                    </property>
+                    <property name="value">
+                     <double>0.450000000000000</double>
+                    </property>
+                   </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="pushButton_8">
+                   <widget class="QPushButton" name="highestScalePreview">
                     <property name="text">
                      <string>Preview</string>
                     </property>
@@ -351,21 +449,21 @@
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="widget_9" native="true">
-                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                <widget class="QWidget" name="widget_2" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_13">
                   <item>
-                   <widget class="QFrame" name="frame_3">
+                   <widget class="QVTKWidget" name="highestScaleSelectionQVTKView" native="true">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
-                    </property>
-                    <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
                     </property>
                    </widget>
                   </item>
@@ -398,19 +496,25 @@
            <item>
             <widget class="QLabel" name="label_5">
              <property name="text">
-              <string>Frame:</string>
+              <string>Frame: </string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="horizontalSlider_2">
+            <widget class="QSlider" name="enhancementSlider">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_9">
+            <widget class="QPushButton" name="computeAllEnhanceButton">
              <property name="text">
               <string>Apply To All</string>
              </property>
@@ -429,18 +533,12 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
-               <widget class="QFrame" name="frame_5">
+               <widget class="QVTKWidget" name="beforeEnhancementQVTKView" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
                 </property>
                </widget>
               </item>
@@ -454,18 +552,12 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
-               <widget class="QFrame" name="frame_4">
+               <widget class="QVTKWidget" name="afterEnhancementQVTKView" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
                 </property>
                </widget>
               </item>
@@ -492,10 +584,17 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_2"/>
+            <widget class="QSpinBox" name="enhanceIterations">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>1</number>
+             </property>
+            </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_10">
+            <widget class="QPushButton" name="enhanceButton">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -518,24 +617,30 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
-         <widget class="QWidget" name="widget_13" native="true">
+         <widget class="QWidget" name="topSliderVertexLocationWidget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <widget class="QLabel" name="label_7">
              <property name="text">
-              <string>Frame:</string>
+              <string>Frame: </string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="horizontalSlider_3">
+            <widget class="QSlider" name="vertexLocationSlider">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_11">
+            <widget class="QPushButton" name="computeAllVertexLocationButton">
              <property name="text">
               <string>Apply to All</string>
              </property>
@@ -545,16 +650,16 @@
          </widget>
         </item>
         <item>
-         <widget class="QWidget" name="widget_14" native="true">
+         <widget class="QWidget" name="centralVertexLocationWidget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
-            <widget class="QWidget" name="widget_15" native="true">
+            <widget class="QWidget" name="vertexLocationToolsGroupBox" native="true">
              <layout class="QFormLayout" name="formLayout_7">
               <property name="fieldGrowthPolicy">
                <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
               </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="thresholdLabel">
+              <item row="1" column="0">
+               <widget class="QLabel" name="vertexThresholdLabel">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -566,18 +671,28 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="thresholdDoubleSpinBox"/>
-              </item>
-              <item row="1" column="0" colspan="2">
-               <widget class="QPushButton" name="pushButton_12">
-                <property name="text">
-                 <string>Apply</string>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="vertexThresholdSpinBox">
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.100000000000000</double>
                 </property>
                </widget>
               </item>
               <item row="2" column="0" colspan="2">
-               <widget class="QGroupBox" name="groupBox_6">
+               <widget class="QPushButton" name="vertexLocationButton">
+                <property name="text">
+                 <string>Locate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QGroupBox" name="vertexValidationGroupBox">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -589,21 +704,24 @@
                 </property>
                 <layout class="QFormLayout" name="formLayout_8">
                  <item row="0" column="0" colspan="2">
-                  <widget class="QPushButton" name="pushButton_13">
+                  <widget class="QPushButton" name="selectVertexButton">
                    <property name="text">
                     <string>Select</string>
                    </property>
                   </widget>
                  </item>
                  <item row="1" column="0" colspan="2">
-                  <widget class="QPushButton" name="pushButton_14">
+                  <widget class="QPushButton" name="addVertexButton">
                    <property name="text">
                     <string>Add</string>
                    </property>
                   </widget>
                  </item>
                  <item row="2" column="0" colspan="2">
-                  <widget class="QPushButton" name="pushButton_15">
+                  <widget class="QPushButton" name="deleteVertexButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string>Delete</string>
                    </property>
@@ -612,25 +730,33 @@
                 </layout>
                </widget>
               </item>
+              <item row="0" column="0" colspan="2">
+               <widget class="QPushButton" name="vertexnessButton">
+                <property name="text">
+                 <string>Vertexness</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <widget class="QCheckBox" name="showAdhrensJunctionsAtVertexLocationsCBox">
+                <property name="text">
+                 <string>Adherens Junctions</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_16" native="true">
+            <widget class="QWidget" name="vertexLocationViewContainerWidget" native="true">
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
-               <widget class="QFrame" name="frame_6">
+               <widget class="QVTKWidget" name="vertexLocationQVTKView" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
                 </property>
                </widget>
               </item>
@@ -653,14 +779,20 @@
            <item>
             <widget class="QLabel" name="label_8">
              <property name="text">
-              <string>Frame:</string>
+              <string>Frame: </string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="horizontalSlider_4">
+            <widget class="QSlider" name="cellSegmentationSlider">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
              </property>
             </widget>
            </item>
@@ -678,25 +810,66 @@
          <widget class="QWidget" name="widget_18" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
-            <widget class="QWidget" name="widget_19" native="true">
+            <widget class="QWidget" name="widget_4" native="true">
              <layout class="QFormLayout" name="formLayout_9">
               <property name="fieldGrowthPolicy">
                <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
               </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="levelSetThresholdLabel">
+              <item row="2" column="0" colspan="2">
+               <widget class="QPushButton" name="dualButton">
                 <property name="text">
-                 <string>LevelSet Threshold</string>
+                 <string>Cell Graph</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="levelSetThresholdDoubleSpinBox"/>
+              <item row="0" column="0" colspan="2">
+               <widget class="QPushButton" name="segmentationButton">
+                <property name="text">
+                 <string>Adherens Junctions</string>
+                </property>
+               </widget>
               </item>
               <item row="1" column="0" colspan="2">
-               <widget class="QPushButton" name="pushButton_17">
+               <widget class="QGroupBox" name="groupBox">
+                <property name="title">
+                 <string>Validation</string>
+                </property>
+                <layout class="QFormLayout" name="formLayout_11">
+                 <item row="0" column="0" colspan="2">
+                  <widget class="QPushButton" name="selectEdgeButton">
+                   <property name="text">
+                    <string>Select</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0" colspan="2">
+                  <widget class="QPushButton" name="addEdgeButton">
+                   <property name="text">
+                    <string>Add</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0" colspan="2">
+                  <widget class="QPushButton" name="deleteEdgeButton">
+                   <property name="text">
+                    <string>Delete</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="showAdherensJunctionsAtSegmentationCBox">
                 <property name="text">
-                 <string>Segment</string>
+                 <string>Adherens Junctions</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <widget class="QCheckBox" name="showCellGraphAtSegmentationCBox">
+                <property name="text">
+                 <string>Cell Graph</string>
                 </property>
                </widget>
               </item>
@@ -705,20 +878,26 @@
            </item>
            <item>
             <widget class="QWidget" name="widget_20" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
-               <widget class="QFrame" name="frame_7">
+               <widget class="QVTKWidget" name="cellSegmentationQVTKView" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
                 </property>
                </widget>
               </item>
@@ -734,11 +913,238 @@
        <attribute name="title">
         <string>Cell Tracking</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_14">
+        <item>
+         <widget class="QWidget" name="widget_19" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Frame: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="trackingSlider">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="trackButton">
+             <property name="text">
+              <string>Track</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget_6" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_16">
+           <item>
+            <widget class="QWidget" name="widget_13" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15">
+              <item>
+               <widget class="QVTKWidget" name="trackingQVTKView" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </widget>
-      <widget class="QWidget" name="analyticsTab">
+      <widget class="QWidget" name="tectonicsTab">
        <attribute name="title">
-        <string>Analytics</string>
+        <string>Tectonics</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_16">
+        <item>
+         <widget class="QWidget" name="widget_21" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_17">
+           <item>
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Frame: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="trackingSlider_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="trackButton_2">
+             <property name="text">
+              <string>Track</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget_8" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_18">
+           <item>
+            <widget class="QWidget" name="tectonicsControls" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <layout class="QFormLayout" name="formLayout_12">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Domain Order:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spinBox"/>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QGroupBox" name="groupBox_2">
+                <property name="title">
+                 <string>Show</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_18">
+                 <item>
+                  <widget class="QRadioButton" name="radioButton">
+                   <property name="text">
+                    <string>Cell Strain Rates</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioButton_2">
+                   <property name="text">
+                    <string>Tissue Strain Rates</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioButton_3">
+                   <property name="text">
+                    <string>Domain Strain Rates</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QPushButton" name="pushButton">
+                <property name="text">
+                 <string>Strain Rates</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QVTKWidget" name="tectonicsQVTKView" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="inspectionTab">
+       <attribute name="title">
+        <string>Inspection</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_17">
+        <item>
+         <widget class="QVTKWidget" name="inspectionQVTKView" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tableWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -757,11 +1163,17 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew"/>
+    <addaction name="actionOpen"/>
+    <addaction name="actionClose"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionShowProjectExplorer"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -781,6 +1193,7 @@
    </attribute>
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
+   <addaction name="actionPreferences"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
@@ -837,8 +1250,42 @@
     <string>Ctrl+Down</string>
    </property>
   </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>Close</string>
+   </property>
+   <property name="toolTip">
+    <string>Close Project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionShowProjectExplorer">
+   <property name="text">
+    <string>Project Explorer</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
