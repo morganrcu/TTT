@@ -17,8 +17,14 @@
 #include <vtkParametricFunctionSource.h>
 #include <vtkPolyDataMapper.h>
 #include "EllipseDrawer.h"
+void ttt::EllipseDrawer::Reset(){
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		m_Renderer->RemoveActor(*it);
+	}
+	m_Actors.clear();
+}
 void ttt::EllipseDrawer::Draw(){
-
+	this->Reset();
 	for(std::map<unsigned long int,Ellipse<double> >::iterator it= (*m_Ellipses).begin();it!=(*m_Ellipses).end();it++){
 
 		Ellipse<double> ellipse = it->second;
@@ -34,11 +40,13 @@ void ttt::EllipseDrawer::Draw(){
         map->SetInputConnection(funcsrc->GetOutputPort());
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(map);
-        actor->SetPosition(ellipse.m_Xcent,ellipse.m_Ycent,0);
+        actor->SetPosition(ellipse.m_Ycent,ellipse.m_Xcent,0);
         double degrot = ellipse.m_Theta*180/M_PI;
         actor->RotateZ(degrot);
-
+        actor->VisibilityOff();
         m_Renderer->AddActor(actor);
+        m_Actors.push_back(actor);
+
 	}
 #if 0
 	int cont;
@@ -169,8 +177,15 @@ void ttt::EllipseDrawer::Draw(){
 #endif
 }
 void ttt::EllipseDrawer::Show(){
-	//TODO
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		vtkSmartPointer<vtkActor> actor = *it;
+		actor->VisibilityOn();
+	}
+
 }
 void ttt::EllipseDrawer::Hide(){
-	//TODO
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		vtkSmartPointer<vtkActor> actor = *it;
+		actor->VisibilityOff();
+	}
 }

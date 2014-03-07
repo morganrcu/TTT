@@ -30,6 +30,9 @@ namespace ttt{
 template<class TissueDescriptor> class CellPolygonDrawer: public Drawer {
 
 	typedef typename TissueDescriptor::DualGraphType CellGraph;
+	typedef  typename ttt::TissueDescriptorTraits< TissueDescriptor >::CellVertexType CellVertexType;
+	std::map<CellVertexType, vtkSmartPointer<vtkActor> > m_Actors;
+	//typename ttt::TissueDescriptorTraits< TissueDescriptor >::CellVertexType vertex;
 public:
 	CellPolygonDrawer(){
 
@@ -42,7 +45,14 @@ public:
 		m_Descriptor=descriptor;
 	}
 
+	virtual void Reset(){
+		for(typename std::map<CellVertexType, vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+			m_Renderer->RemoveActor(it->second);
+		}
+		m_Actors.clear();
+	}
 	virtual void Draw(){
+		this->Reset();
 		BGL_FORALL_VERTICES_T(v,*(m_Descriptor->m_CellGraph),CellGraph){
 				vtkSmartPointer<vtkPoints> points =  vtkSmartPointer<vtkPoints>::New();
 				int npoints=0;
@@ -94,6 +104,7 @@ public:
 				  std::cout << trackID << "->" << color[0] << " " <<color[1] << " " << color[2] << std::endl;
 				  actor->GetProperty()->SetColor(color[0]/RAND_MAX,color[1]/RAND_MAX,color[2]/RAND_MAX);
 				  m_Renderer->AddActor(actor);
+				  m_Actors[v]=actor;
 
 			}
 	}
@@ -103,10 +114,15 @@ public:
 	}
 
 	virtual void Show(){
+		for(typename std::map<CellVertexType, vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+			it->second->VisibilityOn();
+		}
 
 	}
 	virtual void Hide(){
-
+		for(typename std::map<CellVertexType, vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+			it->second->VisibilityOff();
+		}
 	}
 private:
 	typedef std::vector<double> Color ;

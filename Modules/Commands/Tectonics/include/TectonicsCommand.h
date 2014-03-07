@@ -59,7 +59,6 @@ public:
 	}
 	inline void SetEllipsesNext(const EllipseMapTypePointer & ellipses){
 		m_NextEllipses=ellipses;
-
 	}
 	inline void SetEllipsesCurrent(const EllipseMapTypePointer & ellipses){
 		m_CurrentEllipses=ellipses;
@@ -69,7 +68,6 @@ public:
 	}
 	inline void SetPreviousTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer descriptor){
 		m_PreviousDescriptor=descriptor;
-
 	}
 	inline void SetNextTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer descriptor){
 		m_NextDescriptor=descriptor;

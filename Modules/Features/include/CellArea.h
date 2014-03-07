@@ -4,7 +4,7 @@
 
 #include "tttDescriptionDataTypes.h"
 #include <map>
-
+#include "TissueDescriptorFeature.h"
 template<class T> class CellArea : public TissueDescriptorFeature<T,typename ttt::TissueDescriptorTraits<T>::CellVertexType, double>  {
 
 public:
@@ -28,7 +28,7 @@ public:
 			itk::Point<double,3> C = cell.m_Centroid;
 
 
-			typename std::vector<SkeletonVertexType>::const_iterator itSkel,itSkelNext;
+			typename std::vector<ttt::SkeletonVertexType>::const_iterator itSkel,itSkelNext;
 
 			itSkel =cell.Begin();
 			itSkelNext=cell.Begin();

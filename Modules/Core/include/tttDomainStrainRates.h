@@ -25,7 +25,7 @@ typedef struct{
 	Tensor Tissue_SRT;
 	Tensor CellShape_SRT;
 	Tensor Intercalation_SRT;
-
+	int order;
 } DomainStrainRates;
 
 typedef std::map<typename ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >   DomainStrainRatesMapType;

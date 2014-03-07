@@ -33,6 +33,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
 	m_VertexLocationsDrawer.SetRenderer(m_CentralRenderer);
 	m_PrimalGraphDrawer.SetRenderer(m_CentralRenderer);
 	m_DualGraphDrawer.SetRenderer(m_CentralRenderer);
+	m_CellMotionVectorDrawer.SetRenderer(m_CentralRenderer);
 
 
     connect(this->m_pUI->originalGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowOriginal(bool)));
@@ -43,7 +44,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
     connect(this->m_pUI->primalGraphGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowPrimalGraph(bool)));
     connect(this->m_pUI->dualGraphGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowDualGraph(bool)));
     connect(this->m_pUI->cellRegionsGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowCellRegions(bool)));
-
+    connect(this->m_pUI->motionVectorsGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowCellMotionVectors(bool)));
     connect(this->m_pUI->frameSlider,SIGNAL(valueChanged(int)),this,SLOT(SetFrame(int)));
 }
 
@@ -51,8 +52,6 @@ void TTTExplorer::SetProject(ttt::TissueTrackingProject * project){
 			this->m_Project=project;
 			this->m_pUI->frameSlider->setMinimum(0);
 			this->m_pUI->frameSlider->setMaximum(this->m_Project->GetNumFrames()-1);
-			//SetFrame(0);
-
 }
 TTTExplorer::~TTTExplorer(){
     delete m_pUI;
@@ -102,39 +101,70 @@ void TTTExplorer::SetFrame(int frame){
 	}else{
 		m_VertexLocationsDrawer.Reset();
 	}
+#if 0
+	if(this->m_Project->IsTissueDescriptorReady()){
+			m_PrimalGraphDrawer.SetTissueDescriptor(this->m_Project->GetTissueDescriptor());
+			m_PrimalGraphDrawer.Draw();
+			m_PrimalGraphDrawer.SetVisibility(this->m_pUI->primalGraphGroupBox->isChecked());
+			m_DualGraphDrawer.SetTissueDescriptor(this->m_Project->GetTissueDescriptor());
+			m_DualGraphDrawer.Draw();
+			m_DualGraphDrawer.SetVisibility(this->m_pUI->primalGraphGroupBox->isChecked());
+
+	}else{
+			m_PrimalGraphDrawer.Reset();
+			m_DualGraphDrawer.Reset();
+	}
+#endif
+	if(this->m_Project->IsTrackedTissueDescriptorReady()){
+		m_CellMotionVectorDrawer.SetTrackedDescriptor(this->m_Project->GetTrackedTissueDescriptor());
+		m_CellMotionVectorDrawer.Draw();
+		m_CellMotionVectorDrawer.SetVisibility(this->m_pUI->motionVectorsGroupBox->isChecked());
+	}else{
+		m_CellMotionVectorDrawer.Reset();
+	}
+
 	this->m_CentralRenderer->Render();
 	this->m_CentralRenderWindow->Render();
+
 }
 
 void TTTExplorer::ShowOriginal(bool show){
 	m_OriginalDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 
 void TTTExplorer::ShowEnhanced(bool show){
 	m_EnhancedDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 
 void TTTExplorer::ShowPlateness(bool show){
 	m_PlatenessDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 
 void TTTExplorer::ShowVertexness(bool show){
 	m_VertexnessDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 void TTTExplorer::ShowVertexLocations(bool show){
 	m_VertexLocationsDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 void TTTExplorer::ShowPrimalGraph(bool show){
 	m_PrimalGraphDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 void TTTExplorer::ShowDualGraph(bool show){
 	m_DualGraphDrawer.SetVisibility(show);
+	m_CentralRenderWindow->Render();
 }
 void TTTExplorer::ShowCellRegions(bool show){
 
 }
-void TTTExplorer::ShowCellMotionVectors(bool){
-
+void TTTExplorer::ShowCellMotionVectors(bool show){
+	this->m_CellMotionVectorDrawer.SetVisibility(show);
+	this->m_CentralRenderWindow->Render();
 }
 void TTTExplorer::ShowTectonics(bool){
 

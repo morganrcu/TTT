@@ -507,11 +507,38 @@ public:
 
     MinCostMaxFlowCellTracker();
 
+    inline void SetXMin(double xMin){
+    	m_XMin=xMin;
+    }
+    inline void SetXMax(double xMax){
+    	m_XMax=xMax;
+    }
+    inline void SetYMin(double yMin){
+    	m_YMin=yMin;
+    }
+    inline void SetYMax(double yMax){
+    	m_YMax=yMax;
+    }
+
+    inline void SetZMin(double zMin){
+    	m_ZMin=zMin;
+
+    }
+    inline void SetZMax(double zMax){
+    	m_ZMax=zMax;
+    }
 protected:
 
     std::vector<TrackedTissueDescriptor::Pointer> m_Tracks;
     std::vector<TissueDescriptor::Pointer> m_Observations;
     int m_NextID;
+
+    double m_XMin;
+    double m_XMax;
+    double m_YMin;
+    double m_YMax;
+    double m_ZMin;
+    double m_ZMax;
 
 };
 }

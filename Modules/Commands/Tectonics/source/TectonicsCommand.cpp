@@ -21,6 +21,7 @@ void ttt::TectonicsCommand::Do(){
 	assert(m_Domains);
 	assert( (m_PreviousDescriptor && m_CurrentDescriptor ) || (m_PreviousDescriptor && m_NextDescriptor ) || (m_CurrentDescriptor && m_NextDescriptor));
 	assert( (m_PreviousEllipses && m_CurrentEllipses ) || (m_PreviousEllipses && m_NextEllipses ) || (m_CurrentEllipses && m_NextEllipses ));
+	double rate=0;
 
 	m_DomainStrainRates=boost::shared_ptr<DomainStrainRatesMapType>(new DomainStrainRatesMapType);
 
@@ -54,78 +55,75 @@ void ttt::TectonicsCommand::Do(){
 					cellIt++){
 				int idCell=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentDescriptor->m_CellGraph),*cellIt).m_ID;
 
+				bool valid=true;
+
 				if(m_PreviousDescriptor  && ttt::CellID2VertexDescriptor(idCell,m_PreviousDescriptor)==-1 ){
-					ok =false;
+					valid =false;
 				}
 
 				if( m_NextDescriptor && ttt::CellID2VertexDescriptor(idCell,m_NextDescriptor)==-1 ){
-					ok=false;
+					valid=false;
 				}
-				if(!ok) break;
 
-				Centroid orig=boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Centroid;
-				Centroid dst;
-				for(int i=0;i<3;i++) dst[i]=orig[i] -centroid[i];
+				if(valid){
 
-				std::cout << dst << " ";
+					Centroid orig=boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Centroid;
+					Centroid dst;
 
-				points.push_back(dst);
-				velocities.push_back(boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Velocity);
-				if(m_PreviousEllipses && m_NextEllipses){
-	//				void parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const double angle, vnl_matrix_fixed<double,2,2> & result);
+					for(int i=0;i<3;i++) dst[i]=orig[i] -centroid[i];
+					points.push_back(dst);
 
+					velocities.push_back(boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Velocity);
 
-					Ellipse<double> ellipse=(*m_PreviousEllipses)[ttt::CellID2VertexDescriptor(idCell,m_PreviousDescriptor)];
-					EllipseMatrix ellipseMatrix;
+					if(m_PreviousEllipses && m_NextEllipses){
+						rate=2;
 
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						Ellipse<double> ellipse=(*m_PreviousEllipses)[ttt::CellID2VertexDescriptor(idCell,m_PreviousDescriptor)];
+						EllipseMatrix ellipseMatrix;
 
-					std::cout << ellipseMatrix << " ";
-					ellipses0.push_back(ellipseMatrix);
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses0.push_back(ellipseMatrix);
 
-					ellipse=(*m_NextEllipses)[ttt::CellID2VertexDescriptor(idCell,m_NextDescriptor)];
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipse=(*m_NextEllipses)[ttt::CellID2VertexDescriptor(idCell,m_NextDescriptor)];
 
-					std::cout << ellipseMatrix << " ";
-
-					ellipses1.push_back(ellipseMatrix);
-				}else if(m_PreviousEllipses && m_CurrentEllipses){
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses1.push_back(ellipseMatrix);
 
 
-					Ellipse<double> ellipse=(*m_PreviousEllipses)[ttt::CellID2VertexDescriptor(idCell,m_PreviousDescriptor)];
-					EllipseMatrix ellipseMatrix;
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
-					std::cout << ellipseMatrix << " ";
-					ellipses0.push_back(ellipseMatrix);
+					}else if(m_PreviousEllipses && m_CurrentEllipses){
+						rate=1;
 
-					ellipse=(*m_CurrentEllipses)[ttt::CellID2VertexDescriptor(idCell,m_CurrentDescriptor)];
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
-					std::cout << ellipseMatrix << " ";
-					ellipses1.push_back(ellipseMatrix);
+						Ellipse<double> ellipse=(*m_PreviousEllipses)[ttt::CellID2VertexDescriptor(idCell,m_PreviousDescriptor)];
+						EllipseMatrix ellipseMatrix;
 
-				}else if(m_CurrentEllipses && m_NextEllipses){
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses0.push_back(ellipseMatrix);
 
-					Ellipse<double> ellipse=(*m_CurrentEllipses)[ttt::CellID2VertexDescriptor(idCell,m_CurrentDescriptor)];
-					EllipseMatrix ellipseMatrix;
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipse=(*m_CurrentEllipses)[ttt::CellID2VertexDescriptor(idCell,m_CurrentDescriptor)];
 
-					std::cout << ellipseMatrix << " ";
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses1.push_back(ellipseMatrix);
 
-					ellipses0.push_back(ellipseMatrix);
+					}else if(m_CurrentEllipses && m_NextEllipses){
+						rate=1;
+						Ellipse<double> ellipse=(*m_CurrentEllipses)[ttt::CellID2VertexDescriptor(idCell,m_CurrentDescriptor)];
+						EllipseMatrix ellipseMatrix;
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses0.push_back(ellipseMatrix);
 
-					ellipse=(*m_NextEllipses)[ttt::CellID2VertexDescriptor(idCell,m_NextDescriptor)];
-					parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
-					std::cout << ellipseMatrix << " ";
-					ellipses1.push_back(ellipseMatrix);
+						ellipse=(*m_NextEllipses)[ttt::CellID2VertexDescriptor(idCell,m_NextDescriptor)];
+
+						parametricEllipseToMatrixEllipse(ellipse.m_Xrad,ellipse.m_Yrad,ellipse.m_Theta,ellipseMatrix);
+						ellipses1.push_back(ellipseMatrix);
+					}
 				}
 			}
 			if(ok){
 				DomainStrainRates str;
-				//Tensor Tissue_SRT;
-				//Tensor CellShape_SRT;
-				//Tensor Intercalation_SRT;
+
 				std::cout << "Computing tectonics for domain: " << id << std::endl;
-				domainStrainRates(points,velocities,ellipses0,ellipses1,1,str.Tissue_SRT,str.CellShape_SRT,str.Intercalation_SRT);
+				domainStrainRates(points,velocities,ellipses0,ellipses1,rate,str.Tissue_SRT,str.CellShape_SRT,str.Intercalation_SRT);
+				str.order=domainIt->GetOrder();
 				(*m_DomainStrainRates)[domainIt->GetNucleus()]=str;
 			}
 

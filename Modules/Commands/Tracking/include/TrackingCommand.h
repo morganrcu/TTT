@@ -35,6 +35,26 @@ private:
 
 public:
 	TrackingCommand();
+    inline void SetXMin(double xMin){
+    	m_Tracker->SetXMin(xMin);
+    }
+    inline void SetXMax(double xMax){
+    	m_Tracker->SetXMax(xMax);
+    }
+    inline void SetYMin(double yMin){
+    	m_Tracker->SetYMin(yMin);
+    }
+    inline void SetYMax(double yMax){
+    	m_Tracker->SetYMax(yMax);
+    }
+
+    inline void SetZMin(double zMin){
+    	m_Tracker->SetZMin(zMin);
+
+    }
+    inline void SetZMax(double zMax){
+    	m_Tracker->SetZMax(zMax);
+    }
 	virtual ~TrackingCommand();
 
 	inline void SetObservedTissues(const std::vector<TissueDescriptor::Pointer> & input){

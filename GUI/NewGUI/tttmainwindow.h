@@ -20,11 +20,13 @@
 #include "VertexLocationsDrawer.h"
 #include "PrimalGraphDrawer.h"
 #include "DualGraphDrawer.h"
+#include "EllipseDrawer.h"
+
 #include "DefaultColorer.h"
 #include "FeatureColorer.h"
 #include "TrackedCellId.h"
 #include "CellPolygonDrawer.h"
-
+#include "DomainStrainRatesDrawer.h"
 
 #include "VertexAdditionInteractor.h"
 #include "VertexSelectionInteractor.h"
@@ -137,6 +139,7 @@ private slots:
 	void SetupVertexFrame();
 	void SetupSegmentationFrame();
 	void SetupTrackingFrame();
+	void SetupTectonicsFrame();
 
 	void EnhanceAndDraw();
 
@@ -176,6 +179,8 @@ private slots:
 
 
 	void DoTracking();
+	void DoEllipses();
+	void DoTectonics();
 
 
 	void DrawRangePlateness();
@@ -186,6 +191,9 @@ private slots:
 
 	void DrawTracking();
 
+	void DrawTectonics();
+
+	void DrawEllipses();
 
 	void LaunchProjectExplorer();
 	void LaunchPreferences();
@@ -202,9 +210,15 @@ private slots:
 	void ShowPlatenessOnSegmentation(int show);
 	void ShowPlatenessOnVertexLocation(int show);
 	void ShowDualGraphOnCellSegmentation(int show);
+	void ShowTrackedEllipsesAtTectonics(int show);
+
+	void ShowCellStrainRates();
+	void ShowTissueStrainRates();
+	void ShowIntercalationStrainRates();
 private:
 	void SaveSettings();
 	void LoadSettings();
+
 
 
 private:
@@ -228,6 +242,9 @@ private:
     vtkSmartPointer<vtkRenderer> m_VertexLocationRenderer;
     vtkSmartPointer<vtkRenderer> m_CellSegmentationRenderer;
     vtkSmartPointer<vtkRenderer> m_TrackingRenderer;
+    vtkSmartPointer<vtkRenderer> m_TectonicsRenderer;
+    vtkSmartPointer<vtkRenderer> m_InspectionRenderer;
+
 
     //RENDER WINDOWS
 
@@ -240,6 +257,8 @@ private:
     vtkSmartPointer<vtkRenderWindow> m_VertexLocationRenderWindow;
     vtkSmartPointer<vtkRenderWindow> m_CellSegmentationRendererWindow;
     vtkSmartPointer<vtkRenderWindow> m_TrackingRendererWindow;
+    vtkSmartPointer<vtkRenderWindow> m_TectonicsRenderWindow;
+    vtkSmartPointer<vtkRenderWindow> m_InspectionRenderWindow;
 
 
     //RENDER WINDOW INTERACTORS
@@ -253,6 +272,8 @@ private:
     vtkSmartPointer<QVTKInteractor> m_VertexLocationRenderWindowInteractor;
     vtkSmartPointer<QVTKInteractor> m_CellSegmentationRenderWindowInteractor;
     vtkSmartPointer<QVTKInteractor> m_TrackingRenderWindowInteractor;
+    vtkSmartPointer<QVTKInteractor> m_TectonicsRenderWindowInteractor;
+    vtkSmartPointer<QVTKInteractor> m_InspectionRenderWindowInteractor;
 
     //Drawers
 
@@ -271,6 +292,8 @@ private:
     ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalGraphDrawer;
     ttt::PlatenessImageDrawer m_PlatenessDrawerOnSegmentation;
 
+    ttt::EllipseDrawer m_EllipseDrawer;
+
     //TODO put in namespace ttt
 	DefaultColorer<ttt::SkeletonVertexType> m_PrimalGraphVertexColorer;
 	DefaultColorer<ttt::SkeletonEdgeType> m_PrimalGraphEdgeColorer;
@@ -280,12 +303,19 @@ private:
     DefaultColorer<ttt::CellVertexType> m_DualGraphVertexColorer;
     DefaultColorer<ttt::CellEdgeType> m_DualGraphEdgeColorer;
 
-    ttt::DualGraphDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
+    //ttt::DualGraphDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
+
+    ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_PrimalGraphTrackingDrawer;
+    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
 
     ttt::FeatureColorer<TrackedCellId> m_TrackingVertexColorer;
 
     DefaultColorer<ttt::TrackedCellEdgeType> m_TrackingEdgeColorer;
 
+    ttt::DomainStrainRatesDrawer m_DomainStrainRatesDrawer;
+
+
+    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_InspectionDrawer;
 
     //Interactor Styles
 

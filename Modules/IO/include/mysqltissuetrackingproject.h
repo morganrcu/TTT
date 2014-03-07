@@ -77,15 +77,6 @@ public:
 
 private:
 
-
-
-
-
-
-	EllipseMapTypePointer m_TrackedEllipses;
-
-	TrackedDomainVectorTypePointer m_TrackedDomains;
-
 	sql::Driver * m_Driver;
 
 	std::auto_ptr<sql::Connection> m_DB;
@@ -111,35 +102,38 @@ public:
 	TissueTrackingProject() {
 		m_ProjectID = 0;
 		m_TimeDelta = -1;
-		m_Frame=0;
+		m_Frame = 0;
 		m_Driver = sql::mysql::get_driver_instance();
 	}
-	void SetHost(const std::string & host){
-		m_Host=host;
+	void SetHost(const std::string & host) {
+		m_Host = host;
 	}
-	void SetDBName(const std::string & dbname){
-		m_DBName=dbname;
+	void SetDBName(const std::string & dbname) {
+		m_DBName = dbname;
 	}
-	void SetUser(const std::string & user){
-		m_User=user;
+	void SetUser(const std::string & user) {
+		m_User = user;
 	}
-	void SetPassword(const std::string & password){
-		m_Password=password;
+	void SetPassword(const std::string & password) {
+		m_Password = password;
 	}
-	void SetPort(unsigned int port){
+	void SetPort(unsigned int port) {
 		m_Port = port;
 	}
 
-	void SetFrame(int frame){
+	int GetFrame() {
+		return m_Frame;
+	}
+	void SetFrame(int frame) {
 		this->Flush();
-		m_Frame=frame;
+		m_Frame = frame;
 		this->Clear();
 	}
 	bool openDB() {
 
 		try {
 			m_DB = std::auto_ptr<sql::Connection>(
-					m_Driver->connect(m_Host,m_User, m_Password));
+					m_Driver->connect(m_Host, m_User, m_Password));
 			m_DB->setSchema(m_DBName);
 			return true;
 		} catch (sql::SQLException &e) {
@@ -329,8 +323,6 @@ public:
 		return 0;
 	}
 
-
-
 	inline void SetProjectID(int ProjectID) {
 		m_ProjectID = ProjectID;
 	}
@@ -342,60 +334,78 @@ public:
 
 	}
 
-	void Flush(){
-		if(this->m_RawImageDirty){
+	void Flush() {
+		if (this->m_RawImageDirty) {
 			this->StoreRawImage();
 		}
-		if(this->m_CLAHEDImageDirty){
+		if (this->m_CLAHEDImageDirty) {
 			this->StoreCLAHEDImage();
 		}
-		if(this->m_LateralImageVolumeSegmentedImageDirty){
+		if (this->m_LateralImageVolumeSegmentedImageDirty) {
 			this->StoreLateralImageVolumeSegmentedImage();
 		}
-		if(this->m_SurfaceSegmentedImageDirty){
+		if (this->m_SurfaceSegmentedImageDirty) {
 			this->StoreSurfaceSegmentedImage();
 		}
-		if(this->m_DiffusedImageDirty){
+		if (this->m_DiffusedImageDirty) {
 			this->StoreDiffusedImage();
 		}
-		if(this->m_PlatenessImageDirty){
+		if (this->m_PlatenessImageDirty) {
 			this->StorePlatenessImage();
 		}
-		if(this->m_VertexnessImageDirty){
+		if (this->m_VertexnessImageDirty) {
 			this->StoreVertexnessImage();
 		}
-		if(this->m_VertexLocationsDirty){
+		if (this->m_VertexLocationsDirty) {
 			this->StoreVertexLocations();
 		}
-		if(this->m_TissueDescriptorDirty){
+		if (this->m_TissueDescriptorDirty) {
 			this->StoreTissueDescriptor();
 		}
-
-		if(this->m_TrackedTissueDescriptorDirty){
-			//this->StoreTrackedTissueDescriptor();
+		if (this->m_TrackedTissueDescriptorDirty) {
+			this->StoreTrackedTissueDescriptor();
+		}
+		if (this->m_TrackedEllipsesDirty){
+			this->StoreTrackedEllipses();
+		}
+		if (this->m_DomainStrainRatesDirty){
+			this->StoreDomainStrainRates();
 		}
 	}
-	void Clear(){
-		this->m_RawImage=0;
-		this->m_CLAHEDImage=0;
-		this->m_LateralImageVolumeSegmentedImage=0;
-		this->m_SurfaceSegmentedImage=0;
-		this->m_DiffusedImage=0;
-		this->m_PlatenessImage=0;
-		this->m_VertexnessImage=0;
-		this->m_VertexLocations=0;
-		//this->m_TrackedTissueDescriptor=0;
-		this->m_TissueDescriptor=0;
+	void Clear() {
+
+		this->m_RawImage = 0;
+		this->m_CLAHEDImage = 0;
+		this->m_LateralImageVolumeSegmentedImage = 0;
+		this->m_SurfaceSegmentedImage = 0;
+		this->m_DiffusedImage = 0;
+		this->m_PlatenessImage = 0;
+		this->m_VertexnessImage = 0;
+		this->m_VertexLocations = 0;
+		this->m_TissueDescriptor = 0;
+		this->m_TrackedTissueDescriptor=0;
+
+		this->m_RawImageLoaded=false;
+		this->m_CLAHEDImageLoaded=false;
+		this->m_LateralImageVolumeSegmentedImageLoaded=false;
+		this->m_SurfaceSegmentedImageLoaded=false;
+		this->m_DiffusedImageLoaded=false;
+		this->m_PlatenessImageLoaded=false;
+		this->m_VertexnessImageLoaded=false;
+		this->m_VertexLocationsLoaded=false;
+		this->m_TissueDescriptorLoaded=false;
+		this->m_TrackedTissueDescriptorLoaded=false;
 	}
 
 #define tttDefineImageMacro(name,type) \
 	type::Pointer m_##name;\
-	bool m_##name##Dirty=false;
+	bool m_##name##Dirty=false;\
+	bool m_##name##Loaded=false;
 
 #define tttGetImageMacro(name, type) \
 virtual  type::Pointer  Get##name()  \
 {										\
-	if(!m_##name) Load##name(); \
+	if(!m_##name##Loaded) Load##name(); \
 	return m_##name;						\
 }										\
 
@@ -403,8 +413,8 @@ virtual  type::Pointer  Get##name()  \
 virtual  void Set##name(const type::Pointer & arg)  \
 {										\
 	m_##name##Dirty=true;\
+	m_##name##Loaded=true;\
 	m_##name=arg;						\
-	Store##name(); \
 }										\
 
 #define tttLoadImageMacro(name, type,tablename) \
@@ -412,6 +422,7 @@ virtual  void Load##name()  \
 {										\
 	m_##name=readImageFromTable< type >(tablename, m_Frame);						\
 	m_##name##Dirty=false; \
+	m_##name##Loaded=true; \
 } \
 
 #define tttStoreImageMacro(name, type,tablename) \
@@ -446,32 +457,34 @@ public: \
 
 	/////////////////////////////////// Images /////////////////////////////////////////////
 
-	tttImageMacro(RawImage,RawImageType,"RawImages");
-	tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages");
-	tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages");
-	tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages");
-	tttImageMacro(DiffusedImage,DiffusedImageType,"DiffusedImages");
-	tttImageMacro(PlatenessImage,PlatenessImageType,"PlatenessImages");
-	tttImageMacro(VertexnessImage,VertexnessImageType,"VertexnessImages");
-
+tttImageMacro(RawImage,RawImageType,"RawImages")
+	;tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages")
+	;tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages")
+	;tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages")
+	;tttImageMacro(DiffusedImage,DiffusedImageType,"DiffusedImages")
+	;tttImageMacro(PlatenessImage,PlatenessImageType,"PlatenessImages")
+	;tttImageMacro(VertexnessImage,VertexnessImageType,"VertexnessImages")
+	;
 
 /////////////////////////////////// Vertex Locations/////////////////////////////////////////////
 private:
 	ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
-	bool m_VertexLocationsDirty=false;
+	bool m_VertexLocationsDirty = false;
+	bool m_VertexLocationsLoaded = false;
 
 public:
 
 	ttt::AdherensJunctionVertices::Pointer GetVertexLocations() {
-		if(!m_VertexLocations) LoadVertexLocations();
+		if (!m_VertexLocationsLoaded) LoadVertexLocations();
 		return m_VertexLocations;
 	}
 
-	void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & vertexLocations) {
-		m_VertexLocations=vertexLocations;
-		m_VertexLocationsDirty=true;
+	void SetVertexLocations(
+			const ttt::AdherensJunctionVertices::Pointer & vertexLocations) {
+		m_VertexLocations = vertexLocations;
+		m_VertexLocationsDirty = true;
+		bool m_VertexLocationsLoaded = true;
 	}
-
 
 	void LoadVertexLocations() {
 		m_VertexLocations = ttt::AdherensJunctionVertices::New();
@@ -517,83 +530,82 @@ public:
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
 		}
-		m_VertexLocationsDirty=false;
+		m_VertexLocationsDirty = false;
+		bool m_VertexLocationsLoaded = true;
 	}
-
 
 	void StoreVertexLocations() {
 
-			try {
+		try {
 
-				std::string deleteString(
-						"DELETE from VertexLocations WHERE idProject=? AND t=?");
+			std::string deleteString(
+					"DELETE from VertexLocations WHERE idProject=? AND t=?");
 
-				std::auto_ptr<sql::PreparedStatement> delete_stmt(
-						m_DB->prepareStatement(deleteString));
+			std::auto_ptr<sql::PreparedStatement> delete_stmt(
+					m_DB->prepareStatement(deleteString));
 
-				delete_stmt->setInt(1, m_ProjectID); //IDproject==2
-				delete_stmt->setInt(2, m_Frame); //t==0
-				delete_stmt->execute();
+			delete_stmt->setInt(1, m_ProjectID); //IDproject==2
+			delete_stmt->setInt(2, m_Frame); //t==0
+			delete_stmt->execute();
 
-				std::string insertString(
-						"INSERT INTO VertexLocations (idProject,t,pointX,pointY,pointZ) VALUES (?,?,?,?,?)");
+			std::string insertString(
+					"INSERT INTO VertexLocations (idProject,t,pointX,pointY,pointZ) VALUES (?,?,?,?,?)");
 
-				std::auto_ptr<sql::PreparedStatement> insert_stmt(
-						m_DB->prepareStatement(insertString));
-				std::auto_ptr<sql::Statement> transStatement(
-						m_DB->createStatement());
-				transStatement->execute("START TRANSACTION;");
-				for (ttt::AdherensJunctionVertices::const_iterator it =
-						m_VertexLocations->begin(); it != m_VertexLocations->end();
-						it++) {
+			std::auto_ptr<sql::PreparedStatement> insert_stmt(
+					m_DB->prepareStatement(insertString));
+			std::auto_ptr<sql::Statement> transStatement(
+					m_DB->createStatement());
+			transStatement->execute("START TRANSACTION;");
+			for (ttt::AdherensJunctionVertices::const_iterator it =
+					m_VertexLocations->begin(); it != m_VertexLocations->end();
+					it++) {
 
-					ttt::AdherensJunctionVertex::Pointer p = *it;
+				ttt::AdherensJunctionVertex::Pointer p = *it;
 
-					insert_stmt->setInt(1, m_ProjectID);
-					insert_stmt->setInt(2, m_Frame);
-					insert_stmt->setInt(3, p->GetPosition()[0]);
-					insert_stmt->setInt(4, p->GetPosition()[1]);
-					insert_stmt->setInt(5, p->GetPosition()[2]);
-					insert_stmt->execute();
-				}
-				transStatement->execute("COMMIT;");
-			} catch (sql::SQLException &e) {
-				/*
-				 The MySQL Connector/C++ throws three different exceptions:
-
-				 - sql::MethodNotImplementedException (derived from sql::SQLException)
-				 - sql::InvalidArgumentException (derived from sql::SQLException)
-				 - sql::SQLException (derived from std::runtime_error)
-				 */
-				cout << "# ERR: SQLException in " << __FILE__;
-				//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-				/* Use what() (derived from std::runtime_error) to fetch the error message */
-				cout << "# ERR: " << e.what();
-				cout << " (MySQL error code: " << e.getErrorCode();
-				cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-
+				insert_stmt->setInt(1, m_ProjectID);
+				insert_stmt->setInt(2, m_Frame);
+				insert_stmt->setInt(3, p->GetPosition()[0]);
+				insert_stmt->setInt(4, p->GetPosition()[1]);
+				insert_stmt->setInt(5, p->GetPosition()[2]);
+				insert_stmt->execute();
 			}
-			m_VertexLocationsDirty=false;
+			transStatement->execute("COMMIT;");
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
 		}
-
-
+		m_VertexLocationsDirty = false;
+	}
 
 	inline bool IsVertexLocationsReady() {
-		//TODO return this->isImageInTable("VertexLocations", m_Frame);
+		//TODO
 		return true;
 	}
 
-	inline void SetVertexLocationsDirty(){
-		m_VertexLocationsDirty=true;
-		this->StoreVertexLocations();
+	inline void SetVertexLocationsDirty() {
+		m_VertexLocationsDirty = true;
+//		this->StoreVertexLocations();
 	}
 //////////////////////////////////Tissue Descriptor/////////////////////////////////////////////
 private:
 	TissueDescriptorType::Pointer m_TissueDescriptor;
-	bool m_TissueDescriptorDirty=false;
+	bool m_TissueDescriptorDirty = false;
+	bool m_TissueDescriptorLoaded=false;
 public:
 
-	void LoadTissueDescriptor(){
+	void LoadTissueDescriptor() {
 		m_TissueDescriptor = TissueDescriptorType::New();
 
 		{
@@ -676,7 +688,7 @@ public:
 
 				{
 					std::string queryCellMembraneString(
-							"SELECT idCell,idMembranePoint FROM Cell_has_MembranePoint WHERE Cell_has_MembranePoint.idProject=? AND Cell_has_MembranePoint.t=? AND Cell_has_MembranePoint.idTissue=? AND Cell_has_MembranePoint.idCell=?");
+							"SELECT idCell,idMembranePoint,`order` FROM Cell_has_MembranePoint WHERE Cell_has_MembranePoint.idProject=? AND Cell_has_MembranePoint.t=? AND Cell_has_MembranePoint.idTissue=? AND Cell_has_MembranePoint.idCell=? ORDER BY `Cell_has_MembranePoint`.`order` ASC");
 
 					std::auto_ptr<sql::PreparedStatement> queryCellMembrane(
 							m_DB->prepareStatement(queryCellMembraneString));
@@ -724,13 +736,14 @@ public:
 	}
 
 	inline typename TissueDescriptorType::Pointer GetTissueDescriptor() {
-		if(!m_TissueDescriptor) LoadTissueDescriptor();
+		if (!m_TissueDescriptorLoaded)
+			LoadTissueDescriptor();
 		return m_TissueDescriptor;
 	}
 
-	void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor){
-		m_TissueDescriptor=descriptor;
-		m_TissueDescriptorDirty=true;
+	void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor) {
+		m_TissueDescriptor = descriptor;
+		m_TissueDescriptorDirty = true;
 		StoreTissueDescriptor();
 	}
 
@@ -1073,180 +1086,185 @@ public:
 		exit(-1);
 	}
 		transStatement->execute("COMMIT;");
-		m_TissueDescriptorDirty=false;
+		m_TissueDescriptorDirty = false;
 	}
 
-	void SetTissueDescriptorDirty(){
-		m_TissueDescriptorDirty=true;
+	void SetTissueDescriptorDirty() {
+		m_TissueDescriptorDirty = true;
 	}
 	inline bool IsTissueDescriptorReady() {
-		return true; //TODO
+		return true;
 	}
-
-
 
 
 	//////////////////////////////??TRACKED TISSUE DESCRIPTOR/////////////////////////////////////
 private:
-	TrackedTissueDescriptorType::Pointer m_TrackedTissueDescriptor[10];
-	bool m_TrackedTissueDescriptorDirty=false;
+	TrackedTissueDescriptorType::Pointer m_TrackedTissueDescriptor;
+
+	bool m_TrackedTissueDescriptorDirty = false;
+	bool m_TrackedTissueDescriptorLoaded=false;
 public:
-	void LoadTrackedTissueDescriptor(){
-#if 0
+	inline bool IsTrackedTissueDescriptorReady(){
+		return true;
+	}
+	void LoadTrackedTissueDescriptor() {
+
 		m_TrackedTissueDescriptor = TrackedTissueDescriptorType::New();
 
+		{
+			std::string queryMembranePointsString(
+					"SELECT idTrackedMembranePoint,posX,posY,posZ FROM TrackedMembranePoint WHERE TrackedMembranePoint.idProject=? AND TrackedMembranePoint.t=? AND TrackedMembranePoint.idTissue=? ORDER BY idTrackedMembranePoint ASC");
+
+			std::auto_ptr<sql::PreparedStatement> queryMembranePoints(
+					m_DB->prepareStatement(queryMembranePointsString));
+
+			queryMembranePoints->setInt(1, m_ProjectID); //IDproject==2
+			queryMembranePoints->setInt(2, m_Frame); //IDproject==2
+			queryMembranePoints->setInt(3, 0); //IDproject==2
+			queryMembranePoints->execute();
+
+			std::auto_ptr<sql::ResultSet> resMembranePoints(
+					queryMembranePoints->getResultSet());
+
+			while (resMembranePoints->next()) {
+
+				ttt::SkeletonPoint newPoint;
+				newPoint.position[0] = resMembranePoints->getDouble("posX");
+				newPoint.position[1] = resMembranePoints->getDouble("posY");
+				newPoint.position[2] = resMembranePoints->getDouble("posZ");
+				ttt::SkeletonVertexType vertex = boost::add_vertex(newPoint,
+						*m_TrackedTissueDescriptor->m_SkeletonGraph);
+
+				assert(
+						vertex
+								== resMembranePoints->getInt(
+										"idTrackedMembranePoint"));
+
+			}
+
+		}
+
+		{
+			std::string queryMembraneEdgesString(
+					"SELECT idTrackedMembranePoint1,idTrackedMembranePoint2 FROM TrackedMembranePoint_linkedTo_TrackedMembranePoint WHERE TrackedMembranePoint_linkedTo_TrackedMembranePoint.idProject=? AND TrackedMembranePoint_linkedTo_TrackedMembranePoint.t=? AND TrackedMembranePoint_linkedTo_TrackedMembranePoint.idTissue=?");
+
+			std::auto_ptr<sql::PreparedStatement> queryMembraneEdges(
+					m_DB->prepareStatement(queryMembraneEdgesString));
+
+			queryMembraneEdges->setInt(1, m_ProjectID); //IDproject==2
+			queryMembraneEdges->setInt(2, m_Frame); //IDproject==2
+			queryMembraneEdges->setInt(3, 0); //IDproject==2
+			queryMembraneEdges->execute();
+
+			std::auto_ptr<sql::ResultSet> resMembraneEdges(
+					queryMembraneEdges->getResultSet());
+
+			while (resMembraneEdges->next()) {
+				boost::add_edge(
+						resMembraneEdges->getInt("idTrackedMembranePoint1"),
+						resMembraneEdges->getInt("idTrackedMembranePoint2"),
+						*m_TrackedTissueDescriptor->m_SkeletonGraph);
+			}
+
+		}
+
+		{
+
+			std::string queryCellString(
+					"SELECT idTrackedCell,idCell,trackID,posX,posY,posZ,velX,velY,velZ FROM TrackedCell WHERE TrackedCell.idProject=? AND TrackedCell.t=? AND TrackedCell.idTissue=? ORDER BY idTrackedCell ASC");
+
+			std::auto_ptr<sql::PreparedStatement> queryCell(
+					m_DB->prepareStatement(queryCellString));
+
+			queryCell->setInt(1, m_ProjectID); //IDproject==2
+			queryCell->setInt(2, m_Frame); //IDproject==2
+			queryCell->setInt(3, 0); //IDproject==2
+			queryCell->execute();
+
+			std::auto_ptr<sql::ResultSet> resCell(queryCell->getResultSet());
+
+			while (resCell->next()) {
+				ttt::TrackedCell newCell;
+				newCell.m_Centroid[0] = resCell->getDouble("posX");
+				newCell.m_Centroid[1] = resCell->getDouble("posY");
+				newCell.m_Centroid[2] = resCell->getDouble("posZ");
+
+				newCell.m_Velocity[0] = resCell->getDouble("velX");
+				newCell.m_Velocity[1] = resCell->getDouble("velY");
+				newCell.m_Velocity[2] = resCell->getDouble("velZ");
+
+				newCell.m_ID = resCell->getInt("trackID");
+				newCell.m_ObservedCell = resCell->getInt("idCell");
+
+				ttt::TrackedCellVertexType vertex = boost::add_vertex(newCell,
+						*m_TrackedTissueDescriptor->m_CellGraph);
+
+				assert(vertex == resCell->getInt("idTrackedCell"));
+
 				{
-					std::string queryMembranePointsString(
-							"SELECT idTrackedMembranePoint,posX,posY,posZ FROM TrackedMembranePoint WHERE TrackedMembranePoint.idProject=? AND TrackedMembranePoint.t=? AND TrackedMembranePoint.idTissue=? ORDER BY idTrackedMembranePoint ASC");
+					std::string queryTrackedCellMembraneString(
+							"SELECT idTrackedCell,idTrackedMembranePoint,`order` FROM TrackedCell_has_TrackedMembranePoint WHERE TrackedCell_has_TrackedMembranePoint.idProject=? AND TrackedCell_has_TrackedMembranePoint.t=? AND TrackedCell_has_TrackedMembranePoint.idTissue=? AND TrackedCell_has_TrackedMembranePoint.idTrackedCell=? ORDER BY `order` ASC ");
 
-					std::auto_ptr<sql::PreparedStatement> queryMembranePoints(
-							m_DB->prepareStatement(queryMembranePointsString));
+					std::auto_ptr<sql::PreparedStatement> queryTrackedCellMembrane(
+							m_DB->prepareStatement(
+									queryTrackedCellMembraneString));
 
-					queryMembranePoints->setInt(1, m_ProjectID); //IDproject==2
-					queryMembranePoints->setInt(2, m_Frame); //IDproject==2
-					queryMembranePoints->setInt(3, 0); //IDproject==2
-					queryMembranePoints->execute();
+					queryTrackedCellMembrane->setInt(1, m_ProjectID); //IDproject==2
+					queryTrackedCellMembrane->setInt(2, m_Frame); //IDproject==2
+					queryTrackedCellMembrane->setInt(3, 0); //IDproject==2
+					queryTrackedCellMembrane->setInt(4, vertex); //IDproject==2
+					queryTrackedCellMembrane->execute();
 
-					std::auto_ptr<sql::ResultSet> resMembranePoints(
-							queryMembranePoints->getResultSet());
+					std::auto_ptr<sql::ResultSet> resTrackedCellMembrane(
+							queryTrackedCellMembrane->getResultSet());
 
-					while (resMembranePoints->next()) {
-
-						ttt::SkeletonPoint newPoint;
-						newPoint.position[0] = resMembranePoints->getDouble("posX");
-						newPoint.position[1] = resMembranePoints->getDouble("posY");
-						newPoint.position[2] = resMembranePoints->getDouble("posZ");
-						ttt::SkeletonVertexType vertex = boost::add_vertex(newPoint,
-								*m_TrackedTissueDescriptor->m_SkeletonGraph);
-
-						assert(
-								vertex
-										== resMembranePoints->getInt(
-												"idTrackedMembranePoint"));
-
-					}
-
-				}
-
-				{
-					std::string queryMembraneEdgesString(
-							"SELECT idTrackedMembranePoint1,idTrackedMembranePoint2 FROM TrackedMembranePoint_linkedTo_TrackedMembranePoint WHERE TrackedMembranePoint_linkedTo_TrackedMembranePoint.idProject=? AND TrackedMembranePoint_linkedTo_TrackedMembranePoint.t=? AND TrackedMembranePoint_linkedTo_TrackedMembranePoint.idTissue=?");
-
-					std::auto_ptr<sql::PreparedStatement> queryMembraneEdges(
-							m_DB->prepareStatement(queryMembraneEdgesString));
-
-					queryMembraneEdges->setInt(1, m_ProjectID); //IDproject==2
-					queryMembraneEdges->setInt(2, m_Frame); //IDproject==2
-					queryMembraneEdges->setInt(3, 0); //IDproject==2
-					queryMembraneEdges->execute();
-
-					std::auto_ptr<sql::ResultSet> resMembraneEdges(
-							queryMembraneEdges->getResultSet());
-
-					while (resMembraneEdges->next()) {
-						boost::add_edge(
-								resMembraneEdges->getInt("idTrackedMembranePoint1"),
-								resMembraneEdges->getInt("idTrackedMembranePoint2"),
-								*m_TrackedTissueDescriptor->m_SkeletonGraph);
-					}
-
-				}
-
-				{
-
-					std::string queryCellString(
-							"SELECT idTrackedCell,idCell,trackID,posX,posY,posZ,velX,velY,velZ FROM TrackedCell WHERE TrackedCell.idProject=? AND TrackedCell.t=? AND TrackedCell.idTissue=? ORDER BY idTrackedCell ASC");
-
-					std::auto_ptr<sql::PreparedStatement> queryCell(
-							m_DB->prepareStatement(queryCellString));
-
-					queryCell->setInt(1, m_ProjectID); //IDproject==2
-					queryCell->setInt(2, m_Frame); //IDproject==2
-					queryCell->setInt(3, 0); //IDproject==2
-					queryCell->execute();
-
-					std::auto_ptr<sql::ResultSet> resCell(queryCell->getResultSet());
-
-					while (resCell->next()) {
-						ttt::TrackedCell newCell;
-						newCell.m_Centroid[0] = resCell->getDouble("posX");
-						newCell.m_Centroid[1] = resCell->getDouble("posY");
-						newCell.m_Centroid[2] = resCell->getDouble("posZ");
-
-						newCell.m_Velocity[0] = resCell->getDouble("velX");
-						newCell.m_Velocity[1] = resCell->getDouble("velY");
-						newCell.m_Velocity[2] = resCell->getDouble("velZ");
-
-						newCell.m_ID = resCell->getInt("trackID");
-						newCell.m_ObservedCell = resCell->getInt("idCell");
-
-						ttt::TrackedCellVertexType vertex = boost::add_vertex(newCell,
-								*m_TrackedTissueDescriptor->m_CellGraph);
-
-						assert(vertex == resCell->getInt("idTrackedCell"));
-
-						{
-							std::string queryTrackedCellMembraneString(
-									"SELECT idTrackedCell,idTrackedMembranePoint FROM TrackedCell_has_TrackedMembranePoint WHERE TrackedCell_has_TrackedMembranePoint.idProject=? AND TrackedCell_has_TrackedMembranePoint.t=? AND TrackedCell_has_TrackedMembranePoint.idTissue=? AND TrackedCell_has_TrackedMembranePoint.idTrackedCell=?");
-
-							std::auto_ptr<sql::PreparedStatement> queryTrackedCellMembrane(
-									m_DB->prepareStatement(
-											queryTrackedCellMembraneString));
-
-							queryTrackedCellMembrane->setInt(1, m_ProjectID); //IDproject==2
-							queryTrackedCellMembrane->setInt(2, m_Frame); //IDproject==2
-							queryTrackedCellMembrane->setInt(3, 0); //IDproject==2
-							queryTrackedCellMembrane->setInt(4, vertex); //IDproject==2
-							queryTrackedCellMembrane->execute();
-
-							std::auto_ptr<sql::ResultSet> resTrackedCellMembrane(
-									queryTrackedCellMembrane->getResultSet());
-
-							while (resTrackedCellMembrane->next()) {
-								boost::get(ttt::TrackedCellPropertyTag(),
-										*m_TrackedTissueDescriptor->m_CellGraph, vertex).AddSkeletonPoint(
-										resTrackedCellMembrane->getInt(
-												"idTrackedMembranePoint"));
-							}
-						}
-
+					while (resTrackedCellMembrane->next()) {
+						boost::get(ttt::TrackedCellPropertyTag(),
+								*m_TrackedTissueDescriptor->m_CellGraph, vertex).AddSkeletonPoint(
+								resTrackedCellMembrane->getInt(
+										"idTrackedMembranePoint"));
 					}
 				}
 
-				{
-					std::string queryCellEdgesString(
-							"SELECT idTrackedCell1,idTrackedCell2 FROM TrackedCell_neighbor_of_TrackedCell WHERE TrackedCell_neighbor_of_TrackedCell.idProject=? AND TrackedCell_neighbor_of_TrackedCell.t=? AND TrackedCell_neighbor_of_TrackedCell.idTissue=?");
+			}
+		}
 
-					std::auto_ptr<sql::PreparedStatement> queryCellEdges(
-							m_DB->prepareStatement(queryCellEdgesString));
+		{
+			std::string queryCellEdgesString(
+					"SELECT idTrackedCell1,idTrackedCell2 FROM TrackedCell_neighbor_of_TrackedCell WHERE TrackedCell_neighbor_of_TrackedCell.idProject=? AND TrackedCell_neighbor_of_TrackedCell.t=? AND TrackedCell_neighbor_of_TrackedCell.idTissue=?");
 
-					queryCellEdges->setInt(1, m_ProjectID); //IDproject==2
-					queryCellEdges->setInt(2, m_Frame); //IDproject==2
-					queryCellEdges->setInt(3, 0); //IDproject==2
-					queryCellEdges->execute();
+			std::auto_ptr<sql::PreparedStatement> queryCellEdges(
+					m_DB->prepareStatement(queryCellEdgesString));
 
-					std::auto_ptr<sql::ResultSet> resCellEdges(
-							queryCellEdges->getResultSet());
+			queryCellEdges->setInt(1, m_ProjectID); //IDproject==2
+			queryCellEdges->setInt(2, m_Frame); //IDproject==2
+			queryCellEdges->setInt(3, 0); //IDproject==2
+			queryCellEdges->execute();
 
-					while (resCellEdges->next()) {
-						boost::add_edge(resCellEdges->getInt("idTrackedCell1"),
-								resCellEdges->getInt("idTrackedCell2"),
-								*m_TrackedTissueDescriptor->m_CellGraph);
-					}
-				}
-#endif
+			std::auto_ptr<sql::ResultSet> resCellEdges(
+					queryCellEdges->getResultSet());
+
+			while (resCellEdges->next()) {
+				boost::add_edge(resCellEdges->getInt("idTrackedCell1"),
+						resCellEdges->getInt("idTrackedCell2"),
+						*m_TrackedTissueDescriptor->m_CellGraph);
+			}
+		}
+		m_TrackedTissueDescriptorLoaded=true;
 	}
 	inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor() {
-		return m_TrackedTissueDescriptor[m_Frame]; //FIXME
+		if(!m_TrackedTissueDescriptorLoaded) LoadTrackedTissueDescriptor();
+		return m_TrackedTissueDescriptor;
 	}
 
-	void SetTrackedTissueDescriptor(TrackedTissueDescriptorType::Pointer trackedTissueDescriptor){
-		m_TrackedTissueDescriptor[m_Frame]=trackedTissueDescriptor;
-		m_TrackedTissueDescriptorDirty=true;
-		//StoreTrackedTissueDescriptor();
+	void SetTrackedTissueDescriptor(
+			TrackedTissueDescriptorType::Pointer trackedTissueDescriptor) {
+		m_TrackedTissueDescriptor = trackedTissueDescriptor;
+		m_TrackedTissueDescriptorDirty = true;
+		m_TrackedTissueDescriptorLoaded = true;
 	}
-	void StoreTrackedTissueDescriptor(){
-#if 0
+	void StoreTrackedTissueDescriptor() {
+
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
 
@@ -1419,15 +1437,19 @@ public:
 			insertCell_stmt->setInt(1,m_ProjectID);
 			insertCell_stmt->setInt(2,m_Frame);
 			insertCell_stmt->setInt(3,0);
+
 			insertCell_stmt->setInt(4,v);
 			insertCell_stmt->setInt(5,-1); //TODO obtain from ???
 			insertCell_stmt->setInt(6,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_ID);
+
 			insertCell_stmt->setDouble(7,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[0]);
 			insertCell_stmt->setDouble(8,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[1]);
 			insertCell_stmt->setDouble(9,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[2]);
+
 			insertCell_stmt->setDouble(10,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Velocity[0]);
 			insertCell_stmt->setDouble(11,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Velocity[1]);
 			insertCell_stmt->setDouble(12,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Velocity[2]);
+
 			insertCell_stmt->execute();
 		}
 	} catch(sql::SQLException &e) {
@@ -1486,14 +1508,14 @@ public:
 		try {
 
 			std::string insertTrackedCellToMembranePointString(
-					"INSERT IGNORE INTO TrackedCell_has_TrackedMembranePoint(idProject,t,idTissue,idTrackedCell,idTrackedMembranePoint) VALUES (?,?,?,?,?)");
+					"INSERT IGNORE INTO TrackedCell_has_TrackedMembranePoint(idProject,t,idTissue,idTrackedCell,idTrackedMembranePoint,`order`) VALUES (?,?,?,?,?,?)");
 
 			std::auto_ptr<sql::PreparedStatement> insertTrackedCellToTrackedMembranePointString_stmt(
 					m_DB->prepareStatement(
 							insertTrackedCellToMembranePointString));
 
 			BGL_FORALL_VERTICES(v,*m_TrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
-
+			int order=0;
 			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).Begin();
 					it!=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).End();
 					it++) {
@@ -1503,7 +1525,9 @@ public:
 				insertTrackedCellToTrackedMembranePointString_stmt->setInt(3,0);
 				insertTrackedCellToTrackedMembranePointString_stmt->setInt(4,v);
 				insertTrackedCellToTrackedMembranePointString_stmt->setInt(5,*it);
+				insertTrackedCellToTrackedMembranePointString_stmt->setInt(6,order);
 				insertTrackedCellToTrackedMembranePointString_stmt->execute();
+				order++;
 			}
 		}
 
@@ -1525,12 +1549,17 @@ public:
 
 	}
 		transStatement->execute("COMMIT;");
-#endif
+		m_TrackedTissueDescriptorDirty=false;
+
 	}
 
-
 	////////////////////////////TRACKED ELLIPSES/////////////////////////////////
-	void LoadTrackedEllipses(){
+private:
+	EllipseMapTypePointer m_TrackedEllipses;
+	bool m_TrackedEllipsesDirty;
+
+public:
+	void LoadTrackedEllipses() {
 		m_TrackedEllipses = boost::shared_ptr<EllipseMapType>(
 				new EllipseMapType);
 
@@ -1557,18 +1586,104 @@ public:
 			ellipse.m_Xcent = resTrackedEllipses->getDouble("posY");
 			(*m_TrackedEllipses)[resTrackedEllipses->getInt("idTrackedCell")] =
 					ellipse;
-
 		}
 	}
 
-	EllipseMapTypePointer GetTrackedEllipses(unsigned int frame) {
+	EllipseMapTypePointer GetTrackedEllipses() {
+		this->LoadTrackedEllipses();
 		return m_TrackedEllipses;
 	}
-	////////////////////////////TRACKED DOMAINS/////////////////////////////////
 
-	void LoadTrackedDomains(){
+	void SetTrackedEllipses(const EllipseMapTypePointer & trackedEllipses) {
+		m_TrackedEllipses = trackedEllipses;
+		m_TrackedEllipsesDirty = true;
+		this->StoreTrackedEllipses();
+	}
+	void StoreTrackedEllipses() {
+		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
+		transStatement->execute("START TRANSACTION;");
+
+		try {
+
+			std::string insertTrackedEllipsesString(
+					"INSERT INTO TrackedEllipse(idProject,t,idTissue,idTrackedCell,majorR,minorR,rotR,posX,posY) VALUES (?,?,?,?,?,?,?,?,?)");
+
+			std::auto_ptr<sql::PreparedStatement> insertTrackedEllipses_stmt(
+					m_DB->prepareStatement(insertTrackedEllipsesString));
+
+			for (EllipseMapType::iterator it = m_TrackedEllipses->begin();
+					it != m_TrackedEllipses->end(); it++) {
+				insertTrackedEllipses_stmt->setInt(1, m_ProjectID);
+				insertTrackedEllipses_stmt->setInt(2, m_Frame);
+				insertTrackedEllipses_stmt->setInt(3, 0);
+				insertTrackedEllipses_stmt->setInt(4, it->first);
+				insertTrackedEllipses_stmt->setDouble(5, it->second.m_Xrad);
+				insertTrackedEllipses_stmt->setDouble(6, it->second.m_Yrad);
+				insertTrackedEllipses_stmt->setDouble(7, it->second.m_Theta);
+				insertTrackedEllipses_stmt->setDouble(8, it->second.m_Xcent);
+				insertTrackedEllipses_stmt->setDouble(9, it->second.m_Ycent);
+				insertTrackedEllipses_stmt->execute();
+			}
+
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//cout << insertCellEdgeString << std::endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+		transStatement->execute("COMMIT;");
+	}
+
+	bool IsTrackedEllipsesReady() {
+		try {
+			std::string trackedEllipsesReadyQuery(
+					"SELECT COUNT(*) FROM  TrackedEllipse WHERE TrackedEllipse.idProject=? AND TrackedEllipse.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(trackedEllipsesReadyQuery));
+
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getInt("COUNT(*)") >= 1;
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+		}
+		return false;
+	}
+	////////////////////////////TRACKED DOMAINS/////////////////////////////////
+private:
+	TrackedDomainVectorTypePointer m_TrackedDomains;
+	bool m_TrackedDomainsDirty;
+public:
+	void LoadTrackedDomains() {
 		std::string selectTrackedDomainsString(
-				"SELECT idTrackedCell,order FROM TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=? AND TrackedDomain.idTissue=? ORDER BY TrackedDomain.idTrackedCell ASC");
+				"SELECT idTrackedCell,`order` FROM TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=? AND TrackedDomain.idTissue=? ORDER BY TrackedDomain.idTrackedCell ASC");
 		std::auto_ptr<sql::PreparedStatement> selectTrackedDomains_stmt(
 				m_DB->prepareStatement(selectTrackedDomainsString));
 
@@ -1614,122 +1729,27 @@ public:
 			m_TrackedDomains->push_back(domain);
 		}
 	}
+
 	TrackedDomainVectorTypePointer GetTrackedDomains() {
+		LoadTrackedDomains();
 		return m_TrackedDomains;
 	}
 
-	void LoadDomainStrainRates(){
-
-		boost::shared_ptr<DomainStrainRatesMapType> result = boost::shared_ptr<
-						DomainStrainRatesMapType>(new DomainStrainRatesMapType);
-		#if 0
-				try {
-					{
-						//std::string selectTissueStrainRatesString("SELECT (TissueStrainRates.idTrackedCell,TissueStrainRates.data,CellStrainRates.data,IntercalationStrainRates.data) FROM TissueStrainRates INNER JOIN CellStrainRates ON TissueStrainRates.CellId= ,IntercalationStrainRates WHERE TissueStrainRates.idProject=? AND TissueStrainRates.t=? AND TissueStrainRates.idTissue=?");
-
-						std::auto_ptr< sql::PreparedStatement > insertTissueStrainRates_stmt(m_DB->prepareStatement(insertTissueStrainRatesString));
-
-						for(DomainStrainRatesMapType::iterator it=domainStrainRates->begin();it!=domainStrainRates->end();it++) {
-							insertTissueStrainRates_stmt->setInt(1,m_ProjectID);
-							insertTissueStrainRates_stmt->setInt(2,frame);
-							insertTissueStrainRates_stmt->setInt(3,0);
-							insertTissueStrainRates_stmt->setInt(4,it->first);
-
-							typedef boost::iostreams::stream<boost::iostreams::array_source> array_stream;
-							array_stream is((char*)it->second.Tissue_SRT.data_block(), it->second.Tissue_SRT.size()*sizeof(Tensor::element_type));
-							insertTissueStrainRates_stmt->setBlob(5,&is);
-
-							insertTissueStrainRates_stmt->execute();
-						}
-					}
-					{
-						std::string insertCellStrainRatesString("INSERT INTO CellStrainRates(idProject,t,idTissue,idTrackedCell,order,data) VALUES (?,?,?,?,?,?)");
-
-						std::auto_ptr< sql::PreparedStatement > insertCellStrainRates_stmt(m_DB->prepareStatement(insertCellStrainRatesString));
-
-						for(DomainStrainRatesMapType::iterator it=domainStrainRates->begin();it!=domainStrainRates->end();it++) {
-							insertCellStrainRates_stmt->setInt(1,m_ProjectID);
-							insertCellStrainRates_stmt->setInt(2,frame);
-							insertCellStrainRates_stmt->setInt(3,0);
-							insertCellStrainRates_stmt->setInt(4,it->first);
-
-							typedef boost::iostreams::stream<boost::iostreams::array_source> array_stream;
-							array_stream is((char*)it->second.CellShape_SRT.data_block(), it->second.CellShape_SRT.size()*sizeof(Tensor::element_type));
-							insertCellStrainRates_stmt->setBlob(5,&is);
-
-							insertCellStrainRates_stmt->execute();
-						}
-					}
-
-					{
-						std::string insertIntercalationStrainRatesString("INSERT INTO IntercalationStrainRates(idProject,t,idTissue,idTrackedCell,order,data) VALUES (?,?,?,?,?,?)");
-
-						std::auto_ptr< sql::PreparedStatement > insertIntercalationStrainRates_stmt(m_DB->prepareStatement(insertIntercalationStrainRatesString));
-
-						for(DomainStrainRatesMapType::iterator it=domainStrainRates->begin();it!=domainStrainRates->end();it++) {
-							insertIntercalationStrainRates_stmt->setInt(1,m_ProjectID);
-							insertIntercalationStrainRates_stmt->setInt(2,frame);
-							insertIntercalationStrainRates_stmt->setInt(3,0);
-							insertIntercalationStrainRates_stmt->setInt(4,it->first);
-
-							typedef boost::iostreams::stream<boost::iostreams::array_source> array_stream;
-							array_stream is((char*)it->second.Intercalation_SRT.data_block(), it->second.Intercalation_SRT.size()*sizeof(Tensor::element_type));
-							insertIntercalationStrainRates_stmt->setBlob(5,&is);
-
-							insertIntercalationStrainRates_stmt->execute();
-						}
-					}
-				} catch(sql::SQLException &e) {
-					/*
-					 The MySQL Connector/C++ throws three different exceptions:
-
-					 - sql::MethodNotImplementedException (derived from sql::SQLException)
-					 - sql::InvalidArgumentException (derived from sql::SQLException)
-					 - sql::SQLException (derived from std::runtime_error)
-					 */
-					cout << "# ERR: SQLException in " << __FILE__;
-					//cout << insertCellEdgeString << std::endl;
-					/* Use what() (derived from std::runtime_error) to fetch the error message */
-					cout << "# ERR: " << e.what();
-					cout << " (MySQL error code: " << e.getErrorCode();
-					cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-				}
-
-				return result;
-#endif
-	}
-
-
-
-
-
-
-	void AddTrackedEllipses(unsigned int frame,
-			const EllipseMapTypePointer & ellipses) {
+	void StoreTrackedDomains() {
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
-
 		try {
 
-			std::string insertTrackedEllipsesString(
-					"INSERT INTO TrackedEllipse(idProject,t,idTissue,idTrackedCell,majorR,minorR,rotR,posX,posY) VALUES (?,?,?,?,?,?,?,?,?)");
+			std::string deleteTrackedDomainString(
+					"DELETE from TrackedDomain WHERE idProject=? AND t=? AND idTissue=?");
 
-			std::auto_ptr<sql::PreparedStatement> insertTrackedEllipses_stmt(
-					m_DB->prepareStatement(insertTrackedEllipsesString));
+			std::auto_ptr<sql::PreparedStatement> deleteTrackedDomain_stmt(
+					m_DB->prepareStatement(deleteTrackedDomainString));
 
-			for (EllipseMapType::iterator it = ellipses->begin();
-					it != ellipses->end(); it++) {
-				insertTrackedEllipses_stmt->setInt(1, m_ProjectID);
-				insertTrackedEllipses_stmt->setInt(2, frame);
-				insertTrackedEllipses_stmt->setInt(3, 0);
-				insertTrackedEllipses_stmt->setInt(4, it->first);
-				insertTrackedEllipses_stmt->setDouble(5, it->second.m_Xrad);
-				insertTrackedEllipses_stmt->setDouble(6, it->second.m_Yrad);
-				insertTrackedEllipses_stmt->setDouble(7, it->second.m_Theta);
-				insertTrackedEllipses_stmt->setDouble(8, it->second.m_Xcent);
-				insertTrackedEllipses_stmt->setDouble(9, it->second.m_Ycent);
-				insertTrackedEllipses_stmt->execute();
-			}
+			deleteTrackedDomain_stmt->setInt(1, m_ProjectID); //IDproject==2
+			deleteTrackedDomain_stmt->setInt(2, m_Frame); //t==0
+			deleteTrackedDomain_stmt->setInt(3, 0); //t==0
+			deleteTrackedDomain_stmt->execute();
 
 		} catch (sql::SQLException &e) {
 			/*
@@ -1740,28 +1760,27 @@ public:
 			 - sql::SQLException (derived from std::runtime_error)
 			 */
 			cout << "# ERR: SQLException in " << __FILE__;
-			//cout << insertCellEdgeString << std::endl;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			//cout << deleteVertexString << std::endl;
 			/* Use what() (derived from std::runtime_error) to fetch the error message */
 			cout << "# ERR: " << e.what();
 			cout << " (MySQL error code: " << e.getErrorCode();
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			exit(-1);
 		}
-		transStatement->execute("COMMIT;");
-	}
 
-	void AddTrackedDomains(unsigned int frame,
-			const TrackedDomainVectorTypePointer & domains) {
 		try {
 			std::string insertTrackedDomainsString(
-					"INSERT INTO TrackedDomain(idProject,t,idTissue,idTrackedCell,order) VALUES (?,?,?,?,?)");
+					"INSERT INTO TrackedDomain(idProject,t,idTissue,idTrackedCell,`order`) VALUES (?,?,?,?,?)");
 
 			std::auto_ptr<sql::PreparedStatement> insertTrackedDomains_stmt(
 					m_DB->prepareStatement(insertTrackedDomainsString));
 
-			for (TrackedDomainVectorType::iterator it = domains->begin();
-					it != domains->end(); it++) {
+			for (TrackedDomainVectorType::iterator it =
+					m_TrackedDomains->begin(); it != m_TrackedDomains->end();
+					it++) {
 				insertTrackedDomains_stmt->setInt(1, m_ProjectID);
-				insertTrackedDomains_stmt->setInt(2, frame);
+				insertTrackedDomains_stmt->setInt(2, m_Frame);
 				insertTrackedDomains_stmt->setInt(3, 0);
 				insertTrackedDomains_stmt->setInt(4, it->GetNucleus());
 				insertTrackedDomains_stmt->setInt(5, it->GetOrder());
@@ -1770,7 +1789,7 @@ public:
 				for (typename std::set<ttt::TrackedCellVertexType>::iterator it2 =
 						it->Begin(); it2 != it->End(); it2++) {
 					std::string insertTrackedDomainsTrackedCellString(
-							"INSERT INTO TrackedDomain_has_TrackedCell(idProject,t,idTissue,idTrackedCell,idNucleousCell) VALUES (?,?,?,?,?)");
+							"INSERT INTO TrackedDomain_has_TrackedCell(idProject,t,idTissue,idTrackedCell,idTrackedNucleousCell) VALUES (?,?,?,?,?)");
 
 					std::auto_ptr<sql::PreparedStatement> insertTrackedDomainsTrackedCell_stmt(
 							m_DB->prepareStatement(
@@ -1778,7 +1797,7 @@ public:
 
 					insertTrackedDomainsTrackedCell_stmt->setInt(1,
 							m_ProjectID);
-					insertTrackedDomainsTrackedCell_stmt->setInt(2, frame);
+					insertTrackedDomainsTrackedCell_stmt->setInt(2, m_Frame);
 					insertTrackedDomainsTrackedCell_stmt->setInt(3, 0);
 					insertTrackedDomainsTrackedCell_stmt->setInt(4, *it2);
 					insertTrackedDomainsTrackedCell_stmt->setInt(5,
@@ -1802,25 +1821,204 @@ public:
 			cout << " (MySQL error code: " << e.getErrorCode();
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		}
+		transStatement->execute("COMMIT;");
 	}
-	void AddDomainStrainRates(unsigned int frame,
-			const DomainStrainRatesMapTypePointer & domainStrainRates) {
+
+	void SetTrackedDomains(const TrackedDomainVectorTypePointer & domains) {
+		m_TrackedDomains = domains;
+		m_TrackedDomainsDirty = true;
+		StoreTrackedDomains();
+	}
+
+	bool IsTrackedDomainsReady() {
+		try {
+			std::string trackedDomainsReadyQuery(
+					"SELECT COUNT(*) FROM  TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(trackedDomainsReadyQuery));
+
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getInt("COUNT(*)") >= 1;
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+		}
+		return false;
+	}
+
+private:
+	DomainStrainRatesMapTypePointer m_DomainStrainRates;
+	bool m_DomainStrainRatesDirty;
+	bool m_DomainStrainRatesReady;
+
+public:
+	void LoadDomainStrainRates() {
+		 m_DomainStrainRates =boost::shared_ptr<DomainStrainRatesMapType>(new DomainStrainRatesMapType);
+
+		try {
+			{
+
+				std::string selectTissueStrainRatesString("SELECT idTrackedCell,`order`,data From TissueStrainRates WHERE idProject=? AND t=? AND idTissue=?");
+
+				std::auto_ptr<sql::PreparedStatement> insertTissueStrainRates_stmt(m_DB->prepareStatement(selectTissueStrainRatesString));
+
+
+				insertTissueStrainRates_stmt->setInt(1, m_ProjectID);
+				insertTissueStrainRates_stmt->setInt(2, m_Frame);
+				insertTissueStrainRates_stmt->setInt(3, 0);
+
+				insertTissueStrainRates_stmt->execute();
+
+				std::auto_ptr<sql::ResultSet> res(insertTissueStrainRates_stmt->getResultSet());
+				std::cout << res->rowsCount() << std::endl;
+
+
+				while(res->next()){
+					(*m_DomainStrainRates)[res->getInt("idTrackedCell")].order=res->getInt("order");
+					double data[4];
+					res->getBlob("data")->read((char*)data,sizeof(double)*4) ;
+					(*m_DomainStrainRates)[res->getInt("idTrackedCell")].Tissue_SRT.set(data);
+
+				}
+			}
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//cout << insertCellEdgeString << std::endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+
+		try{
+			{
+
+			std::string selectCellStrainRatesString("SELECT idTrackedCell,`order`,data From CellStrainRates WHERE idProject=? AND t=? AND idTissue=?");
+
+			std::auto_ptr<sql::PreparedStatement> selectCellStrainRates_stmt(m_DB->prepareStatement(selectCellStrainRatesString));
+
+
+			selectCellStrainRates_stmt->setInt(1, m_ProjectID);
+			selectCellStrainRates_stmt->setInt(2, m_Frame);
+			selectCellStrainRates_stmt->setInt(3, 0);
+
+			selectCellStrainRates_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(selectCellStrainRates_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+
+
+			while(res->next()){
+				(*m_DomainStrainRates)[res->getInt("idTrackedCell")].order=res->getInt("order");
+				double data[4];
+				res->getBlob("data")->read((char*)data,sizeof(double)*4) ;
+				(*m_DomainStrainRates)[res->getInt("idTrackedCell")].CellShape_SRT.set(data);
+
+			}
+		}
+	} catch (sql::SQLException &e) {
+		/*
+		 The MySQL Connector/C++ throws three different exceptions:
+
+		 - sql::MethodNotImplementedException (derived from sql::SQLException)
+		 - sql::InvalidArgumentException (derived from sql::SQLException)
+		 - sql::SQLException (derived from std::runtime_error)
+		 */
+		cout << "# ERR: SQLException in " << __FILE__;
+		//cout << insertCellEdgeString << std::endl;
+		/* Use what() (derived from std::runtime_error) to fetch the error message */
+		cout << "# ERR: " << e.what();
+		cout << " (MySQL error code: " << e.getErrorCode();
+		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	}
+
+	try{
+		{
+
+		std::string selectIntercalationCellStrainRatesString("SELECT idTrackedCell,`order`,data From IntercalationStrainRates WHERE idProject=? AND t=? AND idTissue=?");
+
+		std::auto_ptr<sql::PreparedStatement> selectIntercalationStrainRates_stmt(m_DB->prepareStatement(selectIntercalationCellStrainRatesString));
+
+
+		selectIntercalationStrainRates_stmt->setInt(1, m_ProjectID);
+		selectIntercalationStrainRates_stmt->setInt(2, m_Frame);
+		selectIntercalationStrainRates_stmt->setInt(3, 0);
+
+		selectIntercalationStrainRates_stmt->execute();
+
+		std::auto_ptr<sql::ResultSet> res(selectIntercalationStrainRates_stmt->getResultSet());
+		std::cout << res->rowsCount() << std::endl;
+
+
+		while(res->next()){
+			(*m_DomainStrainRates)[res->getInt("idTrackedCell")].order=res->getInt("order");
+			double data[4];
+			res->getBlob("data")->read((char*)data,sizeof(double)*4) ;
+			(*m_DomainStrainRates)[res->getInt("idTrackedCell")].Intercalation_SRT.set(data);
+
+		}
+	}
+} catch (sql::SQLException &e) {
+	/*
+	 The MySQL Connector/C++ throws three different exceptions:
+
+	 - sql::MethodNotImplementedException (derived from sql::SQLException)
+	 - sql::InvalidArgumentException (derived from sql::SQLException)
+	 - sql::SQLException (derived from std::runtime_error)
+	 */
+	cout << "# ERR: SQLException in " << __FILE__;
+	//cout << insertCellEdgeString << std::endl;
+	/* Use what() (derived from std::runtime_error) to fetch the error message */
+	cout << "# ERR: " << e.what();
+	cout << " (MySQL error code: " << e.getErrorCode();
+	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+}
+
+	}
+
+	void StoreDomainStrainRates() {
 		try {
 			{
 				std::string insertTissueStrainRatesString(
-						"INSERT INTO TissueStrainRates(idProject,t,idTissue,idTrackedCell,order,data) VALUES (?,?,?,?,?,?)");
+						"INSERT INTO TissueStrainRates(idProject,t,idTissue,idTrackedCell,`order`,data) VALUES (?,?,?,?,?,?)");
 
 				std::auto_ptr<sql::PreparedStatement> insertTissueStrainRates_stmt(
 						m_DB->prepareStatement(insertTissueStrainRatesString));
 
 				for (DomainStrainRatesMapType::iterator it =
-						domainStrainRates->begin();
-						it != domainStrainRates->end(); it++) {
+						m_DomainStrainRates->begin();
+						it != m_DomainStrainRates->end(); it++) {
 					insertTissueStrainRates_stmt->setInt(1, m_ProjectID);
-					insertTissueStrainRates_stmt->setInt(2, frame);
+					insertTissueStrainRates_stmt->setInt(2, m_Frame);
 					insertTissueStrainRates_stmt->setInt(3, 0);
 					insertTissueStrainRates_stmt->setInt(4, it->first);
-
+					insertTissueStrainRates_stmt->setInt(5, it->second.order);
+					std::cout << m_ProjectID << "-" << m_Frame << "-0-" << it->first << "-" << "it->second.order" << std::endl;
 					typedef boost::iostreams::stream<
 							boost::iostreams::array_source> array_stream;
 					array_stream is((char*) it->second.Tissue_SRT.data_block(),
@@ -1833,19 +2031,19 @@ public:
 			}
 			{
 				std::string insertCellStrainRatesString(
-						"INSERT INTO CellStrainRates(idProject,t,idTissue,idTrackedCell,order,data) VALUES (?,?,?,?,?,?)");
+						"INSERT INTO CellStrainRates(idProject,t,idTissue,idTrackedCell,`order`,data) VALUES (?,?,?,?,?,?)");
 
 				std::auto_ptr<sql::PreparedStatement> insertCellStrainRates_stmt(
 						m_DB->prepareStatement(insertCellStrainRatesString));
 
 				for (DomainStrainRatesMapType::iterator it =
-						domainStrainRates->begin();
-						it != domainStrainRates->end(); it++) {
+						m_DomainStrainRates->begin();
+						it != m_DomainStrainRates->end(); it++) {
 					insertCellStrainRates_stmt->setInt(1, m_ProjectID);
-					insertCellStrainRates_stmt->setInt(2, frame);
+					insertCellStrainRates_stmt->setInt(2, m_Frame);
 					insertCellStrainRates_stmt->setInt(3, 0);
 					insertCellStrainRates_stmt->setInt(4, it->first);
-
+					insertCellStrainRates_stmt->setInt(5, it->second.order); //TODO
 					typedef boost::iostreams::stream<
 							boost::iostreams::array_source> array_stream;
 					array_stream is(
@@ -1860,20 +2058,20 @@ public:
 
 			{
 				std::string insertIntercalationStrainRatesString(
-						"INSERT INTO IntercalationStrainRates(idProject,t,idTissue,idTrackedCell,order,data) VALUES (?,?,?,?,?,?)");
+						"INSERT INTO IntercalationStrainRates(idProject,t,idTissue,idTrackedCell,`order`,data) VALUES (?,?,?,?,?,?)");
 
 				std::auto_ptr<sql::PreparedStatement> insertIntercalationStrainRates_stmt(
 						m_DB->prepareStatement(
 								insertIntercalationStrainRatesString));
 
 				for (DomainStrainRatesMapType::iterator it =
-						domainStrainRates->begin();
-						it != domainStrainRates->end(); it++) {
+						m_DomainStrainRates->begin();
+						it != m_DomainStrainRates->end(); it++) {
 					insertIntercalationStrainRates_stmt->setInt(1, m_ProjectID);
-					insertIntercalationStrainRates_stmt->setInt(2, frame);
+					insertIntercalationStrainRates_stmt->setInt(2, m_Frame);
 					insertIntercalationStrainRates_stmt->setInt(3, 0);
 					insertIntercalationStrainRates_stmt->setInt(4, it->first);
-					insertIntercalationStrainRates_stmt->setInt(5, 0); //TODO
+					insertIntercalationStrainRates_stmt->setInt(5, it->second.order); //TODO
 
 					typedef boost::iostreams::stream<
 							boost::iostreams::array_source> array_stream;
@@ -1905,247 +2103,295 @@ public:
 
 
 	DomainStrainRatesMapTypePointer GetDomainStrainRates() {
-		return 	boost::shared_ptr<	DomainStrainRatesMapType>(new DomainStrainRatesMapType);;
+		this->LoadDomainStrainRates();
+		//return 	boost::shared_ptr<	DomainStrainRatesMapType>(new DomainStrainRatesMapType);;
+		return m_DomainStrainRates;
 
 	}
-
-
-
-	inline bool IsEllipsesReady() {
-		return true;
+	void SetDomainStrainRates(
+			const DomainStrainRatesMapTypePointer & domainStrainRates) {
+		m_DomainStrainRates = domainStrainRates;
+		this->StoreDomainStrainRates();
 	}
 
 	inline bool IsDomainStrainRatesReady() {
-		return true;
+		try {
+			std::string strainRatesReadyQuery(
+					"SELECT COUNT(*) FROM  TissueStrainRates WHERE TissueStrainRates.idProject=? AND TissueStrainRates.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(strainRatesReadyQuery));
+
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
+
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getInt("COUNT(*)") >= 1;
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+		}
+		return false;
 	}
 
 	inline SpacingType GetSpacing() {
 		return m_Spacing;
 	}
-	inline double GetTemporalScale(){
+	inline double GetTemporalScale() {
 		return m_TimeDelta;
 	}
 
-	inline std::string GetProjectName(){
+	inline std::string GetProjectName() {
 		return m_ProjectName;
 	}
 
-	void SetProjectName(const std::string & name){
+	void SetProjectName(const std::string & name) {
 		try {
 
-				std::string query("UPDATE Project SET Project.name=? WHERE Project.idProject=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+			std::string query(
+					"UPDATE Project SET Project.name=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
 
-				prep_stmt->setString(1, name); //IDproject==2
-				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+			prep_stmt->setString(1, name); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
 
-				prep_stmt->execute();
-			} catch (sql::SQLException &e) {
-								/*
-								 The MySQL Connector/C++ throws three different exceptions:
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-								 - sql::MethodNotImplementedException (derived from sql::SQLException)
-								 - sql::InvalidArgumentException (derived from sql::SQLException)
-								 - sql::SQLException (derived from std::runtime_error)
-								 */
-								cout << "# ERR: SQLException in " << __FILE__;
-								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-								/* Use what() (derived from std::runtime_error) to fetch the error message */
-								cout << "# ERR: " << e.what();
-								cout << " (MySQL error code: " << e.getErrorCode();
-								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-			}
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
 	}
-	void SetSpacingX(double spacingX){
-		m_Spacing[0]=spacingX;
+	void SetSpacingX(double spacingX) {
+		m_Spacing[0] = spacingX;
 		try {
 
-			std::string query("UPDATE Project SET Project.spacingX=? WHERE Project.idProject=?");
-			std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+			std::string query(
+					"UPDATE Project SET Project.spacingX=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
 
 			prep_stmt->setDouble(1, spacingX); //IDproject==2
 			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
 
 			prep_stmt->execute();
 		} catch (sql::SQLException &e) {
-									/*
-									 The MySQL Connector/C++ throws three different exceptions:
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-									 - sql::MethodNotImplementedException (derived from sql::SQLException)
-									 - sql::InvalidArgumentException (derived from sql::SQLException)
-									 - sql::SQLException (derived from std::runtime_error)
-									 */
-									cout << "# ERR: SQLException in " << __FILE__;
-									//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-									/* Use what() (derived from std::runtime_error) to fetch the error message */
-									cout << "# ERR: " << e.what();
-									cout << " (MySQL error code: " << e.getErrorCode();
-									cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-				}
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
 	}
 
-	void SetSpacingY(double spacingY){
-		m_Spacing[1]=spacingY;
-			try {
-
-				std::string query("UPDATE Project SET Project.spacingY=? WHERE Project.idProject=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
-
-				prep_stmt->setDouble(1, spacingY); //IDproject==2
-				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
-
-				prep_stmt->execute();
-			} catch (sql::SQLException &e) {
-										/*
-										 The MySQL Connector/C++ throws three different exceptions:
-
-										 - sql::MethodNotImplementedException (derived from sql::SQLException)
-										 - sql::InvalidArgumentException (derived from sql::SQLException)
-										 - sql::SQLException (derived from std::runtime_error)
-										 */
-										cout << "# ERR: SQLException in " << __FILE__;
-										//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-										/* Use what() (derived from std::runtime_error) to fetch the error message */
-										cout << "# ERR: " << e.what();
-										cout << " (MySQL error code: " << e.getErrorCode();
-										cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-					}
-		}
-	void SetSpacingZ(double spacingZ){
-		m_Spacing[2]=spacingZ;
-			try {
-
-				std::string query("UPDATE Project SET Project.spacingZ=? WHERE Project.idProject=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
-
-				prep_stmt->setDouble(1, spacingZ); //IDproject==2
-				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
-
-				prep_stmt->execute();
-			} catch (sql::SQLException &e) {
-										/*
-										 The MySQL Connector/C++ throws three different exceptions:
-
-										 - sql::MethodNotImplementedException (derived from sql::SQLException)
-										 - sql::InvalidArgumentException (derived from sql::SQLException)
-										 - sql::SQLException (derived from std::runtime_error)
-										 */
-										cout << "# ERR: SQLException in " << __FILE__;
-										//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-										/* Use what() (derived from std::runtime_error) to fetch the error message */
-										cout << "# ERR: " << e.what();
-										cout << " (MySQL error code: " << e.getErrorCode();
-										cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-					}
-		}
-	void SetSamplingRate(double rate){
+	void SetSpacingY(double spacingY) {
+		m_Spacing[1] = spacingY;
 		try {
 
-				std::string query("UPDATE Project SET Project.timeDelta=? WHERE Project.idProject=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+			std::string query(
+					"UPDATE Project SET Project.spacingY=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
 
-				prep_stmt->setDouble(2, rate); //IDproject==2
-				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+			prep_stmt->setDouble(1, spacingY); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
 
-				prep_stmt->execute();
-			} catch (sql::SQLException &e) {
-								/*
-								 The MySQL Connector/C++ throws three different exceptions:
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-								 - sql::MethodNotImplementedException (derived from sql::SQLException)
-								 - sql::InvalidArgumentException (derived from sql::SQLException)
-								 - sql::SQLException (derived from std::runtime_error)
-								 */
-								cout << "# ERR: SQLException in " << __FILE__;
-								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-								/* Use what() (derived from std::runtime_error) to fetch the error message */
-								cout << "# ERR: " << e.what();
-								cout << " (MySQL error code: " << e.getErrorCode();
-								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-			}
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
 	}
-	void SetHighestScale(double scale){
+	void SetSpacingZ(double spacingZ) {
+		m_Spacing[2] = spacingZ;
 		try {
 
-			std::string query("UPDATE Frame SET Frame.highestScale=? WHERE Frame.idProject=? AND Frame.t=?");
-			std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
+			std::string query(
+					"UPDATE Project SET Project.spacingZ=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setDouble(1, spacingZ); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+	}
+	void SetSamplingRate(double rate) {
+		try {
+
+			std::string query(
+					"UPDATE Project SET Project.timeDelta=? WHERE Project.idProject=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setDouble(2, rate); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+	}
+	void SetHighestScale(double scale) {
+		try {
+
+			std::string query(
+					"UPDATE Frame SET Frame.highestScale=? WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
 
 			prep_stmt->setDouble(1, scale); //IDproject==2
 			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
 			prep_stmt->setInt(3, m_Frame); //IDproject==2
 			prep_stmt->execute();
 		} catch (sql::SQLException &e) {
-							/*
-							 The MySQL Connector/C++ throws three different exceptions:
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-							 - sql::MethodNotImplementedException (derived from sql::SQLException)
-							 - sql::InvalidArgumentException (derived from sql::SQLException)
-							 - sql::SQLException (derived from std::runtime_error)
-							 */
-							cout << "# ERR: SQLException in " << __FILE__;
-							//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-							/* Use what() (derived from std::runtime_error) to fetch the error message */
-							cout << "# ERR: " << e.what();
-							cout << " (MySQL error code: " << e.getErrorCode();
-							cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		}
 	}
-	void SetLowestScale(double scale){
-			try {
-
-				std::string query("UPDATE Frame SET Frame.lowestScale=? WHERE Frame.idProject=? AND Frame.t=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
-
-				prep_stmt->setDouble(1, scale); //IDproject==2
-				prep_stmt->setInt(2, m_ProjectID); //IDproject==2
-				prep_stmt->setInt(3, m_Frame); //IDproject==2
-				prep_stmt->execute();
-			} catch (sql::SQLException &e) {
-								/*
-								 The MySQL Connector/C++ throws three different exceptions:
-
-								 - sql::MethodNotImplementedException (derived from sql::SQLException)
-								 - sql::InvalidArgumentException (derived from sql::SQLException)
-								 - sql::SQLException (derived from std::runtime_error)
-								 */
-								cout << "# ERR: SQLException in " << __FILE__;
-								//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-								/* Use what() (derived from std::runtime_error) to fetch the error message */
-								cout << "# ERR: " << e.what();
-								cout << " (MySQL error code: " << e.getErrorCode();
-								cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-			}
-		}
-	void SetScaleSteps(int nscales){
-				try {
-
-					std::string query("UPDATE Frame SET Frame.steps=? WHERE Frame.idProject=? AND Frame.t=?");
-					std::auto_ptr<sql::PreparedStatement> prep_stmt(m_DB->prepareStatement(query));
-
-					prep_stmt->setInt(1, nscales); //IDproject==2
-					prep_stmt->setInt(2, m_ProjectID); //IDproject==2
-					prep_stmt->setInt(3, m_Frame); //IDproject==2
-					prep_stmt->execute();
-				} catch (sql::SQLException &e) {
-									/*
-									 The MySQL Connector/C++ throws three different exceptions:
-
-									 - sql::MethodNotImplementedException (derived from sql::SQLException)
-									 - sql::InvalidArgumentException (derived from sql::SQLException)
-									 - sql::SQLException (derived from std::runtime_error)
-									 */
-									cout << "# ERR: SQLException in " << __FILE__;
-									//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-									/* Use what() (derived from std::runtime_error) to fetch the error message */
-									cout << "# ERR: " << e.what();
-									cout << " (MySQL error code: " << e.getErrorCode();
-									cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-				}
-			}
-
-	double GetLowestScale(){
+	void SetLowestScale(double scale) {
 		try {
-			std::string query("SELECT lowestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+
+			std::string query(
+					"UPDATE Frame SET Frame.lowestScale=? WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setDouble(1, scale); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(3, m_Frame); //IDproject==2
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+	}
+	void SetScaleSteps(int nscales) {
+		try {
+
+			std::string query(
+					"UPDATE Frame SET Frame.steps=? WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
+
+			prep_stmt->setInt(1, nscales); //IDproject==2
+			prep_stmt->setInt(2, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(3, m_Frame); //IDproject==2
+			prep_stmt->execute();
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
+
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		}
+	}
+
+	double GetLowestScale() {
+		try {
+			std::string query(
+					"SELECT lowestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
 					m_DB->prepareStatement(query));
 
@@ -2158,26 +2404,27 @@ public:
 			res->next();
 			return res->getDouble("lowestScale");
 		} catch (sql::SQLException &e) {
-					/*
-					 The MySQL Connector/C++ throws three different exceptions:
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-					 - sql::MethodNotImplementedException (derived from sql::SQLException)
-					 - sql::InvalidArgumentException (derived from sql::SQLException)
-					 - sql::SQLException (derived from std::runtime_error)
-					 */
-					cout << "# ERR: SQLException in " << __FILE__;
-					//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-					/* Use what() (derived from std::runtime_error) to fetch the error message */
-					cout << "# ERR: " << e.what();
-					cout << " (MySQL error code: " << e.getErrorCode();
-					cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
 		}
 		return -1;
 	}
-	double GetHighestScale(){
+	double GetHighestScale() {
 		try {
-			std::string query("SELECT highestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+			std::string query(
+					"SELECT highestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
 					m_DB->prepareStatement(query));
 
@@ -2190,56 +2437,57 @@ public:
 			res->next();
 			return res->getDouble("highestScale");
 		} catch (sql::SQLException &e) {
-					/*
-					 The MySQL Connector/C++ throws three different exceptions:
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-					 - sql::MethodNotImplementedException (derived from sql::SQLException)
-					 - sql::InvalidArgumentException (derived from sql::SQLException)
-					 - sql::SQLException (derived from std::runtime_error)
-					 */
-					cout << "# ERR: SQLException in " << __FILE__;
-					//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-					/* Use what() (derived from std::runtime_error) to fetch the error message */
-					cout << "# ERR: " << e.what();
-					cout << " (MySQL error code: " << e.getErrorCode();
-					cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
 		}
 		return -1;
 	}
 
-	int GetScaleSteps(){
-			try {
-				std::string query("SELECT steps FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
-				std::auto_ptr<sql::PreparedStatement> prep_stmt(
-						m_DB->prepareStatement(query));
+	int GetScaleSteps() {
+		try {
+			std::string query(
+					"SELECT steps FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+			std::auto_ptr<sql::PreparedStatement> prep_stmt(
+					m_DB->prepareStatement(query));
 
-				prep_stmt->setInt(1, m_ProjectID); //IDproject==2
-				prep_stmt->setInt(2, m_Frame); //IDproject==2
-				prep_stmt->execute();
+			prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+			prep_stmt->setInt(2, m_Frame); //IDproject==2
+			prep_stmt->execute();
 
-				std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
-				std::cout << res->rowsCount() << std::endl;
-				res->next();
-				return res->getInt("steps");
-			} catch (sql::SQLException &e) {
-						/*
-						 The MySQL Connector/C++ throws three different exceptions:
+			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+			std::cout << res->rowsCount() << std::endl;
+			res->next();
+			return res->getInt("steps");
+		} catch (sql::SQLException &e) {
+			/*
+			 The MySQL Connector/C++ throws three different exceptions:
 
-						 - sql::MethodNotImplementedException (derived from sql::SQLException)
-						 - sql::InvalidArgumentException (derived from sql::SQLException)
-						 - sql::SQLException (derived from std::runtime_error)
-						 */
-						cout << "# ERR: SQLException in " << __FILE__;
-						//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-						/* Use what() (derived from std::runtime_error) to fetch the error message */
-						cout << "# ERR: " << e.what();
-						cout << " (MySQL error code: " << e.getErrorCode();
-						cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+			 - sql::MethodNotImplementedException (derived from sql::SQLException)
+			 - sql::InvalidArgumentException (derived from sql::SQLException)
+			 - sql::SQLException (derived from std::runtime_error)
+			 */
+			cout << "# ERR: SQLException in " << __FILE__;
+			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+			/* Use what() (derived from std::runtime_error) to fetch the error message */
+			cout << "# ERR: " << e.what();
+			cout << " (MySQL error code: " << e.getErrorCode();
+			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
-			}
-			return -1;
 		}
+		return -1;
+	}
 
 private:
 

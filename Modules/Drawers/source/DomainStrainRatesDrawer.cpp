@@ -19,9 +19,17 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 #include "DomainStrainRatesDrawer.h"
+void ttt::DomainStrainRatesDrawer::Reset(){
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		m_Renderer->RemoveActor(*it);
+	}
+	m_Actors.clear();
+}
 void ttt::DomainStrainRatesDrawer::Draw(){
 	assert(m_DomainStrainRates);
 	assert(m_Renderer);
+
+	this->Reset();
 
 	for(DomainStrainRatesMapIteratorType it = m_DomainStrainRates->begin();it!=m_DomainStrainRates->end();it++){
 		TrackedTissueDescriptor::DualGraphVertexDescriptorType cell=it->first;
@@ -31,8 +39,17 @@ void ttt::DomainStrainRatesDrawer::Draw(){
 		vnl_vector<double> majorDir,minorDir;
 		double majorLength,minorLength, rotation;
 
-		tensorToPlot(domainStrainRates.Intercalation_SRT,majorDir,&majorLength,minorDir,&minorLength,&rotation);
+		if(m_DrawMode==INTERCALATION_SRT){
+			tensorToPlot(domainStrainRates.Intercalation_SRT,majorDir,&majorLength,minorDir,&minorLength,&rotation);
+		}else if(m_DrawMode==TISSUE_SRT){
+			tensorToPlot(domainStrainRates.Tissue_SRT,majorDir,&majorLength,minorDir,&minorLength,&rotation);
+		}else if((m_DrawMode==CELL_SRT)){
+			tensorToPlot(domainStrainRates.CellShape_SRT,majorDir,&majorLength,minorDir,&minorLength,&rotation);
+		}
+		std::cout << "M: " << majorLength << " m: " << minorLength << " Rotation: " << rotation << std::endl;
 
+		majorLength=majorLength*100;
+		minorLength=minorLength*100;
 		itk::Point<double,3> center=boost::get(TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,cell).m_Centroid;
 
 		itk::Point<double,3> a,b,c,d;
@@ -76,22 +93,38 @@ void ttt::DomainStrainRatesDrawer::Draw(){
 
 		vtkSmartPointer<vtkActor> majorActor = vtkSmartPointer<vtkActor>::New();
 		majorActor->SetMapper(majorMapper);
-		majorActor->GetProperty()->SetColor(1.0,0.0,0.0);
-		majorActor->GetProperty()->SetLineWidth(5);
+		if(majorLength>0){
+			majorActor->GetProperty()->SetColor(1.0,0.0,0.0);
+		}else{
+			majorActor->GetProperty()->SetColor(0.0,0.0,1.0);
+		}
 
 		vtkSmartPointer<vtkActor> minorActor = vtkSmartPointer<vtkActor>::New();
 		minorActor->SetMapper(minorMapper);
-		minorActor->GetProperty()->SetColor(0.0,0.0,1.0);
-		minorActor->GetProperty()->SetLineWidth(5);
 
+		if(minorLength>0){
+			minorActor->GetProperty()->SetColor(1.0,0.0,0.0);
+		}else{
+			minorActor->GetProperty()->SetColor(0.0,0.0,1.0);
+		}
+
+
+		m_Actors.push_back(majorActor);
+		m_Actors.push_back(minorActor);
 		m_Renderer->AddActor(majorActor);
 		m_Renderer->AddActor(minorActor);
 	}
 }
 
 void ttt::DomainStrainRatesDrawer::Show(){
-	//TODO
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		vtkSmartPointer<vtkActor> actor = *it;
+		actor->VisibilityOn();
+	}
 }
 void ttt::DomainStrainRatesDrawer::Hide(){
-	//TODO
+	for(std::vector<vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		vtkSmartPointer<vtkActor> actor = *it;
+		actor->VisibilityOff();
+	}
 }

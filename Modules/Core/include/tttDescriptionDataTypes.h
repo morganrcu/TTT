@@ -212,6 +212,7 @@ public:
 
 	Cell() {
 		m_Centroid.Fill(0);
+		m_SkeletonNodes.clear();
 	}
 	/**
 	 * Copy constructor. Initializates the attributes with the values in other
@@ -487,6 +488,8 @@ template<> struct TissueDescriptorTraits<TrackedTissueDescriptor>{
 	typedef ttt::TrackedCellPropertyTag CellPropertyTagType;
 	typedef ttt::TrackedCellEdgeType CellEdgeType;
 	typedef ttt::TrackedCellProperty CellProperty;
+
+	typedef ttt::TrackedCell CellType;
 };
 
 TrackedTissueDescriptor::DualGraphVertexDescriptorType CellID2VertexDescriptor(int ID,const TrackedTissueDescriptor::Pointer & descriptor);
@@ -517,7 +520,7 @@ template<class TissueDescriptorType,class DomainType> void GetDomains(const type
 		int currentOrder=order;
 		domains[k].SetNucleus(v);
 		next.insert(v);
-
+		domains[k].SetOrder(order);
 		while(currentOrder>0){
 			open=next;
 			next.clear();

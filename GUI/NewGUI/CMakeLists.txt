@@ -38,7 +38,11 @@ include_directories( ../../Modules/Commands/VertexLocation/include/)
 include_directories( ../../Modules/Commands/AdherensJunctionSegmentationDijkstra/include/ )
 include_directories( ../../Modules/Commands/CellGraph/include/ )
 include_directories( ../../Modules/Commands/Base/include/)
+
 include_directories( ../../Modules/Commands/Tracking/include/)
+include_directories( ../../Modules/Commands/Ellipses/include/)
+include_directories( ../../Modules/Commands/ComputeDomains/include/ )
+include_directories( ../../Modules/Commands/Tectonics/include/ )
 include_directories( ../../Modules/Features/include/)
 
 qt5_wrap_ui(UI_HDRS tttmainwindow.ui tttsqlopenprojectdialog.ui tttsqlnewprojectdialog.ui tttexplorer.ui tttpreferences.ui)
@@ -60,6 +64,8 @@ target_link_libraries(TTTNewGui
 					TTTAdherensJunctionSegmentationDijkstra
 					TTTCellGraph
 					TTTTracking
+					TTTTectonics
+					TTTComputeDomains
 					
 					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
 					)

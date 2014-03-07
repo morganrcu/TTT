@@ -42,7 +42,13 @@ public:
 	virtual void Draw() = 0;
 
 	/**
+	 * Virtual void Reset
+
+	 */
+	virtual void Reset()=0;
+	/**
 	 * Set the renderer where Drawer instantiations should draw their result.
+	 * * @param renderer
 	 */
 	inline void SetRenderer(const vtkSmartPointer<vtkRenderer> & renderer){
 		m_Renderer=renderer;
@@ -58,7 +64,6 @@ public:
 		}else{
 			Hide();
 		}
-
 	}
 
 };

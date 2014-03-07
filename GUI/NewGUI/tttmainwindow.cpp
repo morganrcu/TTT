@@ -21,7 +21,9 @@
 #include "AdherensJunctionSegmentationDijkstraCommand.h"
 #include "CellGraphCommand.h"
 #include "TrackingCommand.h"
-
+#include "EllipsesCommand.h"
+#include "ComputeDomainsCommand.h"
+#include "TectonicsCommand.h"
 #include <vtkAxesActor.h>
 #include <vtkCubeSource.h>
 
@@ -218,6 +220,45 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 
 	}
 
+	{
+	m_TectonicsRenderer = vtkSmartPointer<vtkRenderer>::New();
+	m_TectonicsRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+	m_TectonicsRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+	m_TectonicsRenderWindow->AddRenderer(m_TectonicsRenderer);
+	m_TectonicsRenderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+    m_TectonicsRenderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
+    m_TectonicsRenderWindowInteractor->SetRenderWindow(m_TectonicsRenderWindow);
+    m_TectonicsRenderWindowInteractor->Initialize();
+
+    vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+
+    m_TectonicsRenderer->AddActor(axes);
+
+    this->m_pUI->tectonicsQVTKView->SetRenderWindow(m_TectonicsRenderWindow);
+
+	}
+
+	{
+	m_InspectionRenderer = vtkSmartPointer<vtkRenderer>::New();
+	m_InspectionRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+	m_InspectionRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+	m_InspectionRenderWindow->AddRenderer(m_InspectionRenderer);
+	m_InspectionRenderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+    m_InspectionRenderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
+    m_InspectionRenderWindowInteractor->SetRenderWindow(m_InspectionRenderWindow);
+    m_InspectionRenderWindowInteractor->Initialize();
+
+    vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+
+    m_InspectionRenderer->AddActor(axes);
+
+    this->m_pUI->inspectionQVTKView->SetRenderWindow(m_InspectionRenderWindow);
+
+	}
 
 
     connect(this->m_pUI->actionNew, SIGNAL(triggered()), this, SLOT(New()));
@@ -244,6 +285,8 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->vertexLocationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupVertexFrame()));
     connect(this->m_pUI->cellSegmentationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupSegmentationFrame()));
     connect(this->m_pUI->trackingSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTrackingFrame()));
+
+    connect(this->m_pUI->tectonicsSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTectonicsFrame()));
 
     connect(this->m_pUI->enhanceButton,SIGNAL(clicked()),this,SLOT(EnhanceAndDraw()));
     connect(this->m_pUI->computeAllEnhanceButton,SIGNAL(clicked()),this,SLOT(DoAllEnhance()));
@@ -283,6 +326,17 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->showAdherensJunctionsAtSegmentationCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowPlatenessOnSegmentation(int)));
     connect(this->m_pUI->showAdhrensJunctionsAtVertexLocationsCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowPlatenessOnVertexLocation(int)));
     connect(this->m_pUI->showCellGraphAtSegmentationCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowDualGraphOnCellSegmentation(int)));
+    connect(this->m_pUI->showEllipsesCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowTrackedEllipsesAtTectonics(int)));
+
+    connect(this->m_pUI->showCellStrainRateRadioButton,SIGNAL(clicked()),this,SLOT(ShowCellStrainRates()));
+    connect(this->m_pUI->showTissueStrainRateRadioButton,SIGNAL(clicked()),this,SLOT(ShowTissueStrainRates()));
+    connect(this->m_pUI->showIntercalationStrainRateRadioButton,SIGNAL(clicked()),this,SLOT(ShowIntercalationStrainRates()));
+
+    connect(this->m_pUI->computeEllipse,SIGNAL(clicked()),this,SLOT(DoEllipses()));
+
+    connect(this->m_pUI->computeStrainRates,SIGNAL(clicked()),this,SLOT(DoTectonics()));
+
+
     this->SetupVertexSelectionInteractor();
     this->SetupVertexAdditionInteractor();
     this->SetupEdgeSelectionInteractor();
@@ -345,7 +399,11 @@ void TTTMainWindow::SetupCurrentTab(){
 		this->DrawDual();
 		break;
 	case 6:
-		//this->DrawTracking();
+		this->DrawTracking();
+		break;
+	case 7:
+		this->DrawEllipses();
+		this->DrawTectonics();
 		break;
 	};
 }
@@ -486,6 +544,9 @@ void TTTMainWindow::SetupSliders(int length){
 
 	this->m_pUI->trackingSlider->setMinimum(0);
 	this->m_pUI->trackingSlider->setMaximum(length-1);
+
+	this->m_pUI->tectonicsSlider->setMinimum(0);
+	this->m_pUI->tectonicsSlider->setMaximum(length-1);
 }
 void TTTMainWindow::SetupProjectTab(){
 
@@ -518,7 +579,7 @@ void TTTMainWindow::SetupProjectTab(){
     if(ok){
     	QSqlRelationalTableModel *model = new QSqlRelationalTableModel(this,db);
     	model->setTable("Frame");
-    	model->setFilter("idProject=1"); //TODO setup IDProject
+    	model->setFilter("idProject=13"); //TODO setup IDProject
     	model->setEditStrategy(QSqlTableModel::OnRowChange);
     	model->select();
     	this->m_pUI->framesTable->setModel(model);
@@ -678,6 +739,14 @@ void TTTMainWindow::SetupSegmentationFrame(){
 void TTTMainWindow::SetupTrackingFrame(){
 	this->m_Project->SetFrame(this->m_pUI->trackingSlider->value());
 	this->DrawTracking();
+}
+
+void TTTMainWindow::SetupTectonicsFrame(){
+	this->m_Project->SetFrame(this->m_pUI->tectonicsSlider->value());
+	this->DrawEllipses();
+	this->DrawTectonics();
+	this->m_TectonicsRenderWindow->Render();
+
 }
 
 void TTTMainWindow::EnhanceAndDraw(){
@@ -954,6 +1023,10 @@ void TTTMainWindow::ShowDualGraphOnCellSegmentation(int show){
 	m_DualGraphDrawer.SetVisibility(show!=0);
 	this->m_CellSegmentationRendererWindow->Render();
 }
+void TTTMainWindow::ShowTrackedEllipsesAtTectonics(int show){
+	m_EllipseDrawer.SetVisibility(show!=0);
+	this->m_TectonicsRenderWindow->Render();
+}
 void TTTMainWindow::DrawSegmentation(){
 
 	if(this->m_Project->IsTissueDescriptorReady()){
@@ -1084,8 +1157,21 @@ void TTTMainWindow::DrawDual(){
 
 void TTTMainWindow::DoTracking(){
 
+	typename TissueTrackingProject::RawImageType::SizeType size=m_Project->GetRawImage()->GetLargestPossibleRegion().GetSize();
+	typename TissueTrackingProject::RawImageType::SpacingType spacing = m_Project->GetSpacing();
+	double xMax=size[0]*spacing[0];
+	double yMax=size[1]*spacing[1];
+	double zMax=size[2]*spacing[2];
+
 	TrackingCommand trackingCommand;
 
+	trackingCommand.SetXMin(0);
+	trackingCommand.SetXMax(xMax);
+	trackingCommand.SetYMin(0);
+	trackingCommand.SetYMax(yMax);
+	trackingCommand.SetZMin(0);
+	trackingCommand.SetZMax(zMax);
+	;
 	int numFrames= m_Project->GetNumFrames();
 
 	std::vector<TissueDescriptor::Pointer> observations;
@@ -1111,6 +1197,7 @@ void TTTMainWindow::DoTracking(){
 	this->DrawTracking();
 }
 
+
 void TTTMainWindow::DrawTracking(){
 
 	m_TrackingDrawer.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
@@ -1124,12 +1211,150 @@ void TTTMainWindow::DrawTracking(){
 	//idFeature->Compute();
 	m_TrackingVertexColorer.SetFeature(idFeature);
 
-	m_TrackingDrawer.SetVertexColorer(&m_TrackingVertexColorer);
-	m_TrackingDrawer.SetEdgeColorer(&m_TrackingEdgeColorer);
+	//m_TrackingDrawer.SetVertexColorer(&m_TrackingVertexColorer);
+	//m_TrackingDrawer.SetEdgeColorer(&m_TrackingEdgeColorer);
 	m_TrackingDrawer.Draw();
+
 	m_TrackingDrawer.SetVisibility(true);
 
+	m_PrimalGraphTrackingDrawer.SetRenderer(this->m_TrackingRenderer);
+	m_PrimalGraphTrackingDrawer.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+	m_PrimalGraphTrackingDrawer.SetVertexColorer(&m_PrimalGraphVertexColorer);
+	m_PrimalGraphTrackingDrawer.SetEdgeColorer(&m_PrimalGraphEdgeColorer);
+	m_PrimalGraphTrackingDrawer.Draw();
+	m_PrimalGraphTrackingDrawer.SetVisibility(true);
+
 	this->m_TrackingRendererWindow->Render();
+
+}
+
+
+
+void TTTMainWindow::DoEllipses(){
+	EllipsesCommand<TrackedTissueDescriptor> command;
+	assert(m_Project->GetTrackedTissueDescriptor());
+	command.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+	command.Do();
+
+	this->m_Project->SetTrackedEllipses(command.GetEllipses());
+	this->DrawEllipses();
+}
+void TTTMainWindow::DrawEllipses(){
+#if 0
+	ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> primalDrawer;
+
+	primalDrawer.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+	primalDrawer.SetVertexColorer(&this->m_PrimalGraphVertexColorer);
+	primalDrawer.SetEdgeColorer(&this->m_PrimalGraphEdgeColorer);
+
+	primalDrawer.SetRenderer(this->m_TectonicsRenderer);
+	primalDrawer.Draw();
+	primalDrawer.SetVisibility(true);
+#endif
+
+	if(this->m_Project->IsTrackedEllipsesReady()){
+		m_EllipseDrawer.SetEllipses(this->m_Project->GetTrackedEllipses());
+
+		m_EllipseDrawer.SetRenderer(this->m_TectonicsRenderer);
+		m_EllipseDrawer.Draw();
+		m_EllipseDrawer.SetVisibility(this->m_pUI->showEllipsesCBox->isChecked());
+
+	}else{
+		m_EllipseDrawer.Reset();
+	}
+	this->m_TectonicsRenderWindow->Render();
+
+}
+
+void TTTMainWindow::ShowCellStrainRates(){
+	m_DomainStrainRatesDrawer.SetDrawModeToCellSRT();
+	m_DomainStrainRatesDrawer.Draw();
+	m_DomainStrainRatesDrawer.Show();
+	this->m_TectonicsRenderWindow->Render();
+}
+
+void TTTMainWindow::ShowTissueStrainRates(){
+	m_DomainStrainRatesDrawer.SetDrawModeToTissueSRT();
+	m_DomainStrainRatesDrawer.Draw();
+	m_DomainStrainRatesDrawer.Show();
+	this->m_TectonicsRenderWindow->Render();
+}
+
+void TTTMainWindow::ShowIntercalationStrainRates(){
+	m_DomainStrainRatesDrawer.SetDrawModeToIntercalationSRT();
+	m_DomainStrainRatesDrawer.Draw();
+	m_DomainStrainRatesDrawer.Show();
+	this->m_TectonicsRenderWindow->Render();
+}
+
+void TTTMainWindow::DoTectonics(){
+
+	ComputeDomainsCommand domainsCommand;
+
+	unsigned int order= this->m_pUI->domainOrderSpinBox->value();
+	domainsCommand.SetOrder(order);
+	domainsCommand.SetTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+	domainsCommand.Do();
+	m_Project->SetTrackedDomains(domainsCommand.GetDomains());
+	TectonicsCommand tectonicsCommand;
+	tectonicsCommand.SetDomains(domainsCommand.GetDomains());
+
+	int currentFrame=this->m_Project->GetFrame();
+
+
+	if(currentFrame==0){
+		tectonicsCommand.SetCurrentTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+		tectonicsCommand.SetEllipsesCurrent(m_Project->GetTrackedEllipses());
+
+		m_Project->SetFrame(currentFrame+1);
+
+		tectonicsCommand.SetEllipsesNext(m_Project->GetTrackedEllipses());
+		tectonicsCommand.SetNextTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+
+	}else if(currentFrame > 0 && currentFrame < m_Project->GetNumFrames()-1){
+
+		tectonicsCommand.SetCurrentTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+		tectonicsCommand.SetEllipsesCurrent(m_Project->GetTrackedEllipses());
+
+		m_Project->SetFrame(currentFrame-1);
+
+		tectonicsCommand.SetEllipsesPrevious(m_Project->GetTrackedEllipses());
+		tectonicsCommand.SetPreviousTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+
+		m_Project->SetFrame(currentFrame+1);
+		tectonicsCommand.SetNextTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+		tectonicsCommand.SetEllipsesNext(m_Project->GetTrackedEllipses());
+
+	}else if(currentFrame == m_Project->GetNumFrames()-1){
+
+		tectonicsCommand.SetCurrentTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+		tectonicsCommand.SetEllipsesCurrent(m_Project->GetTrackedEllipses());
+		m_Project->SetFrame(currentFrame-1);
+		tectonicsCommand.SetPreviousTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+		tectonicsCommand.SetEllipsesPrevious(m_Project->GetTrackedEllipses());
+
+	}
+	m_Project->SetFrame(currentFrame);
+
+	tectonicsCommand.Do();
+
+	m_Project->SetDomainStrainRates(tectonicsCommand.GetDomainStrainRates());
+	this->DrawTectonics();
+
+}
+void TTTMainWindow::DrawTectonics(){
+	if(this->m_Project->IsDomainStrainRatesReady()){
+		m_DomainStrainRatesDrawer.SetRenderer(this->m_TectonicsRenderer);
+		m_DomainStrainRatesDrawer.SetDomainStrainRates(this->m_Project->GetDomainStrainRates());
+		m_DomainStrainRatesDrawer.SetTrackedTissueDescriptor(this->m_Project->GetTrackedTissueDescriptor());
+		m_DomainStrainRatesDrawer.Draw();
+		m_DomainStrainRatesDrawer.SetVisibility(true);
+	}else{
+		m_DomainStrainRatesDrawer.Reset();
+	}
+	this->m_TectonicsRenderWindow->Render();
+
+
 
 }
 void TTTMainWindow::LaunchProjectExplorer(){

@@ -11,12 +11,22 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>TTTMainWindow</string>
+   <string>TTT is a Tissue Tracker</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../../../../Pictures/ttticon.png</normaloff>../../../../../Pictures/ttticon.png</iconset>
+  </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_12">
     <item>
      <widget class="QTabWidget" name="stepsTabs">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -1011,7 +1021,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="trackingSlider_2">
+            <widget class="QSlider" name="tectonicsSlider">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -1024,7 +1034,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="trackButton_2">
+            <widget class="QPushButton" name="computeAllTectonicsButton">
              <property name="text">
               <string>Track</string>
              </property>
@@ -1054,50 +1064,74 @@
               <property name="fieldGrowthPolicy">
                <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
               </property>
-              <item row="0" column="0">
+              <item row="2" column="0">
                <widget class="QLabel" name="label">
                 <property name="text">
                  <string>Domain Order:</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spinBox"/>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="domainOrderSpinBox">
+                <property name="value">
+                 <number>2</number>
+                </property>
+               </widget>
               </item>
-              <item row="2" column="0" colspan="2">
-               <widget class="QGroupBox" name="groupBox_2">
+              <item row="4" column="0" colspan="2">
+               <widget class="QGroupBox" name="showStrainRateGroupbox">
                 <property name="title">
-                 <string>Show</string>
+                 <string>Show:</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
-                  <widget class="QRadioButton" name="radioButton">
+                  <widget class="QRadioButton" name="showCellStrainRateRadioButton">
                    <property name="text">
                     <string>Cell Strain Rates</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QRadioButton" name="radioButton_2">
+                  <widget class="QRadioButton" name="showTissueStrainRateRadioButton">
                    <property name="text">
                     <string>Tissue Strain Rates</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QRadioButton" name="radioButton_3">
+                  <widget class="QRadioButton" name="showIntercalationStrainRateRadioButton">
                    <property name="text">
-                    <string>Domain Strain Rates</string>
+                    <string>Intercalation Strain Rates</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </widget>
               </item>
-              <item row="1" column="1">
-               <widget class="QPushButton" name="pushButton">
+              <item row="0" column="0" colspan="2">
+               <widget class="QPushButton" name="computeEllipse">
+                <property name="text">
+                 <string>Ellipse</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QPushButton" name="computeStrainRates">
                 <property name="text">
                  <string>Strain Rates</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="showEllipsesCBox">
+                <property name="text">
+                 <string>Show ellipses</string>
                 </property>
                </widget>
               </item>
@@ -1124,6 +1158,38 @@
         <string>Inspection</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_17">
+        <item>
+         <widget class="QWidget" name="widget_22" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_19">
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Frame: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="tectonicsSlider_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksBelow</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item>
          <widget class="QVTKWidget" name="inspectionQVTKView" native="true">
           <property name="sizePolicy">
@@ -1156,7 +1222,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

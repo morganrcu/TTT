@@ -26,10 +26,17 @@
 ttt::MotionVectorDrawer::MotionVectorDrawer(){
 
 }
+void ttt::MotionVectorDrawer::Reset(){
+	for(typename std::vector< vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		m_Renderer->RemoveActor(*it);
+	}
+	m_Actors.clear();
+}
 void ttt::MotionVectorDrawer::Draw(){
 
 	assert(m_Descriptor);
 	assert(m_Renderer);
+	this->Reset();
 	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,ttt::TrackedCellGraph){
 
 		vtkSmartPointer<vtkArrowSource> arrowSource = vtkSmartPointer<vtkArrowSource>::New();
@@ -109,36 +116,18 @@ void ttt::MotionVectorDrawer::Draw(){
 		actor->SetMapper(mapper);
 
 		m_Renderer->AddActor(actor);
-
-
-#if 0
-		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-		transform->Scale(1,1,1);
-
-		vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
-
-		transformFilter->SetInputConnection(arrowSource->GetOutputPort());
-		transformFilter->SetTransform(transform);
-
-                                  // Visualize
-		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(transformFilter->GetOutputPort());
-		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-		actor->SetMapper(mapper);
-        actor->SetPosition(posa[0]*spacing[0],posa[1]*spacing[1],0.0);
-
-        double deg = atan2((posb[1] -posa[1]),(posb[0]-posa[0])) * 180/3.14159;
-        std::cout<<deg<<std::endl;
-        actor->RotateZ(deg);
-        m_Renderer->AddActor(actor);
-#endif
+		m_Actors.push_back(actor);
 
 	}
 }
 
 void ttt::MotionVectorDrawer::Show(){
-	//TODO
+	for(typename std::vector< vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		(*it)->VisibilityOn();
+	}
 }
 void ttt::MotionVectorDrawer::Hide(){
-	//TODO
+	for(typename std::vector< vtkSmartPointer<vtkActor> >::iterator it= m_Actors.begin();it!=m_Actors.end();it++){
+		(*it)->VisibilityOff();
+	}
 }

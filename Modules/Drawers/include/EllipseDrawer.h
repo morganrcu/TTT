@@ -34,6 +34,7 @@ private:
 	typedef boost::shared_ptr<EllipseMapType > EllipseMapTypePointer;
 	EllipseMapTypePointer m_Ellipses;
 
+	std::vector<vtkSmartPointer<vtkActor> > m_Actors;
 
 public:
 
@@ -44,6 +45,7 @@ public:
 	}
 	virtual void Show();
 	virtual void Hide();
+	virtual void Reset();
 };
 }
 

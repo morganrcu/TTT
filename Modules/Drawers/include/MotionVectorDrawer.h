@@ -27,7 +27,7 @@ class MotionVectorDrawer : public Drawer {
 private:
 
 	TrackedTissueDescriptor::Pointer m_Descriptor;
-
+	std::vector<vtkSmartPointer<vtkActor> > m_Actors;
 public:
 	MotionVectorDrawer();
 	virtual void Draw();
@@ -37,6 +37,7 @@ public:
 	}
 	virtual void Show();
 	virtual void Hide();
+	virtual void Reset();
 
 };
 }

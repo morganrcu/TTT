@@ -14,6 +14,7 @@
 #include "VertexLocationsDrawer.h"
 #include "PrimalGraphDrawer.h"
 #include "DualGraphDrawer.h"
+#include "MotionVectorDrawer.h"
 #include "DefaultColorer.h"
 
 
@@ -61,7 +62,7 @@ private:
     ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalGraphDrawer;
     ttt::DualGraphDrawer<ttt::TissueDescriptor> m_DualGraphDrawer;
 
-
+    ttt::MotionVectorDrawer m_CellMotionVectorDrawer;
 
     vtkSmartPointer<vtkRenderer> m_CentralRenderer;
     vtkSmartPointer<vtkRenderWindow> m_CentralRenderWindow;
