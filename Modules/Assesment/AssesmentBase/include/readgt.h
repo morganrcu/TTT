@@ -15,13 +15,13 @@ void readGT(const char * fileName, ttt::AdherensJunctionVertices::Pointer & gt){
 	while ( file.good() )
 	{
 		itk::Index<3> point;
-		getline ( file, value, ',' ); // read a string until next comma: http://www.cplusplus.com/reference/string/getline/
+		//getline ( file, value, ',' ); // read a string until next comma: http://www.cplusplus.com/reference/string/getline/
 		getline ( file, value, ',' );
-
 	    point[0]=atoi(value.c_str());
-	    getline ( file, value);
+	    getline ( file, value, ',' );
 	    point[1]=atoi(value.c_str());
-	    point[2]=3;
+	    getline ( file, value);
+	    point[2]=atoi(value.c_str());
 
 	    if(file.good()){
 	    	ttt::AdherensJunctionVertex::Pointer vertex = ttt::AdherensJunctionVertex::New();

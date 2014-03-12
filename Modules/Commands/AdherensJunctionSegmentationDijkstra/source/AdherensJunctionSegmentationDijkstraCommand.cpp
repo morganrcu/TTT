@@ -56,7 +56,7 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::InitDefGraph() {
 		ttt::SkeletonPoint pt = ttt::SkeletonPoint(pos);
 		SkeletonVertexType n = boost::add_vertex(pt,
 				*(m_Descriptor->m_SkeletonGraph));
-		std::cout << "Adding " << pos << " " << n << std::endl;
+		//std::cout << "Adding " << pos << " " << n << std::endl;
 		m_IndexToVertex.insert(IndexAndSkeletonVertexType(*it,n));
 		//m_IndexToVertex.left.[*it]=;
 
@@ -153,6 +153,7 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::DoFastMarching(){
 
 		seeds->InsertElement( k++, node );
 	}
+	fastMarching->SetStoppingValue(m_StoppingValue);
 	fastMarching->SetTrialPoints(  seeds  );
 	fastMarching->SetOutputSize(m_Speed->GetBufferedRegion().GetSize() );
 	fastMarching->Update();
@@ -346,7 +347,7 @@ double ttt::AdherensJunctionSegmentationDijkstraCommand::ComputePath(const Skele
 		exploredNodes++;
 
 		if (exploredNodes % 10000 == 0) {
-				std::cout << exploredNodes << "/"  << " Pendientes: " << trialHeap.size() << " " << currentDistance << std::endl;
+				//std::cout << exploredNodes << "/"  << " Pendientes: " << trialHeap.size() << " " << currentDistance << std::endl;
 		}
 
 		if(currentIndex==targetIndex){
@@ -472,14 +473,15 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::BuildGraph(){
 
 					if(!boost::edge(currentValue,neighValue,*m_Descriptor->m_SkeletonGraph).second && tested(neighValue,currentValue)==0 && tested(currentValue,neighValue)==0){
 
-						double weight=this->ComputePath(currentValue,neighValue);
+						//double weight=this->ComputePath(currentValue,neighValue);
+						double weight=1;
 						if(weight>0.01){
-							std::cout << "(" << currentValue << "," <<  neighValue << ") = " << weight <<  std::endl;
+							//std::cout << "(" << currentValue << "," <<  neighValue << ") = " << weight <<  std::endl;
 							boost::add_edge(currentValue,neighValue,*m_Descriptor->m_SkeletonGraph);
 						}else if(weight > 0){
-							std::cout <<"Rejected";
+							//std::cout <<"Rejected";
 						}else{
-							std::cout << "Not found" << std::endl;
+							//std::cout << "Not found" << std::endl;
 						}
 						tested(neighValue,currentValue)=1;
 						tested(currentValue,neighValue)=1;
@@ -525,8 +527,8 @@ void ttt::AdherensJunctionSegmentationDijkstraCommand::Do() {
 	this->InitDefGraph();
 	this->DoFastMarching();
 
-	this->ComputeLevelsetThreshold(0.3);
-	this->PruneLevelSet(m_LevelSetThreshold);
+	//this->ComputeLevelsetThreshold(0.3);
+	//this->PruneLevelSet(m_LevelSetThreshold);
 	this->StoreLabels();
 	//this->AllocateLabelsImage();
 

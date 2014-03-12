@@ -52,3 +52,4 @@ add_subdirectory(Modules/Assesment/VertexLocationAssesment)
 add_subdirectory(Modules/Assesment/SegmentationAssesment)
 
 add_subdirectory(GUI/NewGUI)
+add_subdirectory(Modules/ScaleSpaceExplorer)

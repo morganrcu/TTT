@@ -483,7 +483,7 @@ public:
 			const ttt::AdherensJunctionVertices::Pointer & vertexLocations) {
 		m_VertexLocations = vertexLocations;
 		m_VertexLocationsDirty = true;
-		bool m_VertexLocationsLoaded = true;
+		m_VertexLocationsLoaded = true;
 	}
 
 	void LoadVertexLocations() {
@@ -531,7 +531,7 @@ public:
 
 		}
 		m_VertexLocationsDirty = false;
-		bool m_VertexLocationsLoaded = true;
+		m_VertexLocationsLoaded = true;
 	}
 
 	void StoreVertexLocations() {
@@ -595,8 +595,8 @@ public:
 	}
 
 	inline void SetVertexLocationsDirty() {
+		this->StoreVertexLocations();
 		m_VertexLocationsDirty = true;
-//		this->StoreVertexLocations();
 	}
 //////////////////////////////////Tissue Descriptor/////////////////////////////////////////////
 private:
@@ -733,6 +733,8 @@ public:
 						*m_TissueDescriptor->m_CellGraph);
 			}
 		}
+		m_TissueDescriptorDirty = false;
+		m_TissueDescriptorLoaded=true;
 	}
 
 	inline typename TissueDescriptorType::Pointer GetTissueDescriptor() {
@@ -1556,7 +1558,8 @@ public:
 	////////////////////////////TRACKED ELLIPSES/////////////////////////////////
 private:
 	EllipseMapTypePointer m_TrackedEllipses;
-	bool m_TrackedEllipsesDirty;
+	bool m_TrackedEllipsesDirty=false;
+	bool m_TrackedEllipsesReady=false;
 
 public:
 	void LoadTrackedEllipses() {
@@ -1587,17 +1590,20 @@ public:
 			(*m_TrackedEllipses)[resTrackedEllipses->getInt("idTrackedCell")] =
 					ellipse;
 		}
+		m_TrackedEllipsesReady=true;
+		m_TrackedEllipsesDirty=true;
 	}
 
 	EllipseMapTypePointer GetTrackedEllipses() {
-		this->LoadTrackedEllipses();
+		if(!m_TrackedEllipsesDirty)this->LoadTrackedEllipses();
 		return m_TrackedEllipses;
 	}
 
 	void SetTrackedEllipses(const EllipseMapTypePointer & trackedEllipses) {
 		m_TrackedEllipses = trackedEllipses;
 		m_TrackedEllipsesDirty = true;
-		this->StoreTrackedEllipses();
+		m_TrackedEllipsesReady = true;
+		//this->StoreTrackedEllipses();
 	}
 	void StoreTrackedEllipses() {
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
@@ -1641,6 +1647,7 @@ public:
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		}
 		transStatement->execute("COMMIT;");
+		m_TrackedEllipsesDirty = false;
 	}
 
 	bool IsTrackedEllipsesReady() {
@@ -1866,8 +1873,8 @@ public:
 
 private:
 	DomainStrainRatesMapTypePointer m_DomainStrainRates;
-	bool m_DomainStrainRatesDirty;
-	bool m_DomainStrainRatesReady;
+	bool m_DomainStrainRatesDirty=false;
+	bool m_DomainStrainRatesReady=false;
 
 public:
 	void LoadDomainStrainRates() {
@@ -1998,7 +2005,8 @@ public:
 	cout << " (MySQL error code: " << e.getErrorCode();
 	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 }
-
+	m_DomainStrainRatesDirty=true;
+	m_DomainStrainRatesReady=true;
 	}
 
 	void StoreDomainStrainRates() {
@@ -2099,11 +2107,12 @@ public:
 			cout << " (MySQL error code: " << e.getErrorCode();
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		}
+		bool m_DomainStrainRatesDirty=false;
 	}
 
 
 	DomainStrainRatesMapTypePointer GetDomainStrainRates() {
-		this->LoadDomainStrainRates();
+		if(!m_DomainStrainRatesReady)this->LoadDomainStrainRates();
 		//return 	boost::shared_ptr<	DomainStrainRatesMapType>(new DomainStrainRatesMapType);;
 		return m_DomainStrainRates;
 
@@ -2112,6 +2121,8 @@ public:
 			const DomainStrainRatesMapTypePointer & domainStrainRates) {
 		m_DomainStrainRates = domainStrainRates;
 		this->StoreDomainStrainRates();
+		m_DomainStrainRatesDirty=true;
+		 m_DomainStrainRatesReady=true;
 	}
 
 	inline bool IsDomainStrainRatesReady() {

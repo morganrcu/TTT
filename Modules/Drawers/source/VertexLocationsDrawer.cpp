@@ -33,6 +33,7 @@ ttt::VertexLocationsDrawer::VertexSphereMapperAndActor ttt::VertexLocationsDrawe
 	m_Renderer->AddActor(sphereActor);
 	sphereActor->VisibilityOff();
 	sphereActor->PickableOn();
+	sphereActor->GetProperty()->SetColor(0.0,1.0,0.0);
 	return resultTuple;
 
 }

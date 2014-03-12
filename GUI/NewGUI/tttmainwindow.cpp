@@ -157,7 +157,8 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 
 	{
 	m_VertexLocationRenderer = vtkSmartPointer<vtkRenderer>::New();
-	m_VertexLocationRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+	//m_VertexLocationRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+	m_VertexLocationRenderer->SetBackground(0,0,0);
 
     m_VertexLocationRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     m_VertexLocationRenderWindow->AddRenderer(m_VertexLocationRenderer);
@@ -177,7 +178,8 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 
 	{
 	m_CellSegmentationRenderer = vtkSmartPointer<vtkRenderer>::New();
-	m_CellSegmentationRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+	//m_CellSegmentationRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+	m_CellSegmentationRenderer->SetBackground(0.0,0.0,0.0);
 
     m_CellSegmentationRendererWindow = vtkSmartPointer<vtkRenderWindow>::New();
     m_CellSegmentationRendererWindow->AddRenderer(m_CellSegmentationRenderer);
@@ -807,9 +809,9 @@ void TTTMainWindow::VertexnessAndDraw(){
 }
 void TTTMainWindow::DoVertexness(){
 
-	double lowestScale = this->m_pUI->lowestScaleDoubleSpinBox->value()*2;
-	double highestScale = this->m_pUI->highestScaleDoubleSpinBox->value()*2;
-	int rangeScale = this->m_pUI->stepsSpinBox->value();
+	double lowestScale = this->m_pUI->lowerVertexnessScaleSpinBox->value();
+	double highestScale = this->m_pUI->upperVertexnessScaleSpinBox->value();
+	int rangeScale = this->m_pUI->stepsVertexnessSpinBox->value();
 
 	DataCastingCommand caster;
 	caster.SetInput(m_Project->GetRawImage());

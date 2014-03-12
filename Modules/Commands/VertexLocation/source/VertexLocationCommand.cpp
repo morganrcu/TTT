@@ -9,7 +9,7 @@
 
 void ttt::VertexLocationCommand::Do(){
 	itk::Size<3> radius;
-	radius.Fill(3);
+	radius.Fill(1.1);
 	m_VertexLocator->SetRadius(radius);
 	m_VertexLocator->SetThreshold(m_LocalMaxThreshold);
 	m_VertexLocator->SetInput(m_Input);

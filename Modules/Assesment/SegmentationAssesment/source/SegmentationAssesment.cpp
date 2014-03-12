@@ -12,9 +12,11 @@
 
 #include "PlatenessImageDrawer.h"
 #include "PrimalGraphDrawer.h"
+#include "DefaultColorer.h"
 
 #include "itkIndex.h"
 
+#include "mysqltissuetrackingproject.h"
 
 typedef itk::Image<float,3> PlatenessImageType;
 typedef itk::ImageFileReader<PlatenessImageType> PlatenessReaderType;
@@ -35,19 +37,45 @@ void drawPrimal(PlatenessImageType::Pointer & plateness, const ttt::TissueDescri
 
 	ttt::PrimalGraphDrawer<ttt::TissueDescriptor> primalDrawer;
 
+	DefaultColorer<ttt::SkeletonVertexType> vertexColorer;
+	DefaultColorer<ttt::SkeletonEdgeType> edgeColorer;
+	primalDrawer.SetVertexColorer(&vertexColorer);
+	primalDrawer.SetEdgeColorer(&edgeColorer);
 
 
 	primalDrawer.SetTissueDescriptor(descriptor);
 	primalDrawer.SetRenderer(renderer);
 
 
+
 	primalDrawer.Draw();
+	primalDrawer.Show();
 	ttt::PlatenessImageDrawer platenessDrawer;
 	platenessDrawer.SetRenderer(renderer);
 	platenessDrawer.SetImage(plateness);
 	platenessDrawer.Draw();
+	platenessDrawer.Show();
 	renWin->Render();
 	iren->Start();
+}
+
+void compareGraphs(const ttt::TissueDescriptor::Pointer & reference, const ttt::TissueDescriptor::Pointer & test){
+	int hit=0;
+	int total = boost::num_edges(*reference->m_SkeletonGraph);
+	int retrieved = boost::num_edges(*test->m_SkeletonGraph);
+
+	BGL_FORALL_EDGES(e,*test->m_SkeletonGraph,ttt::SkeletonGraph){
+		ttt::SkeletonVertexType a = boost::source(e,*test->m_SkeletonGraph);
+		ttt::SkeletonVertexType b = boost::target(e,*test->m_SkeletonGraph);
+
+		if(boost::edge(a,b,*reference->m_SkeletonGraph).second){
+			hit++;
+		}
+	}
+	double precision=(double)hit/retrieved;
+	double recall = (double)hit/total;
+
+	std::cout << precision << "\t" << recall  << std::endl;
 }
 int main(int argc,char ** argv){
 
@@ -55,9 +83,24 @@ int main(int argc,char ** argv){
 		std::cout << "Usage: " << argv[0] << " GTFile PlatenessImage ";
 	}
 
-	//1. Leer GT
-	ttt::AdherensJunctionVertices::Pointer gt=ttt::AdherensJunctionVertices::New();
-	readGT(argv[1],gt);
+	//1. Leer seeds
+	ttt::AdherensJunctionVertices::Pointer seeds=ttt::AdherensJunctionVertices::New();
+	readGT(argv[1],seeds);
+
+
+	//2. Leer gt
+
+	ttt::TissueTrackingProject m_Project;
+	m_Project.SetHost("localhost");
+	m_Project.SetDBName("TuftsTissueTracker");
+	m_Project.SetUser("root");
+	m_Project.SetPassword("ttt1Tracker");
+	assert(m_Project.openDB());
+	m_Project.OpenProject(2);
+
+	m_Project.SetFrame(0);
+
+	ttt::TissueDescriptor::Pointer gt = m_Project.GetTissueDescriptor();
 
 	//2. Leer Plateness
 	PlatenessReaderType::Pointer platenessReader = PlatenessReaderType::New();
@@ -79,21 +122,42 @@ int main(int argc,char ** argv){
 
 
 	PlatenessImageType::SpacingType spacing;
-	spacing[0]=0.0965251;
-	spacing[1]=0.0965251;
-	spacing[2]=0.378284;
+	spacing[0]=0.1022727;
+	spacing[1]=0.1022727;
+	spacing[2]=1.0192918;
 	platenessImage->SetSpacing(spacing);
 	vertexnessImage->SetSpacing(spacing);
 
-	ttt::AdherensJunctionSegmentationDijkstraCommand command;
+	double minLimit=1e0;
+	double maxLimit=1e5;
 
-	//command.SetK(20);
-	//command.SetThreshold(0.1);
-	command.SetPlatenessImage(platenessImage);
-	command.SetVertexnessImage(vertexnessImage);
-	command.SetVertexLocations(gt);
-	command.Do();
+	int nSamples=100;
 
-	drawPrimal(platenessImage,command.GetTissueDescriptor(),spacing);
+	double step = (log(maxLimit)/log(10)- log(minLimit)/log(10))/nSamples;
+
+	double prod=10;
+
+	double limit= minLimit;
+	for(int i=0;i<=nSamples;i++){
+	//while(limit<=maxLimit){
+		double limit = pow(10,log(minLimit)/log(10) + i*step);
+		ttt::AdherensJunctionSegmentationDijkstraCommand command;
+
+			//command.SetK(20);
+			//command.SetThreshold(0.1);
+			command.SetPlatenessImage(platenessImage);
+			command.SetVertexnessImage(vertexnessImage);
+			command.SetVertexLocations(seeds);
+			command.SetLimit(limit);
+			command.Do();
+
+			ttt::TissueDescriptor::Pointer result = command.GetTissueDescriptor();
+
+			std::cout << limit << "\t";
+			compareGraphs(gt,result);
+			//limit=limit*prod;
+	}
+
+	//drawPrimal(platenessImage,result,spacing);
 
 }

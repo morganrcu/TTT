@@ -113,7 +113,7 @@ public:
 
 				actor->GetProperty()->SetColor(color);
 
-				actor->GetProperty()->SetColor(0,0,0);
+				//actor->GetProperty()->SetColor(0,0,0);
 				actor->GetProperty()->SetLineWidth(3);
 				actor->VisibilityOff();
 				m_Renderer->AddActor(actor);

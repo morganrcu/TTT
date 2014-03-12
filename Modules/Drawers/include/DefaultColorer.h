@@ -13,8 +13,8 @@ template<class T> class DefaultColorer : public Colorer<T>{
 public:
 	void GetObjectColor(const T & object, double * result){
 
-		result[0]=1.0;
-		result[1]=1.0;
+		result[0]=0.0;
+		result[1]=0.0;
 		result[2]=1.0;
 
 	}

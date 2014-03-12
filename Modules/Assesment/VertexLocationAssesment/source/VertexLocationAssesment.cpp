@@ -10,7 +10,7 @@
 #include "readgt.h"
 #include "pointsetmapping.h"
 
-#define DRAW_GT
+//#define DRAW_GT
 
 #ifdef DRAW_GT
 #include "VertexnessImageDrawer.h"
@@ -95,17 +95,18 @@ int main(int argc, char ** argv){
 	ImageType::Pointer image = reader->GetOutput();
 
 	ImageType::SpacingType spacing;
-	spacing[0]=0.0965251;
-	spacing[1]=0.0965251;
-	spacing[2]=0.378284;
+	spacing[0]=0.1022727;
+	spacing[1]=0.1022727;
+	spacing[2]=1.0192918;
 	image->SetSpacing(spacing);
 
 #ifdef DRAW_GT
 	drawPointSet(image,gt,spacing);
 #endif
+
 #if 0
 	mapPointSet<PointSetType,ImageType::SpacingType>(gt,spacing);
-
+#endif
 #if 0
 	for(typename PointsContainer::Iterator it=gtPoints->Begin();it!=gtPoints->End();it++){
 
@@ -123,29 +124,22 @@ int main(int argc, char ** argv){
 	maximumFilter->SetInput(image);
 	maximumFilter->SetThreshold(0.0005); //Very low but not zero
 	itk::Size<3> radius;
-	radius.Fill(3);
+	radius.Fill(1.1);
 	maximumFilter->SetRadius(radius);
 
-	maximumFilter->Update();
+	maximumFilter->GenerateData();
 
 
-	PointSetType::Pointer locatedPoints = maximumFilter->GetOutput();
-
-	PointSetType::PointsContainer::Pointer points = locatedPoints->GetPoints();
-
-	typename PointSetType::PointDataContainer::Pointer pointData = locatedPoints->GetPointData();
-
-
+	typename ttt::AdherensJunctionVertices::Pointer locatedPoints = maximumFilter->GetOutput();
 
 	std::vector<PointAndValueType> detections;
 
-	for(int i=0;i<pointData->Size();i++){
+	for(ttt::AdherensJunctionVertices::iterator it = locatedPoints->begin();it!=locatedPoints->end();it++){
 		PointAndValueType pointAndValue;
-		pointAndValue.first=points->GetElement(i);
-		pointAndValue.first[0]*=spacing[0];
-		pointAndValue.first[1]*=spacing[1];
-		pointAndValue.second=pointData->GetElement(i);
+		pointAndValue.first=(*it)->GetPosition();
+		pointAndValue.second=image->GetPixel(pointAndValue.first);
 		detections.push_back(pointAndValue);
+		//std::cout << "Detection " << pointAndValue.first << " " << pointAndValue.second << std::endl;
 	}
 
 	std::sort(detections.begin(),detections.end(),CompareSecond());
@@ -154,7 +148,7 @@ int main(int argc, char ** argv){
 		std:: cout << it->first << it->second << std::endl;
 	}
 #endif
-	int positive = gt->GetNumberOfPoints();
+	int positive = gt->size();
 	int negative = detections.size()-positive;
 	int count =0;
 	int hit=0;
@@ -163,50 +157,48 @@ int main(int argc, char ** argv){
 	double precision=1;
 	double recall=0;
 
-	double THRESHOLD=1;
+	double THRESHOLD=sqrt(2);
 
-	PointSetType::Pointer matched = PointSetType::New();
-	PointsContainer::Pointer matchedPoints = matched->GetPoints();
-	PointSetType::PointDataContainer::Pointer matchedData = matched->GetPointData();
-
+	typename ttt::AdherensJunctionVertices::Pointer matched = ttt::AdherensJunctionVertices::New();
 
 	for(vector<PointAndValueType>::reverse_iterator it = detections.rbegin();it!=detections.rend();it++){
 		count++;
-		//TRY TO MATCH
-		//PointsContainer::Iterator min=gtPoints->Begin();
+		//std::cout << "Trying to match " << (*it).first << std::endl;
 		double minValue=1e128;
-		int minLoc=0;
+		ttt::AdherensJunctionVertices::iterator minLoc;
 
-		int i=0;
-		for(PointsContainer::Iterator gtIt=gtPoints->Begin();gtIt!=gtPoints->End();gtIt++){
+		for(typename ttt::AdherensJunctionVertices::iterator gtIt=gt->begin();gtIt!=gt->end();gtIt++){
 
-			PointSetType::PointType & gtPoint = gtIt->Value();
+			IndexType  gtPoint = (*gtIt)->GetPosition();
+
 			double dist=sqrt(pow(gtPoint[0] - it->first[0],2) +pow(gtPoint[1] - it->first[1],2));
+
 			if(dist<minValue){
 				minValue=dist;
-				minLoc=i;
+				minLoc=gtIt;
 			}
-			i++;
+
 		}
 		if(minValue<=THRESHOLD){
-			matchedPoints->InsertElement(hit,gtPoints->GetElement(minLoc));
-			matchedData->InsertElement(hit,0);
-			gtPoints->DeleteIndex(minLoc);
+			//std::cout << "MATCHED TO " << (*minLoc)->GetPosition() << std::endl;
+			gt->erase(minLoc);
 			hit++;
+
 		}
+
 		precision = (double)hit/count;
 		recall = (double)hit/positive;
 		std::cout << precision << " " << recall << "; ";
 	}
-	matched->SetPoints(matchedPoints);
-	matched->SetPointData(matchedData);
+	//matched->SetPoints(matchedPoints);
+	//matched->SetPointData(matchedData);
 
-	unmapPointSet<PointSetType,ImageType::SpacingType>(matched,spacing);
+	//unmapPointSet<PointSetType,ImageType::SpacingType>(matched,spacing);
 	//drawPointSet(image,matched,spacing);
 	//2. Obtener vertex locations
 
 	//PARA CADA
 
 	//4. ROC
-#endif
+
 }

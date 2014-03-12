@@ -107,12 +107,14 @@ private:
 
 	LabelImageType::Pointer m_Labels;
 	double m_LevelSetThreshold;
+
+	double m_StoppingValue;
 public:
 	/**
 	 * TODO
 	 */
 	AdherensJunctionSegmentationDijkstraCommand(){
-
+		m_StoppingValue=10e6;
 	}
 	/**
 	 * TODO
@@ -154,7 +156,9 @@ public:
 	inline ttt::TissueDescriptor::Pointer GetTissueDescriptor(){
 		return m_Descriptor;
 	}
-
+	inline void SetLimit(double stoppingValue){
+		m_StoppingValue=stoppingValue;
+	}
 
 private:
 	void PruneLevelSet(double threshold);
