@@ -39,6 +39,10 @@ private slots:
 	void DrawPlateness(int);
 	void DrawVertexness(int);
 
+	void SaveScreenshot();
+
+	void SavePlateness();
+	void SaveVertexness();
 
 private:
     Ui::ScaleSpaceExplorer *m_pUI;
@@ -68,10 +72,13 @@ private:
     double m_UpperScaleVertexness;
     double m_ScaleStepVertexness;
 
+
     double m_LowerScalePlateness;
     double m_UpperScalePlateness;
     double m_ScaleStepPlateness;
 
+    int m_CurrentPlateness;
+    int m_CurrentVertexness;
 	ImageType::SpacingType m_Spacing;
 
 };

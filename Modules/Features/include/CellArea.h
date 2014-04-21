@@ -37,15 +37,16 @@ public:
 
 				itk::Point<double,3> A= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkel).position;
 				itk::Point<double,3> B= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkelNext).position;
-				area+=abs((B[0]*A[1]-A[0]*B[1])+(C[0]*B[1]-B[0]*C[1])+(A[0]*C[1]-C[0]*A[1]))/2;
+
+				area+=(A[0]*B[1]-B[0]*A[1]);
 				++itSkel;
 				++itSkelNext;
 			}
 			itSkelNext=cell.Begin();
 			itk::Point<double,3> A= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkel).position;
 			itk::Point<double,3> B= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkelNext).position;
-			area+=abs((B[0]*A[1]-A[0]*B[1])+(C[0]*B[1]-B[0]*C[1])+(A[0]*C[1]-C[0]*A[1]))/2;
-
+			area+=(A[0]*B[1]-B[0]*A[1]);
+			area=fabs(area)/2;
 			this->Insert(*it,area);
 
 		}

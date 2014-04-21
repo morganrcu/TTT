@@ -85,6 +85,9 @@ public:
 	}
 	virtual void OnLeftButtonDown();
 	virtual void OnRightButtonUp();
+	virtual void OnMouseMove(){
+
+	}
 };
 
 #endif /* EDGESELECTIONINTERACTOR_H_ */

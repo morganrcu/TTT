@@ -47,7 +47,7 @@ include_directories( ../../Modules/Features/include/)
 
 qt5_wrap_ui(UI_HDRS tttmainwindow.ui tttsqlopenprojectdialog.ui tttsqlnewprojectdialog.ui tttexplorer.ui tttpreferences.ui)
 
-add_executable(TTTNewGui main.cpp tttmainwindow.cpp tttsqlnewprojectdialog.cpp tttsqlopenprojectdialog.cpp tttexplorer.cpp tttpreferences.cpp ${UI_HDRS} VertexAdditionInteractor.cpp VertexSelectionInteractor.cpp EdgeSelectionInteractor.cpp EdgeAdditionInteractor.cpp) 
+add_executable(TTTNewGui main.cpp tttmainwindow.cpp tttsqlnewprojectdialog.cpp tttsqlopenprojectdialog.cpp tttexplorer.cpp tttpreferences.cpp ${UI_HDRS} VertexAdditionInteractor.cpp VertexSelectionInteractor.cpp VertexAdditionToPrimalInteractor.cpp EdgeSelectionInteractor.cpp EdgeAdditionInteractor.cpp) 
 qt5_use_modules(TTTNewGui Widgets)
 qt5_use_modules(TTTNewGui Sql)
 

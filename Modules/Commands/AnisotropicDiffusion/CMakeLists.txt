@@ -12,4 +12,10 @@ add_library(TTTAnisotropicDiffusion ${TTTAnisotropicDiffusion_SRCS})
 
 add_executable(TTTAnisotropicDiffusionTest test/AnisotropicDiffusionCommandTest.cpp)
 
+
 target_link_libraries(TTTAnisotropicDiffusionTest ${ITK_LIBRARIES}  TTTAnisotropicDiffusion )
+
+
+add_executable(TTTAnisotropicDiffusionCharacterization test/AnisotropicDiffusionCommandCharacterization.cpp)
+
+target_link_libraries(TTTAnisotropicDiffusionCharacterization ${ITK_LIBRARIES}  TTTAnisotropicDiffusion )

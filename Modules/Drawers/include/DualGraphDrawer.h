@@ -100,7 +100,7 @@ public:
 				itk::Point<double,3> b= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).m_Centroid;
 
 			//IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
-				newLine->SetPoint2(b[0],b[1],a[2]);
+				newLine->SetPoint2(b[0],b[1],b[2]);
 
 				vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				mapper->SetInputConnection(newLine->GetOutputPort());

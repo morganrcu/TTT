@@ -28,24 +28,29 @@ void SQLNewProjectDialog::accept(){
 
     std::string name = this->ui->projectNameLabel->text().toStdString();
     std::string projectPath = this->ui->wdLineEdit->text().toStdString();
+
     double spacingX = (double)atof(this->ui->xSpacingLineEdit->text().toStdString().c_str());
     double spacingY = (double)atof(this->ui->yLineEdit->text().toStdString().c_str());
     double spacingZ = (double)atof(this->ui->zLineEdit->text().toStdString().c_str());
+
     double timeDelta = atof(this->ui->timeDeltaLineEdit->text().toStdString().c_str());
+
     int sizeX= atoi(this->ui->selectedFilesTable->item(0,4)->text().toStdString().c_str());
     int sizeY= atoi(this->ui->selectedFilesTable->item(0,5)->text().toStdString().c_str());
     int sizeZ= atoi(this->ui->selectedFilesTable->item(0,6)->text().toStdString().c_str());
+
 	m_NewProject->openDB();
 	m_NewProject->NewProject(name,projectPath,spacingX,spacingY,spacingZ,timeDelta,sizeX,sizeY,sizeZ);
 	for(int row=0; row<this->ui->selectedFilesTable->rowCount();row++){
 		m_NewProject->NewFrame(row);
+		m_NewProject->SetFrame(row);
 		QString file= this->ui->selectedFilesTable->item(row,0)->text();
 
 		reader->SetFileName(file.toStdString());
+
 		reader->Update();
 
 		m_NewProject->SetRawImage(reader->GetOutput());
-		m_NewProject->SetFrame(row);
 
 	}
 	m_Accepted=true;

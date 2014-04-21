@@ -182,10 +182,13 @@ typedef boost::property<ttt::SkeletonPointPropertyTag, ttt::SkeletonPoint,
 /**
  * SkeletonPoint storage. The graph structure represents the intercellular skeleton
  */
+#if 0
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
+#endif
 
-
+typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
+		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
 /**
  * Type of the vertices in the graph_traits
  */
@@ -232,7 +235,9 @@ public:
 	 * @param vertex the descriptor of the point to add, represented by the vertex descriptor of the SkeletonGraph where it is stored
 	 */
 	inline void AddSkeletonPoint(const SkeletonVertexType & vertex) {
-		m_SkeletonNodes.push_back(vertex);
+		if(std::find(m_SkeletonNodes.begin(),m_SkeletonNodes.end(),vertex)==m_SkeletonNodes.end()){
+			m_SkeletonNodes.push_back(vertex);
+		}
 	}
 	inline std::vector<SkeletonVertexType>::iterator Begin() {
 		return m_SkeletonNodes.begin();
@@ -280,8 +285,11 @@ typedef boost::property<CellPropertyTag, Cell,boost::property<boost::vertex_inde
 /**
  * Cell Graph definition
  */
-
+#if 0
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, CellProperty, boost::property<boost::edge_index_t, int> > CellGraph;
+#endif
+
+typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty, boost::property<boost::edge_index_t, int> > CellGraph;
 
 
 typedef boost::graph_traits<CellGraph>::vertex_descriptor CellVertexType;
@@ -326,6 +334,7 @@ public:
 		m_ParentID=-1;
 		m_ID = -1;
 		m_Velocity.Fill(0);
+		m_ObservedCell=-1;
 	}
 	/**
 	 * Copy constructor. Copies fields from the other cell
@@ -334,6 +343,7 @@ public:
 		this->m_Velocity = other.m_Velocity;
 		this->m_ID = other.m_ID;
 		this->m_ParentID=other.m_ParentID;
+		this->m_ObservedCell=other.m_ObservedCell;
 	}
 };
 
@@ -356,12 +366,17 @@ template<class CellVertexType> class Domain {
 public:
 	Domain() {
 		m_DomainID = -1;
+		m_Order=-1;
+		m_Nucleus=-1;
+		m_Order=-1;
+
 	}
 
 	Domain(const Domain & other) {
 		this->m_CellNodes = other.m_CellNodes;
 		this->m_DomainID = other.m_DomainID;
 		this->m_Nucleus= other.m_Nucleus;
+		this->m_Order=other.m_Order;
 	}
 
 	inline CellVertexType GetNucleus(){
@@ -412,6 +427,10 @@ private:
 
 typedef Domain<TrackedCellVertexType> TrackedDomain;
 
+template<class T> struct TissueDescriptorTraits{
+
+};
+
 
 /**
  * Template Class to represent a Tissue, composed by a primal graph and a dual graph. Primal graph represents intercellular skeleton, Dual graph represents cells
@@ -426,19 +445,31 @@ public:
 	typedef typename boost::graph_traits<PrimalGraphType>::vertex_descriptor PrimalGraphVertexDescriptorType;
 	typedef TDualGraph DualGraphType;
 	typedef typename boost::graph_traits<DualGraphType>::vertex_descriptor DualGraphVertexDescriptorType;
+
+
 	itkNewMacro(TemplateTissueDescriptor);
 
-	TemplateTissueDescriptor() : m_CellGraph(boost::shared_ptr<DualGraphType>(new DualGraphType())), m_SkeletonGraph(boost::shared_ptr<PrimalGraphType>(new PrimalGraphType())){
+	TemplateTissueDescriptor(){
+		m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
+		m_SkeletonGraph=boost::shared_ptr<PrimalGraphType>(new PrimalGraphType());
 
 	}
+
+	void InvalidateDual(){
+		m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
+		this->ClearPerimeter();
+	}
+
 	/**
 	 * Method for class serialization
 	 */
-
+#if 0
 	template<typename Archive>
 	void serialize(Archive& ar, const unsigned version) {
 		ar & *m_CellGraph & *m_SkeletonGraph;
 	}
+#endif
+
 	/**
 	 * Return the number of cells stored in the tissue
 	 */
@@ -455,15 +486,37 @@ public:
 	 * Dual Graph data structure -> Cells defined by the intercellular skeleton
 	 */
 	boost::shared_ptr<DualGraphType> m_CellGraph;
+
+	void AddVertexToPerimeter(const PrimalGraphVertexDescriptorType & vertex){
+		m_Perimeter.push_back(vertex);
+	}
+
+	typename std::vector<PrimalGraphVertexDescriptorType >::iterator BeginPerimeter(){
+		return m_Perimeter.begin();
+	}
+
+	typename std::vector<PrimalGraphVertexDescriptorType >::iterator EndPerimeter(){
+		return m_Perimeter.end();
+	}
+
+	void ClearPerimeter(){
+		m_Perimeter.clear();
+	}
+	int PerimeterSize(){
+		return m_Perimeter.size();
+	}
+
+private:
+
+	std::vector<PrimalGraphVertexDescriptorType > m_Perimeter;
 };
+
+
 
 
 typedef TemplateTissueDescriptor<SkeletonGraph,CellGraph> TissueDescriptor;
 typedef TemplateTissueDescriptor<SkeletonGraph,TrackedCellGraph> TrackedTissueDescriptor;
 
-template<class T> struct TissueDescriptorTraits{
-
-};
 
 template<> struct TissueDescriptorTraits<TissueDescriptor>{
 	typedef ttt::SkeletonVertexType SkeletonVertexType;
@@ -493,6 +546,8 @@ template<> struct TissueDescriptorTraits<TrackedTissueDescriptor>{
 };
 
 TrackedTissueDescriptor::DualGraphVertexDescriptorType CellID2VertexDescriptor(int ID,const TrackedTissueDescriptor::Pointer & descriptor);
+
+std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> CellParentID2VertexDescriptor(int ID,const ttt::TrackedTissueDescriptor::Pointer & descriptor);
 
 
 /**

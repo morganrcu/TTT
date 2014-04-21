@@ -855,21 +855,21 @@
               <property name="fieldGrowthPolicy">
                <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
               </property>
-              <item row="2" column="0" colspan="2">
+              <item row="4" column="0" colspan="2">
                <widget class="QPushButton" name="dualButton">
                 <property name="text">
                  <string>Cell Graph</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="2">
+              <item row="2" column="0" colspan="2">
                <widget class="QPushButton" name="segmentationButton">
                 <property name="text">
                  <string>Adherens Junctions</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0" colspan="2">
+              <item row="3" column="0" colspan="2">
                <widget class="QGroupBox" name="groupBox">
                 <property name="title">
                  <string>Validation</string>
@@ -883,33 +883,54 @@
                   </widget>
                  </item>
                  <item row="1" column="0" colspan="2">
-                  <widget class="QPushButton" name="addEdgeButton">
+                  <widget class="QPushButton" name="linkVerticesButton">
                    <property name="text">
-                    <string>Add</string>
+                    <string>Link</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="0" colspan="2">
+                 <item row="3" column="0" colspan="2">
                   <widget class="QPushButton" name="deleteEdgeButton">
                    <property name="text">
                     <string>Delete</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="2" column="0" colspan="2">
+                  <widget class="QPushButton" name="addVertexToPrimalButton">
+                   <property name="text">
+                    <string>Add Vertex</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </widget>
               </item>
-              <item row="3" column="0" colspan="2">
+              <item row="5" column="0" colspan="2">
                <widget class="QCheckBox" name="showAdherensJunctionsAtSegmentationCBox">
                 <property name="text">
                  <string>Adherens Junctions</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="2">
+              <item row="6" column="0" colspan="2">
                <widget class="QCheckBox" name="showCellGraphAtSegmentationCBox">
                 <property name="text">
                  <string>Cell Graph</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Propagation limit:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="horizonDoubleSpinBox">
+                <property name="maximum">
+                 <double>1000000.000000000000000</double>
                 </property>
                </widget>
               </item>

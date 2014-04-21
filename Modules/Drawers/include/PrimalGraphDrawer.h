@@ -31,12 +31,15 @@ template<class TissueDescriptor> class PrimalGraphDrawer: public Drawer {
 public:
 	typedef itk::FixedArray<float,3> SpacingType;
 
-
+	typedef boost::tuple<ttt::SkeletonVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
 private:
 	typename TissueDescriptor::Pointer m_Descriptor;
 
 	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonVertexType> Actor2SkeletonVertexType;
 	Actor2SkeletonVertexType  m_Actor2SkeletonVertex;
+
+	typedef std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkSphereSource> > Actor2SphereType;
+	Actor2SphereType  m_Actor2Sphere;
 
 	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonEdgeType> Actor2SkeletonEdgeType;
 	Actor2SkeletonEdgeType m_Actor2SkeletonEdge;
@@ -44,7 +47,10 @@ private:
 	Colorer<ttt::SkeletonEdgeType> *  m_pEdgeColorer;
 	Colorer<ttt::SkeletonVertexType> *  m_pVertexColorer;
 
+
+
 public:
+
 	inline void SetEdgeColorer(Colorer<typename ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonEdgeType> * colorer){
 		m_pEdgeColorer=colorer;
 	}
@@ -78,13 +84,17 @@ public:
 		assert(IsVertex(actor));
 		return m_Actor2SkeletonVertex[actor];
 	}
+	inline vtkSmartPointer<vtkSphereSource> GetSphereSource(const vtkSmartPointer<vtkActor> & actor){
+		assert(IsVertex(actor));
+		return m_Actor2Sphere[actor];
+	}
 
 	inline SkeletonEdgeType GetActorSkeletonEdge(const vtkSmartPointer<vtkActor> & actor){
 		assert(IsEdge(actor));
 		return m_Actor2SkeletonEdge[actor];
 	}
 
-	void DrawVertex(const ttt::SkeletonVertexType & vertex){
+	VertexSphereMapperAndActor DrawVertex(const ttt::SkeletonVertexType & vertex){
 		itk::Point<double, 3> a =boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,vertex).position;
 
 
@@ -119,7 +129,9 @@ public:
 			sphereActor->SetMapper(sphereMapper);
 			sphereActor->VisibilityOff();
 			m_Actor2SkeletonVertex[sphereActor] = vertex;
+			m_Actor2Sphere[sphereActor]=newSphere;
 			m_Renderer->AddActor(sphereActor);
+			return VertexSphereMapperAndActor(vertex,newSphere,sphereMapper,sphereActor);
 	}
 	inline void DrawEdge(const ttt::SkeletonEdgeType & edge){
 		typedef itk::Point<double,3> itkpt;
@@ -164,7 +176,24 @@ public:
 
 			m_Actor2SkeletonVertex.clear();
 			m_Actor2SkeletonEdge.clear();
+			m_Actor2Sphere.clear();
 
+	}
+	virtual void PickableOn(){
+			for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+				it->first->PickableOn();
+			}
+			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+				it->first->PickableOn();
+			}
+	}
+	virtual void PickableOff(){
+			for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+				it->first->PickableOff();
+			}
+			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+				it->first->PickableOff();
+			}
 	}
 	virtual ~PrimalGraphDrawer(){
 

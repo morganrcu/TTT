@@ -12,7 +12,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
 # some .ui files sqlnewprojectdialog.ui sqlopenprojectdialog.ui
-SET(TTTScaleSpaceExplorer_UIS tttmainwindow.ui 
+SET(TTTScaleSpaceExplorer_UIS scalespaceexplorer.ui 
     )
 
 # another list, this time it includes all header files that should be treated with moc

@@ -55,8 +55,8 @@ AnisotropicDiffusionPlateEnhancementImageFilter<TInputImage, TOutputImage>
 
   // Vesselness guided vesselness function algorithm parameter
   m_WStrength  = 1.5;
-  m_Sensitivity  = 1.0;
-  //m_Sensitivity  = 20.0;
+  //m_Sensitivity  = 2.0;
+  m_Sensitivity  = 20.0;
   m_Epsilon = 10e-2;
 }
 

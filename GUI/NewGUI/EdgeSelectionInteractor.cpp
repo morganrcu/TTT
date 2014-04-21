@@ -10,6 +10,7 @@
 #include <vtkPropPicker.h>
 #include <vtkRenderWindowInteractor.h>
 void EdgeSelectionInteractor::OnLeftButtonDown(){
+	vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	int* clickPos = this->GetInteractor()->GetEventPosition();
 
 	// Pick from this location.
@@ -22,11 +23,12 @@ void EdgeSelectionInteractor::OnLeftButtonDown(){
 		this->SetSelection(pickedActor);
 	}
 
-	vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+
 }
 void EdgeSelectionInteractor::OnRightButtonUp(){
-	this->UnsetSelection();
 	vtkInteractorStyleTrackballCamera::OnRightButtonUp();
+	this->UnsetSelection();
+
 }
 
 EdgeSelectionInteractor::EdgeSelectionInteractor() {

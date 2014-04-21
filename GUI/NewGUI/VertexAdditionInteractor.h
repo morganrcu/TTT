@@ -40,6 +40,7 @@ protected:
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 
 public:
+
 	vtkTypeMacro(VertexAdditionInteractor, vtkInteractorStyleTrackballCamera);
 
 	inline vtkSmartPointer<vtkActor> GetAddedActor(){
@@ -57,6 +58,10 @@ public:
 		m_VertexLocationsDrawer=vertexLocationsDrawer;
 	}
 
+	inline void SetSpacing(const itk::FixedArray<double,3> spacing){
+		m_Spacing=spacing;
+	}
+
 	static VertexAdditionInteractor* New(){
 		return new VertexAdditionInteractor;
 	}
@@ -64,6 +69,7 @@ public:
 public:
 	virtual void OnLeftButtonDown();
 	virtual void OnRightButtonUp();
+	virtual void OnMouseMove();
 };
 
 

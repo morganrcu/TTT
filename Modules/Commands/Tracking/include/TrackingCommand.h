@@ -35,6 +35,7 @@ private:
 
 public:
 	TrackingCommand();
+#if 0
     inline void SetXMin(double xMin){
     	m_Tracker->SetXMin(xMin);
     }
@@ -55,6 +56,28 @@ public:
     inline void SetZMax(double zMax){
     	m_Tracker->SetZMax(zMax);
     }
+#endif
+
+    inline void SetMitosisWeight(double weight){
+    	m_Tracker->SetMitosisWeight(weight);
+    }
+    inline void SetAssociationWeight(double weight){
+    	m_Tracker->SetAssociationWeight(weight);
+    }
+    inline void SetCreationWeight(double weight){
+    	m_Tracker->SetCreationWeight(weight);
+    }
+    inline void SetTerminationWeight(double weight){
+    	m_Tracker->SetTerminationWeight(weight);
+    }
+
+    inline void SetAreaWeight(double weight){
+    	m_Tracker->SetAreaWeight(weight);
+    }
+    inline void SetDistanceWeight(double weight){
+    	m_Tracker->SetDistanceWeight(weight);
+    }
+
 	virtual ~TrackingCommand();
 
 	inline void SetObservedTissues(const std::vector<TissueDescriptor::Pointer> & input){

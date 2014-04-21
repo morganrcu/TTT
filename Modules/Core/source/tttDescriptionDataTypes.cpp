@@ -13,6 +13,28 @@ ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType ttt::CellID2VertexDe
 	return -1;
 }
 
+std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> ttt::CellParentID2VertexDescriptor(int ID,const ttt::TrackedTissueDescriptor::Pointer & descriptor){
+	assert(descriptor);
+	assert(descriptor->m_CellGraph);
+	std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> result;
+	bool firstFound=false;
+
+	BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::TrackedTissueDescriptor::DualGraphType){
+
+		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).m_ParentID==ID){
+			if(!firstFound){
+				result.first=v;
+				firstFound=true;
+			}else{
+				result.second=v;
+				return result;
+			}
+		}
+	}
+	return std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType>(-1,-1);
+
+}
+
 ttt::TissueDescriptor::Pointer ttt::cloneTissueDescriptor(const ttt::TissueDescriptor::Pointer & descriptor){
       
       ttt::TissueDescriptor::Pointer result = ttt::TissueDescriptor::New();

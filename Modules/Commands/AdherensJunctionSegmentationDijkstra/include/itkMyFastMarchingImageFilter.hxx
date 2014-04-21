@@ -61,6 +61,8 @@ FastMarchingImageFilter< TLevelSet, TSpeedImage >
   m_CollectPoints = false;
 
   m_NormalizationFactor = 1.0;
+
+  m_VoronoiImage=0;
 }
 
 template< typename TLevelSet, typename TSpeedImage >
@@ -388,21 +390,23 @@ FastMarchingImageFilter< TLevelSet, TSpeedImage >
       neighIndex[j] = index[j] - 1;
       }
 
-    label = m_LabelImage->GetPixel(neighIndex);
 
-    if ( ( label != AlivePoint ) &&
-         ( label != InitialTrialPoint ) &&
-         ( label != OutsidePoint ) )
-      {
-      this->UpdateValue(neighIndex, speedImage, output,cluster);
-      }
+    if(m_VoronoiImage->GetPixel(neighIndex)==cluster){
+        label = m_LabelImage->GetPixel(neighIndex);
+		if ( ( label != AlivePoint ) &&
+			 ( label != InitialTrialPoint ) &&
+			 ( label != OutsidePoint ) )
+		  {
 
+		  this->UpdateValue(neighIndex, speedImage, output,cluster);
+		  }
+    }
     // update right neighbor
     if ( index[j] < m_LastIndex[j] )
       {
       neighIndex[j] = index[j] + 1;
       }
-
+    if(m_VoronoiImage->GetPixel(neighIndex)==cluster){
     label = m_LabelImage->GetPixel(neighIndex);
 
     if ( ( label != AlivePoint ) &&
@@ -411,7 +415,7 @@ FastMarchingImageFilter< TLevelSet, TSpeedImage >
       {
       this->UpdateValue(neighIndex, speedImage, output,cluster);
       }
-
+    }
     //reset neighIndex
     neighIndex[j] = index[j];
     }

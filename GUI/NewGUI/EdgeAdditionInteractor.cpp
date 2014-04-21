@@ -5,6 +5,7 @@
  *      Author: rod
  */
 
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkPropPicker.h>
 #include <vtkPointPicker.h>
@@ -30,7 +31,7 @@ void EdgeAdditionInteractor::OnLeftButtonDown(){
 	if(pickedActor && pickedActor!=m_Source){
 		if(m_SourceSelected){
 			m_Target=pickedActor;
-			//m_Line->SetPoint2(pickedActor->GetPosition());
+
 			emit edgeAdded(m_Source,m_Target);
 
 			this->m_Source->GetProperty()->DeepCopy(m_SourceProperty);
@@ -40,21 +41,6 @@ void EdgeAdditionInteractor::OnLeftButtonDown(){
 		}else{
 			m_SourceSelected=true;
 
-
-#if 0
-			m_Line = vtkSmartPointer<vtkLineSource>::New();
-			m_Line->SetPoint1(pickedActor->GetPosition());
-			m_Line->SetPoint2(pickedActor->GetPosition());
-
-			m_LineMapper=vtkSmartPointer<vtkPolyDataMapper>::New();
-			m_LineMapper->SetInputConnection(m_Line->GetOutputPort());
-
-			m_LineActor = vtkSmartPointer<vtkActor>::New();
-			m_LineActor->SetMapper(m_LineMapper);
-
-			m_Renderer->AddActor(m_LineActor);
-			m_Line->Update();
-#endif
 			m_Source=pickedActor;
 
 			m_SourceProperty->DeepCopy(this->m_Source->GetProperty());
@@ -62,7 +48,7 @@ void EdgeAdditionInteractor::OnLeftButtonDown(){
 			this->m_Source->GetProperty()->SetColor(1.0, 0.0, 0.0);
 			this->m_Source->GetProperty()->SetDiffuse(1.0);
 			this->m_Source->GetProperty()->SetSpecular(0.0);
-			this->m_Renderer->Render();
+			this->m_Renderer->GetRenderWindow()->Render();
 
 		}
 	}

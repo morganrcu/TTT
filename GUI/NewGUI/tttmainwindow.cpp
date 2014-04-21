@@ -282,13 +282,13 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->stepsTabs,SIGNAL(currentChanged(int)),this,SLOT(SetupCurrentTab()));
 
     connect(this->m_pUI->projectSlider,SIGNAL(valueChanged(int)),this,SLOT(HighlightProjectFrame(int)));
-    connect(this->m_pUI->membranessSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupMembranessFrame()));
-    connect(this->m_pUI->enhancementSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupEnhancementFrame()));
-    connect(this->m_pUI->vertexLocationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupVertexFrame()));
-    connect(this->m_pUI->cellSegmentationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupSegmentationFrame()));
-    connect(this->m_pUI->trackingSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTrackingFrame()));
+    connect(this->m_pUI->membranessSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupMembranessFrame(int)));
+    connect(this->m_pUI->enhancementSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupEnhancementFrame(int)));
+    connect(this->m_pUI->vertexLocationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupVertexFrame(int)));
+    connect(this->m_pUI->cellSegmentationSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupSegmentationFrame(int)));
+    connect(this->m_pUI->trackingSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTrackingFrame(int)));
 
-    connect(this->m_pUI->tectonicsSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTectonicsFrame()));
+    connect(this->m_pUI->tectonicsSlider,SIGNAL(valueChanged(int)),this,SLOT(SetupTectonicsFrame(int)));
 
     connect(this->m_pUI->enhanceButton,SIGNAL(clicked()),this,SLOT(EnhanceAndDraw()));
     connect(this->m_pUI->computeAllEnhanceButton,SIGNAL(clicked()),this,SLOT(DoAllEnhance()));
@@ -305,7 +305,8 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->segmentationButton,SIGNAL(clicked()),this,SLOT(SegmentationAndDraw()));
 
     connect(this->m_pUI->selectEdgeButton,SIGNAL(clicked()),this,SLOT(SelectEdge()));
-    connect(this->m_pUI->addEdgeButton,SIGNAL(clicked()),this,SLOT(AddEdge()));
+    connect(this->m_pUI->linkVerticesButton,SIGNAL(clicked()),this,SLOT(AddEdge()));
+    connect(this->m_pUI->addVertexToPrimalButton,SIGNAL(clicked()),this,SLOT(AddVertexToPrimal()));
     connect(this->m_pUI->deleteEdgeButton,SIGNAL(clicked()),this,SLOT(DeleteEdge()));
 
 
@@ -339,8 +340,10 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->computeStrainRates,SIGNAL(clicked()),this,SLOT(DoTectonics()));
 
 
+    this->SetupVertexStandardInteractor();
     this->SetupVertexSelectionInteractor();
     this->SetupVertexAdditionInteractor();
+    this->SetupVertexAdditionToPrimalInteractor();
     this->SetupEdgeSelectionInteractor();
     this->SetupEdgeAdditionInteractor();
 
@@ -398,7 +401,7 @@ void TTTMainWindow::SetupCurrentTab(){
 		break;
 	case 5:
 		this->DrawSegmentation();
-		this->DrawDual();
+		//this->DrawDual();
 		break;
 	case 6:
 		this->DrawTracking();
@@ -413,11 +416,15 @@ void TTTMainWindow::SetupCurrentTab(){
 
 
 void TTTMainWindow::DrawRangePlateness(){
-	m_RangePlatenessDrawer.SetImage(m_Project->GetPlatenessImage());
-	m_RangePlatenessDrawer.SetRenderer(this->m_RangeScaleSelectionRenderer);
-	m_RangePlatenessDrawer.Draw();
-	m_RangePlatenessDrawer.SetVisibility(true);
-	this->m_RangeScaleSelectionRenderWindow->Render();
+	if(this->m_Project->IsPlatenessImageReady()){
+		m_RangePlatenessDrawer.SetImage(m_Project->GetPlatenessImage());
+		m_RangePlatenessDrawer.SetRenderer(this->m_RangeScaleSelectionRenderer);
+		m_RangePlatenessDrawer.Draw();
+		m_RangePlatenessDrawer.SetVisibility(true);
+		this->m_RangeScaleSelectionRenderWindow->Render();
+	}else{
+		m_RangePlatenessDrawer.Reset();
+	}
 }
 
 void TTTMainWindow::DrawEnhancement(){
@@ -625,7 +632,34 @@ void TTTMainWindow::FrameUp(){
 	//TODO
 }
 
+void TTTMainWindow::SetupSliderPositions(int frame){
 
+	this->m_pUI->projectSlider->blockSignals(true);
+	this->m_pUI->projectSlider->setValue(frame);
+	this->m_pUI->projectSlider->blockSignals(false);
+
+	this->m_pUI->enhancementSlider->blockSignals(true);
+	this->m_pUI->enhancementSlider->setValue(frame);
+	this->m_pUI->enhancementSlider->blockSignals(false);
+
+	this->m_pUI->vertexLocationSlider->blockSignals(true);
+	this->m_pUI->vertexLocationSlider->setValue(frame);
+	this->m_pUI->vertexLocationSlider->blockSignals(false);
+
+	this->m_pUI->membranessSlider->blockSignals(true);
+	this->m_pUI->membranessSlider->setValue(frame);
+	this->m_pUI->membranessSlider->blockSignals(false);
+
+	this->m_pUI->cellSegmentationSlider->blockSignals(true);
+	this->m_pUI->cellSegmentationSlider->setValue(frame);
+	this->m_pUI->cellSegmentationSlider->blockSignals(false);
+
+
+	this->m_pUI->trackingSlider->blockSignals(true);
+	this->m_pUI->trackingSlider->setValue(frame);
+	this->m_pUI->trackingSlider->blockSignals(false);
+	m_CurrentFrame=frame;
+}
 void TTTMainWindow::DoLowestScale(){
 
 	double lowestScale = this->m_pUI->lowestScaleDoubleSpinBox->value();
@@ -714,7 +748,7 @@ void TTTMainWindow::DoAllScale(){
 
 
 
-void TTTMainWindow::SetupMembranessFrame(){
+void TTTMainWindow::SetupMembranessFrame(int frame){
 	this->m_Project->SetFrame(this->m_pUI->membranessSlider->value());
 	this->m_pUI->lowestScaleDoubleSpinBox->setValue(m_Project->GetLowestScale());
 	this->m_pUI->highestScaleDoubleSpinBox->setValue(m_Project->GetHighestScale());
@@ -723,28 +757,33 @@ void TTTMainWindow::SetupMembranessFrame(){
 
 }
 
-void TTTMainWindow::SetupEnhancementFrame(){
+void TTTMainWindow::SetupEnhancementFrame(int frame){
 	this->m_Project->SetFrame(this->m_pUI->enhancementSlider->value());
 	this->DrawEnhancement();
+	SetupSliderPositions(frame);
 }
 
-void TTTMainWindow::SetupVertexFrame(){
-	this->m_Project->SetFrame(this->m_pUI->vertexLocationSlider->value());
+void TTTMainWindow::SetupVertexFrame(int frame){
+	this->m_Project->SetFrame(frame);
+	SetupSliderPositions(frame);
 	this->DrawVertex();
 }
 
-void TTTMainWindow::SetupSegmentationFrame(){
-	this->m_Project->SetFrame(this->m_pUI->cellSegmentationSlider->value());
+void TTTMainWindow::SetupSegmentationFrame(int frame){
+	this->m_Project->SetFrame(frame);
 	this->DrawSegmentation();
-	this->DrawDual();
+	//this->DrawDual();
+	SetupSliderPositions(frame);
 }
-void TTTMainWindow::SetupTrackingFrame(){
-	this->m_Project->SetFrame(this->m_pUI->trackingSlider->value());
+void TTTMainWindow::SetupTrackingFrame(int frame){
+	this->m_Project->SetFrame(frame);
+	SetupSliderPositions(frame);
 	this->DrawTracking();
 }
 
-void TTTMainWindow::SetupTectonicsFrame(){
-	this->m_Project->SetFrame(this->m_pUI->tectonicsSlider->value());
+void TTTMainWindow::SetupTectonicsFrame(int frame){
+	this->m_Project->SetFrame(frame);
+	SetupSliderPositions(frame);
 	this->DrawEllipses();
 	this->DrawTectonics();
 	this->m_TectonicsRenderWindow->Render();
@@ -757,10 +796,10 @@ void TTTMainWindow::EnhanceAndDraw(){
 }
 
 void TTTMainWindow::DoEnhance(){
-
-	double lowestScale = this->m_pUI->lowestScaleDoubleSpinBox->value();
-	double highestScale = this->m_pUI->highestScaleDoubleSpinBox->value();
-	int rangeScale = this->m_pUI->stepsSpinBox->value();
+	this->m_Project->GetLowestScale();
+	double lowestScale = this->m_Project->GetLowestScale();
+	double highestScale = this->m_Project->GetHighestScale();
+	int rangeScale = this->m_Project->GetScaleSteps();
 
 	int iterations = this->m_pUI->enhanceIterations->value();
 
@@ -780,7 +819,7 @@ void TTTMainWindow::DoEnhance(){
 	anisotropicDiffusionCommand.Do();
 
 	this->m_Project->SetDiffusedImage(anisotropicDiffusionCommand.GetOutputImage());
-
+#if 0
 	PlatenessCommand platenessCommand;
 
 	platenessCommand.SetSigmaMin(lowestScale);
@@ -791,13 +830,14 @@ void TTTMainWindow::DoEnhance(){
 	platenessCommand.Do();
 
 	this->m_Project->SetPlatenessImage(platenessCommand.GetPlatenessImage());
+#endif
 
 
 }
 
 void TTTMainWindow::DoAllEnhance(){
 
-	for(unsigned int i=0;i<m_Project->GetNumFrames();i++){
+	for(unsigned int i=this->m_pUI->enhancementSlider->value();i<m_Project->GetNumFrames();i++){
 		m_Project->SetFrame(i);
 		this->DoEnhance();
 	}
@@ -857,8 +897,11 @@ void TTTMainWindow::DoVertexLocation(){
 
 }
 void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
+	std::cout << "->VertexSelected" << std::endl;
 	vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-  	cube->SetBounds(0,100,0,100,0,10);
+	TissueTrackingProject::SpacingType spacing=m_Project->GetSpacing();
+	TissueTrackingProject::SizeType size =m_Project->GetSize();
+  	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
   	cube->Update();
 
   	vtkSmartPointer<FollowVertexCallback> myCallback = vtkSmartPointer<FollowVertexCallback>::New();
@@ -885,9 +928,9 @@ void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
   	m_PointWidget->AddObserver(vtkCommand::InteractionEvent,myCallback);
   	m_PointWidget->On();
 
-  	//m_Project->SetVertexLocationsDirty();
-
   	this->m_pUI->deleteVertexButton->setEnabled(true);
+  	this->m_pUI->selectVertexButton->setEnabled(false);
+  	this->m_pUI->addVertexButton->setEnabled(false);
 
 }
 
@@ -896,64 +939,114 @@ void TTTMainWindow::VertexUnselected(vtkSmartPointer<vtkActor> & actor){
   	m_PointWidget->RemoveAllObservers();
   	this->m_pUI->deleteVertexButton->setEnabled(false);
   	this->m_pUI->addVertexButton->setEnabled(true);
+  	this->m_pUI->selectVertexButton->setEnabled(true);
+  	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_StandardInteractor);
+  	this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+  	std::cout << "->Vertex Unselected: Standard interactor style" << std::endl;
+  	//this->m_VertexLocationRenderWindowInteractor->Start();
   	m_Project->SetVertexLocationsDirty();
 }
+
+void TTTMainWindow::SelectVertex(){
+	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(m_VertexSelectionInteractor);
+	this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+	std::cout << "->Select Vertex: Selection interactor style" << std::endl;
+	//this->m_VertexLocationRenderWindowInteractor->Start();
+	this->m_pUI->addVertexButton->setEnabled(false);
+	this->m_pUI->selectVertexButton->setEnabled(false);
+}
+
+void TTTMainWindow::VertexAdded(vtkSmartPointer<vtkActor> & actor){
+
+
+    vtkSmartPointer<vtkActor> pickedVertexActor=actor;
+
+    vtkSmartPointer<vtkSphereSource> sphereSource=m_VertexLocationsDrawer.GetSphereSourceFromActor(pickedVertexActor);
+
+    ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
+
+  	m_Project->SetVertexLocationsDirty();
+  	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_StandardInteractor);
+  	//this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+  	std::cout << "->Vertex Added: Standard interactor style" << std::endl;
+  	//this->m_VertexLocationRenderWindowInteractor->Start();
+  	this->m_pUI->selectVertexButton->setEnabled(true);
+  	this->m_pUI->addVertexButton->setEnabled(true);
+  	this->m_pUI->deleteVertexButton->setEnabled(true);
+
+  	this->m_VertexLocationRenderWindow->Render();
+}
+
+void TTTMainWindow::VertexAddedToPrimal(vtkSmartPointer<vtkActor> & actor){
+
+	m_Project->SetTissueDescriptorDirty();
+
+	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_EdgeStandardInteractorStyle);
+	this->m_CellSegmentationRendererWindow->Render();
+
+#if 0
+    vtkSmartPointer<vtkActor> pickedVertexActor=actor;
+
+    vtkSmartPointer<vtkSphereSource> sphereSource=m_VertexLocationsDrawer.GetSphereSourceFromActor(pickedVertexActor);
+
+    ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
+
+  	m_Project->SetVertexLocationsDirty();
+  	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_StandardInteractor);
+  	//this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+  	std::cout << "->Vertex Added: Standard interactor style" << std::endl;
+  	//this->m_VertexLocationRenderWindowInteractor->Start();
+  	this->m_pUI->selectVertexButton->setEnabled(true);
+  	this->m_pUI->addVertexButton->setEnabled(true);
+  	this->m_pUI->deleteVertexButton->setEnabled(true);
+
+  	this->m_VertexLocationRenderWindow->Render();
+#endif
+}
+
 
 void TTTMainWindow::VertexAdditionCancelled(){
   	m_PointWidget->Off();
   	m_PointWidget->RemoveAllObservers();
+
+  	this->m_pUI->selectVertexButton->setEnabled(true);
   	this->m_pUI->deleteVertexButton->setEnabled(false);
   	this->m_pUI->addVertexButton->setEnabled(true);
+
+  	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_StandardInteractor);
+  	this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+  	std::cout << "->Vertex Addition Cancelled: Standard interactor style" << std::endl;
   	m_Project->SetVertexLocationsDirty();
 }
-void TTTMainWindow::VertexAdded(vtkSmartPointer<vtkActor> & actor){
-	vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-	cube->SetBounds(0,100,0,100,0,10);
-	cube->Update();
-
-  	vtkSmartPointer<FollowVertexCallback> myCallback = vtkSmartPointer<FollowVertexCallback>::New();
-
-    vtkSmartPointer<vtkActor> pickedVertexActor=actor;
-
-    myCallback->SetActor(pickedVertexActor);
-
-    vtkSmartPointer<vtkSphereSource> sphereSource=m_VertexLocationsDrawer.GetSphereSourceFromActor(pickedVertexActor);
-    myCallback->SetSphereSource(sphereSource);
-
-    ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
-
-    myCallback->SetVertex(vertex);
-    myCallback->SetSpacing(m_Project->GetSpacing());
-
-  	m_PointWidget->AllOn();
-  	m_PointWidget->SetInteractor(this->m_VertexLocationRenderWindowInteractor);
-  	m_PointWidget->SetInputData(cube->GetOutput());
-
-  	m_PointWidget->PlaceWidget();
-  	m_PointWidget->SetPosition(sphereSource->GetCenter());
-  	m_PointWidget->AddObserver(vtkCommand::InteractionEvent,myCallback);
-  	m_PointWidget->On();
-
-  	m_Project->SetVertexLocationsDirty();
-
-  	this->m_pUI->deleteVertexButton->setEnabled(true);
-}
 
 
-void TTTMainWindow::SelectVertex(){
-	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(m_VertexSelectionInteractor);
-	this->m_pUI->addVertexButton->setEnabled(false);
-}
+
 
 void TTTMainWindow::AddVertex(){
+	m_VertexAdditionInteractor->SetSpacing(m_Project->GetSpacing());
 	m_VertexAdditionInteractor->SetAdherensJunctionVertices(m_Project->GetVertexLocations());
+	this->m_pUI->selectVertexButton->setEnabled(false);
+	this->m_pUI->addVertexButton->setEnabled(false);
+	this->m_pUI->deleteVertexButton->setEnabled(false);
 	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(m_VertexAdditionInteractor);
+	//this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+	std::cout << "->Add Vertex: Add vertex interactor style" << std::endl;
 }
+
+void TTTMainWindow::AddVertexToPrimal(){
+	m_VertexAdditionToPrimalInteractor->SetTissueDescriptor(m_Project->GetTissueDescriptor());
+
+	this->m_CellSegmentationRenderWindowInteractor->SetInteractorStyle(m_VertexAdditionToPrimalInteractor);
+}
+
 
 void TTTMainWindow::DeleteVertex(){
 	vtkSmartPointer<vtkActor> toRemove=this->m_VertexSelectionInteractor->GetPickedVertexActor();
 	if(toRemove){
 		m_VertexSelectionInteractor->UnsetSelection();
+		m_PointWidget->Off();
+		m_PointWidget->RemoveAllObservers();
+
 		ttt::AdherensJunctionVertices::Pointer vertices=this->m_Project->GetVertexLocations();
 		ttt::AdherensJunctionVertex::Pointer toRemoveVertex=this->m_VertexLocationsDrawer.GetVertexFromActor(toRemove);
 		m_VertexLocationsDrawer.EraseAdherensJunctionVertex(toRemoveVertex);
@@ -961,6 +1054,14 @@ void TTTMainWindow::DeleteVertex(){
 		vertices->erase(toRemoveIt);
 		m_Project->SetVertexLocationsDirty();
 		this->m_VertexLocationRenderWindow->Render();
+
+	  	this->m_pUI->selectVertexButton->setEnabled(true);
+	  	this->m_pUI->deleteVertexButton->setEnabled(false);
+	  	this->m_pUI->addVertexButton->setEnabled(true);
+
+		this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(m_StandardInteractor);
+		this->m_VertexLocationRenderWindowInteractor->ReInitialize();
+		std::cout << "->Delete Vertex: Standard vertex interactor style" << std::endl;
 	}
 
 }
@@ -977,6 +1078,24 @@ void TTTMainWindow::SetupVertexAdditionInteractor(){
 	connect(m_VertexAdditionInteractor,SIGNAL(vertexAdded(vtkSmartPointer<vtkActor> &)),this,SLOT(VertexAdded(vtkSmartPointer<vtkActor>&)));
 	connect(m_VertexAdditionInteractor,SIGNAL(additionCancelled()),this,SLOT(VertexAdditionCancelled()));
 
+}
+
+void TTTMainWindow::SetupVertexAdditionToPrimalInteractor(){
+
+	m_VertexAdditionToPrimalInteractor=vtkSmartPointer<VertexAdditionToPrimalInteractor>::New();
+	m_VertexAdditionToPrimalInteractor->SetRenderer(this->m_CellSegmentationRenderer);
+
+	m_VertexAdditionToPrimalInteractor->SetPrimalGraphDrawer(&m_PrimalGraphDrawer);
+
+	connect(m_VertexAdditionInteractor,SIGNAL(vertexAdded(vtkSmartPointer<vtkActor> &)),this,SLOT(VertexAddedToPrimal(vtkSmartPointer<vtkActor>&)));
+	connect(m_VertexAdditionInteractor,SIGNAL(additionCancelled()),this,SLOT(VertexAdditionToPrimalCancelled()));
+
+}
+
+
+void TTTMainWindow::SetupVertexStandardInteractor(){
+	m_StandardInteractor=vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	m_StandardInteractor->SetDefaultRenderer(this->m_VertexLocationRenderer);
 }
 
 void TTTMainWindow::SetupVertexSelectionInteractor(){
@@ -1048,6 +1167,19 @@ void TTTMainWindow::DrawSegmentation(){
 		m_PlatenessDrawerOnSegmentation.Reset();
 	}
 
+
+
+	if(this->m_Project->IsTissueDescriptorReady()){
+		m_DualGraphDrawer.SetRenderer(this->m_CellSegmentationRenderer);
+		m_DualGraphDrawer.SetVertexColorer(&m_DualGraphVertexColorer);
+		m_DualGraphDrawer.SetEdgeColorer(&m_DualGraphEdgeColorer);
+		m_DualGraphDrawer.SetTissueDescriptor(this->m_Project->GetTissueDescriptor());
+		m_DualGraphDrawer.Draw();
+		m_DualGraphDrawer.SetVisibility(this->m_pUI->showCellGraphAtSegmentationCBox->isChecked());
+	}else{
+		m_DualGraphDrawer.Reset();
+	}
+
 	this->m_CellSegmentationRendererWindow->Render();
 
 }
@@ -1055,7 +1187,7 @@ void TTTMainWindow::DoSegmentation(){
 
 	AdherensJunctionSegmentationDijkstraCommand segmentationCommand;
 
-
+	segmentationCommand.SetLimit(this->m_pUI->horizonDoubleSpinBox->value());
 	segmentationCommand.SetVertexLocations(m_Project->GetVertexLocations());
 	segmentationCommand.SetVertexnessImage(m_Project->GetVertexnessImage());
 	segmentationCommand.SetPlatenessImage(m_Project->GetPlatenessImage());
@@ -1065,7 +1197,7 @@ void TTTMainWindow::DoSegmentation(){
 }
 void TTTMainWindow::SelectEdge(){
 	this->m_CellSegmentationRenderWindowInteractor->SetInteractorStyle(m_EdgeSelectionInteractor);
-	this->m_pUI->addEdgeButton->setEnabled(false);
+	this->m_pUI->linkVerticesButton->setEnabled(false);
 	this->m_pUI->selectEdgeButton->setEnabled(false);
 }
 void TTTMainWindow::AddEdge(){
@@ -1075,37 +1207,111 @@ void TTTMainWindow::AddEdge(){
 	this->m_pUI->deleteEdgeButton->setEnabled(false);
 }
 
+
+
 void TTTMainWindow::DeleteEdge(){
 
 	vtkSmartPointer<vtkActor> selected=this->m_EdgeSelectionInteractor->GetSelectedEdgeActor();
-	if(selected){
-		ttt::SkeletonEdgeType toDelete = m_PrimalGraphDrawer.GetActorSkeletonEdge(selected);
-		ttt::TissueDescriptor::Pointer descriptor=this->m_Project->GetTissueDescriptor();
+	ttt::TissueDescriptor::Pointer descriptor=this->m_Project->GetTissueDescriptor();
 
+	if(selected && m_PrimalGraphDrawer.IsEdge(selected)){
+
+		ttt::SkeletonEdgeType toDelete = m_PrimalGraphDrawer.GetActorSkeletonEdge(selected);
+
+		bool found=false;
+		boost::tie(toDelete,found)=boost::edge(boost::source(toDelete,*descriptor->m_SkeletonGraph),boost::target(toDelete,*descriptor->m_SkeletonGraph),*descriptor->m_SkeletonGraph);
 		boost::remove_edge(toDelete,*descriptor->m_SkeletonGraph);
 
-		m_Project->SetTissueDescriptor(descriptor);
 
-		this->DrawSegmentation();
-		this->m_pUI->addEdgeButton->setEnabled(true);
-		this->m_pUI->selectEdgeButton->setEnabled(true);
-		this->m_pUI->deleteEdgeButton->setEnabled(false);
 
-		this->m_CellSegmentationRenderWindowInteractor->SetInteractorStyle(m_EdgeStandardInteractorStyle);
-		this->m_CellSegmentationRenderWindowInteractor->Initialize();
+
+	}else if(selected && m_PrimalGraphDrawer.IsVertex(selected)){
+		m_PointWidget->Off();
+		m_PointWidget->RemoveAllObservers();
+		ttt::SkeletonVertexType toDelete = m_PrimalGraphDrawer.GetActorSkeletonVertex(selected);
+		descriptor->InvalidateDual();
+
+		boost::clear_vertex(toDelete,*descriptor->m_SkeletonGraph);
+		boost::remove_vertex(toDelete,*descriptor->m_SkeletonGraph);
+
+
+	}else{
+		assert(false);
 	}
+	m_Project->SetTissueDescriptor(descriptor);
+
+	this->DrawSegmentation();
+	this->m_CellSegmentationRenderWindowInteractor->SetInteractorStyle(m_EdgeStandardInteractorStyle);
+	this->m_CellSegmentationRenderWindowInteractor->Initialize();
+	this->m_pUI->linkVerticesButton->setEnabled(true);
+	this->m_pUI->selectEdgeButton->setEnabled(true);
+	this->m_pUI->deleteEdgeButton->setEnabled(false);
 
 }
 
-void TTTMainWindow::EdgeSelected(vtkSmartPointer<vtkActor>&){
+void TTTMainWindow::EdgeSelected(vtkSmartPointer<vtkActor>& actor){
+
+
+	if(m_PrimalGraphDrawer.IsVertex(actor)){
+
+		vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
+		TissueTrackingProject::SpacingType spacing=m_Project->GetSpacing();
+		TissueTrackingProject::SizeType size =m_Project->GetSize();
+	  	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
+	  	cube->Update();
+
+	  	vtkSmartPointer<FollowVertexPrimalCallback> myCallback = vtkSmartPointer<FollowVertexPrimalCallback>::New();
+
+	    vtkSmartPointer<vtkActor> pickedVertexActor=actor;
+
+	    myCallback->SetActor(pickedVertexActor);
+
+	    vtkSmartPointer<vtkSphereSource> sphereSource= m_PrimalGraphDrawer.GetSphereSource(actor);
+	    myCallback->SetSphereSource(sphereSource);
+
+	    ttt::SkeletonVertexType vertex = m_PrimalGraphDrawer.GetActorSkeletonVertex(actor);
+
+
+	    myCallback->SetVertex(vertex);
+	    myCallback->SetTissueDescriptor(this->m_Project->GetTissueDescriptor());
+
+	  	m_PointWidget->AllOn();
+	  	m_PointWidget->SetInteractor(this->m_CellSegmentationRenderWindowInteractor);
+	  	m_PointWidget->SetInputData(cube->GetOutput());
+
+	  	m_PointWidget->PlaceWidget();
+	  	m_PointWidget->SetPosition(sphereSource->GetCenter());
+	  	m_PointWidget->AddObserver(vtkCommand::InteractionEvent,myCallback);
+	  	m_PointWidget->On();
+
+
+
+	}else if(m_PrimalGraphDrawer.IsEdge(actor)){
+	}
 	this->m_pUI->deleteEdgeButton->setEnabled(true);
 
 
 }
 
-void TTTMainWindow::EdgeUnselected(vtkSmartPointer<vtkActor>&){
-	this->m_pUI->deleteEdgeButton->setEnabled(false);
+void TTTMainWindow::EdgeUnselected(vtkSmartPointer<vtkActor>& actor){
 
+	if(this->m_PrimalGraphDrawer.IsVertex(actor)){
+		m_PointWidget->Off();
+		m_PointWidget->RemoveAllObservers();
+
+	  	m_Project->SetTissueDescriptorDirty();
+	}else if(this->m_PrimalGraphDrawer.IsEdge(actor)){
+
+	}else{
+
+	}
+
+	this->m_pUI->deleteEdgeButton->setEnabled(false);
+	this->m_pUI->linkVerticesButton->setEnabled(true);
+	this->m_pUI->addVertexToPrimalButton->setEnabled(true);
+	this->m_pUI->selectEdgeButton->setEnabled(true);
+
+	this->m_CellSegmentationRenderWindowInteractor->SetInteractorStyle(this->m_EdgeStandardInteractorStyle);
 
 }
 void TTTMainWindow::EdgeAdded(vtkSmartPointer<vtkActor>& a, vtkSmartPointer<vtkActor> & b){
@@ -1124,15 +1330,23 @@ void TTTMainWindow::EdgeAdded(vtkSmartPointer<vtkActor>& a, vtkSmartPointer<vtkA
 	this->m_CellSegmentationRenderWindowInteractor->Initialize();
 
 
+	this->m_pUI->deleteEdgeButton->setEnabled(false);
+	this->m_pUI->linkVerticesButton->setEnabled(true);
+	this->m_pUI->addVertexToPrimalButton->setEnabled(true);
 	this->m_pUI->selectEdgeButton->setEnabled(true);
 
+
 }
+
+
+
+
 void TTTMainWindow::EdgeAdditionCancelled(){
 	//TODO
 }
 void TTTMainWindow::DualAndDraw(){
 	this->DoDual();
-	this->DrawDual();
+	//this->DrawDual();
 }
 void TTTMainWindow::DoDual(){
 	CellGraphCommand cellGraphCommand;
@@ -1142,30 +1356,24 @@ void TTTMainWindow::DoDual(){
 
 	this->m_Project->SetTissueDescriptor(cellGraphCommand.GetGraphs());
 }
-
+#if 0
 void TTTMainWindow::DrawDual(){
 
-	if(this->m_Project->IsTissueDescriptorReady()){
-		m_DualGraphDrawer.SetRenderer(this->m_CellSegmentationRenderer);
-		m_DualGraphDrawer.SetVertexColorer(&m_DualGraphVertexColorer);
-		m_DualGraphDrawer.SetEdgeColorer(&m_DualGraphEdgeColorer);
-		m_DualGraphDrawer.SetTissueDescriptor(this->m_Project->GetTissueDescriptor());
-		m_DualGraphDrawer.Draw();
-		m_DualGraphDrawer.SetVisibility(this->m_pUI->showCellGraphAtSegmentationCBox->isChecked());
-	}
+
 
 }
+#endif
 
 
 void TTTMainWindow::DoTracking(){
-
+#if 0
 	typename TissueTrackingProject::RawImageType::SizeType size=m_Project->GetRawImage()->GetLargestPossibleRegion().GetSize();
 	typename TissueTrackingProject::RawImageType::SpacingType spacing = m_Project->GetSpacing();
 	double xMax=size[0]*spacing[0];
 	double yMax=size[1]*spacing[1];
 	double zMax=size[2]*spacing[2];
 
-	TrackingCommand trackingCommand;
+
 
 	trackingCommand.SetXMin(0);
 	trackingCommand.SetXMax(xMax);
@@ -1174,6 +1382,8 @@ void TTTMainWindow::DoTracking(){
 	trackingCommand.SetZMin(0);
 	trackingCommand.SetZMax(zMax);
 	;
+#endif
+	TrackingCommand trackingCommand;
 	int numFrames= m_Project->GetNumFrames();
 
 	std::vector<TissueDescriptor::Pointer> observations;

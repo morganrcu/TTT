@@ -114,7 +114,7 @@ public:
 	 * TODO
 	 */
 	AdherensJunctionSegmentationDijkstraCommand(){
-		m_StoppingValue=10e6;
+		m_StoppingValue=100;
 	}
 	/**
 	 * TODO

@@ -249,61 +249,79 @@ public:
 
 	void SetApoptosisHypothesis(const TrackType & track,double cost){
 		//TODO
+
+
 	}
 
-	void GetProblem(vnl_vector<double> & costVector, vnl_vector<double> & flowVector, vnl_sparse_matrix<double> & flowMatrix){
+	void GetProblem(vnl_vector<double> & costVector, vnl_vector<double> & flowVector, vnl_vector<double> & capacityVector, vnl_sparse_matrix<double> & flowMatrix){
 		int nRows=1+ m_NumTracks + 1 + m_NumObs +1 +1; // T- + numTrakcs + A + numObs + D + T+
 		int nCols=(m_NumTracks+1) + m_NumAssociationHypothesis + m_NumMythosysHypothesis + m_NumTerminationHypothesis +  m_NumCreationHypothesis + m_NumApoptosisHypothesis + (m_NumObs +1) +1; //AD-HYPOTHESIS
 
 		flowMatrix.clear();
 		flowMatrix.resize(nRows,nCols);
+		capacityVector.clear();
 		costVector.clear();
 		flowVector.clear();
 		assert(flowVector.set_size(nRows));
 		assert(costVector.set_size(nCols));
+		assert(capacityVector.set_size(nCols));
 		int edge=0;
 
 #define PRINT_ROW(r) for(int c=0;c<flowMatrix.cols();c++){ std::cout << flowMatrix.get(r,c) << "\t";  } std::cout << std::endl;
 #define PRINT_MATRIX 		{std::cout << "===============================" << std::endl;std::cout << "Tp\t";PRINT_ROW(m_Tp);std::cout << "A\t";PRINT_ROW(m_A);int k=0;for(typename std::map<TrackType,FlowGraphVertexType>::iterator it= m_L.begin(); it!= m_L.end();++it){ std::cout << "L"<<k++<<"\t";PRINT_ROW(it->second);}k=0; for(typename std::map<TrackType,FlowGraphVertexType>::iterator it= m_R.begin(); it!= m_R.end();++it){ std::cout << "R"<<k++<<"\t";	PRINT_ROW(it->second);}	std::cout << "D\t";PRINT_ROW(m_D);std::cout << "Tn\t"; PRINT_ROW(m_Tn); std::cout << "==============================="<< std::endl;}
 
-		flowMatrix.put(m_Tp,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_TpAEdge));
+		//flowMatrix.put(m_Tp,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_TpAEdge));
+		flowMatrix.put(m_Tp,edge,-1);
 		//PRINT_ROW(m_Tp);
 		//PRINT_MATRIX
-		flowMatrix.put(m_A,edge,boost::get(boost::edge_capacity,m_FlowGraph,m_TpAEdge));
+		//flowMatrix.put(m_A,edge,boost::get(boost::edge_capacity,m_FlowGraph,m_TpAEdge));
+		flowMatrix.put(m_A,edge,1);
+
 		//PRINT_MATRIX
 		costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,m_TpAEdge));
+		capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,m_TpAEdge));
 		//costVector[edge]=;
 		edge++;
 
 		for(FlowGraphEdgeContainerType::iterator it= m_TpL.begin();it!=m_TpL.end();++it){
-			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
-			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-1);
+//			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,+1);
 			//costVector[edge]=;
 			costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*it));
+			capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
 			//PRINT_MATRIX
 
 			edge++;
 		}
 		for(FlowGraphEdgeContainerType::iterator it= m_AR.begin();it!=m_AR.end();++it){
-			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
 
-			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-1);
+
+			//flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,+1);
 			//costVector[edge]=;
 			costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*it));
+			capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+
 			//PRINT_MATRIX
 			m_Creations[edge]=*it;
 			edge++;
-
 		}
 
 		for(FlowGraphEdgeContainerType::iterator it= m_LR.begin();it!=m_LR.end();++it){
 			//std::cout << boost::source(*it,m_FlowGraph) << " " << m_Tp << std::endl;
-			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-1);
 			//PRINT_MATRIX
-			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,1);
 			//PRINT_MATRIX
 			//costVector[edge]=boost::get(boost::edge_weight,m_FlowGraph,*it);
 			costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*it));
+			capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
 			m_Associations[edge]=*it;
 
 			edge++;
@@ -311,9 +329,13 @@ public:
 
 
 		for(FlowGraphEdgeContainerType::iterator it= m_LD.begin();it!=m_LD.end();++it){
-			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
-			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-1);
+			//flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,1);
+
 			costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*it));
+			capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
 			//costVector[edge]=;
 			//PRINT_MATRIX
 			m_Deletions[edge]=*it;
@@ -321,22 +343,32 @@ public:
 			edge++;
 		}
 
-		flowMatrix.put(m_A,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_ADEdge));
+		//flowMatrix.put(m_A,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_ADEdge));
+		flowMatrix.put(m_A,edge,-1);
+		flowMatrix.put(m_D,edge,+1);
 		costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,m_ADEdge));
+		capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,m_ADEdge));
+
 		edge++;
 		for(FlowGraphEdgeContainerType::iterator it= m_RTn.begin();it!=m_RTn.end();++it){
-			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
-			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			//flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::source(*it,m_FlowGraph),edge,-1);
+			//flowMatrix.put(boost::target(*it,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
+			flowMatrix.put(boost::target(*it,m_FlowGraph),edge,1);
 			//PRINT_MATRIX
 			//costVector[edge]=boost::get(boost::edge_weight,m_FlowGraph,*it);
 			costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*it));
+			capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*it));
 			edge++;
 		}
 
-		flowMatrix.put(m_D,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_DTnEdge));
-		flowMatrix.put(m_Tn,edge,boost::get(boost::edge_capacity,m_FlowGraph,m_DTnEdge));
+		//flowMatrix.put(m_D,edge,-boost::get(boost::edge_capacity,m_FlowGraph,m_DTnEdge));
+		flowMatrix.put(m_D,edge,-1);
+		//flowMatrix.put(m_Tn,edge,boost::get(boost::edge_capacity,m_FlowGraph,m_DTnEdge));
+		flowMatrix.put(m_Tn,edge,1);
 		costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,m_DTnEdge));
-		//costVector[edge]=boost::get(boost::edge_weight,m_FlowGraph,m_DTnEdge);
+		capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,m_DTnEdge));
+
 		edge++;
 
 		for(typename MitosisAndFlowGraphVertexBimapType::const_iterator it = m_S.begin();it!=m_S.end();++it){
@@ -346,9 +378,12 @@ public:
 			boost::tie(itIn,itIn_end)=boost::in_edges(it->right,m_FlowGraph);
 
 			while(itIn!=itIn_end){
-				flowMatrix.put(boost::source(*itIn,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*itIn));
+				//flowMatrix.put(boost::source(*itIn,m_FlowGraph),edge,-boost::get(boost::edge_capacity,m_FlowGraph,*itIn));
+				flowMatrix.put(boost::source(*itIn,m_FlowGraph),edge,-1);
 				if(boost::source(*itIn,m_FlowGraph)!=m_A){
 					costVector.put(edge,boost::get(boost::edge_weight,m_FlowGraph,*itIn));
+					capacityVector.put(edge,boost::get(boost::edge_capacity,m_FlowGraph,*itIn));
+
 					m_Mythosis[edge]=*itIn;
 				}
 				++itIn;
@@ -361,20 +396,23 @@ public:
 			boost::tie(itOut,itOut_end)=boost::out_edges(it->right,m_FlowGraph);
 
 			while(itOut!=itOut_end){
-				flowMatrix.put(boost::target(*itOut,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*itOut));
+				//flowMatrix.put(boost::target(*itOut,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*itOut));
+				//flowMatrix.put(boost::target(*itOut,m_FlowGraph),edge,boost::get(boost::edge_capacity,m_FlowGraph,*itOut));
+				flowMatrix.put(boost::target(*itOut,m_FlowGraph),edge,1);
 				++itOut;
 			}
 			}
+			capacityVector.put(edge,1);
 			edge++;
 		}
 
 		flowVector.fill(0);
+
+
 		flowVector[m_Tp]=-(m_NumObs+m_NumTracks);
 		flowVector[m_Tn]=(m_NumObs+m_NumTracks);
 
 		//PRINT_MATRIX
-
-
 
 	}
 
@@ -388,9 +426,10 @@ public:
 		associations.clear();
 		toCreate.clear();
 		toDelete.clear();
-
+		int flowSent=0;
 		for(int c=0;c<solution.size();c++){
 			if(solution.get(c)>0){
+				flowSent++;
 				if(m_Associations.find(c)!=m_Associations.end()){
 					FlowGraphEdgeType edge=m_Associations[c];
 
@@ -429,10 +468,25 @@ public:
 					mitosis.A=m_R.right.at(rA);
 					mitosis.B=m_R.right.at(rB);
 					mitosisHypothesis.push_back(mitosis);
+				}else{
+
 				}
+
 
 			}
 		}
+		std::cout << "Sent " << flowSent << std::endl;
+	}
+	void Print(){
+		std::cout<< "Num Tracks: " << m_NumTracks << std::endl;
+		std::cout<< "Num Obs: " << m_NumObs << std::endl;
+		std::cout<< "Num Mythosys: " << m_NumMythosysHypothesis << std::endl;
+		std::cout<< "Num Association: " << m_NumAssociationHypothesis << std::endl;
+		std::cout<< "Num Termination: " << m_NumTerminationHypothesis << std::endl;
+		std::cout<< "Num Creation: " << m_NumCreationHypothesis << std::endl;
+		std::cout<< "Num Apoptosis: " << m_NumApoptosisHypothesis << std::endl;
+
+		std::cout << "AD capacity " << boost::get(boost::edge_capacity,m_FlowGraph,m_ADEdge) << std::endl;
 	}
 private:
 	FlowGraphType m_FlowGraph;
@@ -507,39 +561,37 @@ public:
 
     MinCostMaxFlowCellTracker();
 
-    inline void SetXMin(double xMin){
-    	m_XMin=xMin;
+    inline void SetAreaWeight(double areaWeight ){
+    	m_AreaWeight=areaWeight;
     }
-    inline void SetXMax(double xMax){
-    	m_XMax=xMax;
+    inline void SetMitosisWeight(double mitosisWeight){
+    	m_MitosisWeight=mitosisWeight;
     }
-    inline void SetYMin(double yMin){
-    	m_YMin=yMin;
+    inline void SetCreationWeight(double creationWeight){
+    	m_CreationWeight=creationWeight;
     }
-    inline void SetYMax(double yMax){
-    	m_YMax=yMax;
+    inline void SetTerminationWeight(double terminationWeight){
+    	m_TerminationWeight=terminationWeight;
+    }
+    inline void SetAssociationWeight(double associationWeight){
+    	m_AssociationWeight=associationWeight;
+    }
+    inline void SetDistanceWeight(double distanceWeight){
+    	m_DistanceWeight=distanceWeight;
     }
 
-    inline void SetZMin(double zMin){
-    	m_ZMin=zMin;
-
-    }
-    inline void SetZMax(double zMax){
-    	m_ZMax=zMax;
-    }
 protected:
 
     std::vector<TrackedTissueDescriptor::Pointer> m_Tracks;
     std::vector<TissueDescriptor::Pointer> m_Observations;
     int m_NextID;
 
-    double m_XMin;
-    double m_XMax;
-    double m_YMin;
-    double m_YMax;
-    double m_ZMin;
-    double m_ZMax;
-
+	double m_AreaWeight;
+	double m_DistanceWeight;
+	double m_MitosisWeight;
+	double m_CreationWeight;
+	double m_TerminationWeight;
+	double m_AssociationWeight;
 };
 }
 #endif /* MINCOSTMAXFLOWTRACKER_H_ */

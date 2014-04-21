@@ -98,6 +98,9 @@ int main(int argc, char ** argv){
 	spacing[0]=0.1022727;
 	spacing[1]=0.1022727;
 	spacing[2]=1.0192918;
+	//spacing[0]=0.1395089;
+	//spacing[1]=0.1395089;
+	//spacing[2]=0.5;
 	image->SetSpacing(spacing);
 
 #ifdef DRAW_GT
@@ -156,11 +159,12 @@ int main(int argc, char ** argv){
 
 	double precision=1;
 	double recall=0;
-
+	double f1=0;
 	double THRESHOLD=sqrt(2);
 
 	typename ttt::AdherensJunctionVertices::Pointer matched = ttt::AdherensJunctionVertices::New();
 
+	std::cout << "Threshold,Precision,Recall,F1" << std::endl;
 	for(vector<PointAndValueType>::reverse_iterator it = detections.rbegin();it!=detections.rend();it++){
 		count++;
 		//std::cout << "Trying to match " << (*it).first << std::endl;
@@ -179,6 +183,7 @@ int main(int argc, char ** argv){
 			}
 
 		}
+
 		if(minValue<=THRESHOLD){
 			//std::cout << "MATCHED TO " << (*minLoc)->GetPosition() << std::endl;
 			gt->erase(minLoc);
@@ -188,7 +193,8 @@ int main(int argc, char ** argv){
 
 		precision = (double)hit/count;
 		recall = (double)hit/positive;
-		std::cout << precision << " " << recall << "; ";
+		f1 = (2*precision*recall)/(precision+recall);
+		std::cout << it->second << "," << precision << "," << recall << "," << f1 << std::endl;
 	}
 	//matched->SetPoints(matchedPoints);
 	//matched->SetPointData(matchedData);

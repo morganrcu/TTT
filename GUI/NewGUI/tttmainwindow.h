@@ -32,6 +32,7 @@
 #include "VertexSelectionInteractor.h"
 
 #include "EdgeSelectionInteractor.h"
+#include "VertexAdditionToPrimalInteractor.h"
 #include "EdgeAdditionInteractor.h"
 
 namespace Ui {
@@ -62,7 +63,6 @@ public:
 		index[2]=round(position[2]/m_Spacing[2]);
 
 		m_Vertex->SetPosition(index);
-		std::cout << position[0] << ", " << position[1] << ", " << position[2] << std::endl;
 
 	}
 private:
@@ -94,6 +94,54 @@ private:
 	SpacingType m_Spacing;
 };
 
+class FollowVertexPrimalCallback: public vtkCommand {
+public:
+	typedef itk::FixedArray<double,3> SpacingType;
+	static FollowVertexPrimalCallback *New() {
+		return new FollowVertexPrimalCallback;
+	}
+	virtual void Execute(vtkObject *caller, unsigned long, void*) {
+		vtkPointWidget *pointWidget = reinterpret_cast<vtkPointWidget*>(caller);
+		//pointWidget->GetPolyData(this->PolyData);
+
+		double position[3];
+		pointWidget->GetPosition(position);
+		m_SphereSource->SetCenter(position);
+		m_SphereSource->Update();
+
+		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[0]=position[0];
+		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[1]=position[1];
+		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[2]=position[2];
+
+	}
+private:
+	FollowVertexPrimalCallback() {
+
+	}
+public:
+	void SetActor(const vtkSmartPointer<vtkActor> & actor){
+		m_Actor=actor;
+	}
+
+	void SetSphereSource(const vtkSmartPointer<vtkSphereSource> & sphere){
+		m_SphereSource=sphere;
+	}
+
+	void SetVertex(const ttt::SkeletonVertexType & vertex){
+		m_Vertex=vertex;
+	}
+	void SetTissueDescriptor(const ttt::TissueDescriptor::Pointer & tissueDescriptor){
+		m_TissueDescriptor=tissueDescriptor;
+	}
+
+private:
+	vtkSmartPointer<vtkActor> m_Actor;
+	vtkSmartPointer<vtkSphereSource> m_SphereSource;
+	ttt::SkeletonVertexType m_Vertex;
+	ttt::TissueDescriptor::Pointer m_TissueDescriptor;
+	SpacingType m_Spacing;
+};
+
 class TTTMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -108,11 +156,15 @@ private:
 
     void SetupSliders(int length);
 
+    void SetupVertexStandardInteractor();
     void SetupVertexSelectionInteractor();
     void SetupVertexAdditionInteractor();
+    void SetupVertexAdditionToPrimalInteractor();
 
     void SetupEdgeSelectionInteractor();
     void SetupEdgeAdditionInteractor();
+
+    void SetupSliderPositions(int length);
 
 private slots:
 	void New();
@@ -134,12 +186,12 @@ private slots:
 	void DoRangeScale();
 	void DoAllScale();
 
-	void SetupMembranessFrame();
-	void SetupEnhancementFrame();
-	void SetupVertexFrame();
-	void SetupSegmentationFrame();
-	void SetupTrackingFrame();
-	void SetupTectonicsFrame();
+	void SetupMembranessFrame(int frame);
+	void SetupEnhancementFrame(int frame);
+	void SetupVertexFrame(int frame);
+	void SetupSegmentationFrame(int frame);
+	void SetupTrackingFrame(int frame);
+	void SetupTectonicsFrame(int frame);
 
 	void EnhanceAndDraw();
 
@@ -168,6 +220,9 @@ private slots:
 	void SelectEdge();
 	void AddEdge();
 	void DeleteEdge();
+	void AddVertexToPrimal();
+
+	void VertexAddedToPrimal(vtkSmartPointer<vtkActor> & actor);
 
 	void EdgeSelected(vtkSmartPointer<vtkActor> & actor);
 	void EdgeUnselected(vtkSmartPointer<vtkActor> & actor);
@@ -183,11 +238,12 @@ private slots:
 	void DoTectonics();
 
 
+
 	void DrawRangePlateness();
 	void DrawEnhancement();
 	void DrawVertex();
 	void DrawSegmentation();
-	void DrawDual();
+	//void DrawDual();
 
 	void DrawTracking();
 
@@ -232,6 +288,7 @@ private:
 	QString m_User;
 	QString m_Password;
 
+	int m_CurrentFrame;
     //RENDERERS
     vtkSmartPointer<vtkRenderer> m_ProjectRenderer;
     vtkSmartPointer<vtkRenderer> m_LowestScaleSelectionRenderer;
@@ -329,7 +386,7 @@ private:
 
     vtkSmartPointer<EdgeSelectionInteractor> m_EdgeSelectionInteractor;
     vtkSmartPointer<EdgeAdditionInteractor> m_EdgeAdditionInteractor;
-
+    vtkSmartPointer<VertexAdditionToPrimalInteractor> m_VertexAdditionToPrimalInteractor;
     vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_EdgeStandardInteractorStyle;
 
     vtkSmartPointer<vtkPointWidget> m_PointWidget;

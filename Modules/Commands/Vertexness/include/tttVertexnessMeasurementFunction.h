@@ -104,8 +104,7 @@ public:
 	 * @return
 	 */
 	virtual double ComputeObjectProperty(
-			const FixedArray<double, 3> & eigenValue) {
-		//
+		const FixedArray<double, 3> & eigenValue) {
 
 		double result = 0;
 		// Find the smallest eigenvalue
@@ -149,6 +148,7 @@ public:
 					Lambda1 * Lambda1 + Lambda2 * Lambda2 * Lambda3 * Lambda3);
 			double A =  Lambda2 / Lambda3;
 			double B = Lambda1 / Lambda2;
+			double C = Lambda1 / Lambda3;
 
 			double Lambda3Sqr = vnl_math_sqr(Lambda3);
 
@@ -158,12 +158,15 @@ public:
 			double term1 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(S))) / (2.0 * GammaSqr)));
 			double term2 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(A))) / (2.0 * AlphaSqr)));
 			double term3 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(B))) / (2.0 * BetaSqr)));
+
 			double term4 = vcl_exp(-1.0 * (2.0 * vnl_math_sqr(m_C)) / (Lambda3Sqr));
+			double term5 = 1 - (vcl_exp(-1.0 * ((vnl_math_sqr(C))) / (2.0 * BetaSqr)));
+
 			//			double term1 =  ( 1 - vcl_exp( -1.0 * (S)));
 			//			double term2  = ( 1 - vcl_exp( -1.0 * (A)));
 			//			double term3  = ( 1 - vcl_exp( -1.0 * (B)));
 
-			double vertexnessMeasure = term1 * term2 * term3 * term4;
+			double vertexnessMeasure = term1 * term2 * term3 * term4*term5;
 
 			if (m_ScaleVertexnessMeasure) {
 				double Lambda3Abs = vcl_abs(Lambda3);

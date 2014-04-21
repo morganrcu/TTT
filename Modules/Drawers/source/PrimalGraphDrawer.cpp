@@ -37,6 +37,7 @@ void ttt::PrimalGraphDrawer::Draw() {
 		this->DrawEdge(e);
 	}
 }
+#if 0
 void ttt::PrimalGraphDrawer::DrawEdge(const ttt::SkeletonEdgeType & edge){
 
 	typedef itk::Point<double,3> itkpt;
@@ -70,7 +71,7 @@ void ttt::PrimalGraphDrawer::DrawEdge(const ttt::SkeletonEdgeType & edge){
 
 	m_Renderer->AddActor(actor);
 }
-void ttt::PrimalGraphDrawer::DrawVertex(const ttt::SkeletonVertexType & vertex){
+ttt::PrimalGraphDrawer::VertexSphereMapperAndActor ttt::PrimalGraphDrawer::DrawVertex(const ttt::SkeletonVertexType & vertex){
 
 	itk::Point<double, 3> a =boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,vertex).position;
 
@@ -107,7 +108,10 @@ void ttt::PrimalGraphDrawer::DrawVertex(const ttt::SkeletonVertexType & vertex){
 	sphereActor->VisibilityOff();
 	m_Actor2SkeletonVertex[sphereActor] = vertex;
 	m_Renderer->AddActor(sphereActor);
+
+	return VertexSphereMapperAndActor(vertex,newSphere,sphereMapper,sphereActor);
 }
+#endif
 void ttt::PrimalGraphDrawer::Show(){
 	for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 		it->first->VisibilityOn();

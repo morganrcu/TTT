@@ -153,6 +153,9 @@ private:
   typedef typename SpeedImageType::Pointer      SpeedImagePointer;
   typedef typename SpeedImageType::ConstPointer SpeedImageConstPointer;
 
+  typedef itk::Image<int,3> VoronoiImageType;
+  typedef typename VoronoiImageType::Pointer VoronoiImagePointer;
+
   /** Dimension of the level set and the speed image. */
   itkStaticConstMacro(SetDimension, unsigned int,
                       LevelSetType::SetDimension);
@@ -246,6 +249,7 @@ private:
     return m_TrialPoints;
   }
 
+
   /** Get the point type label image. */
   LabelImagePointer GetLabelImage() const
   {
@@ -254,6 +258,10 @@ private:
   ClusterImagePointer GetClusterImage() const
   {
 	  return m_ClusterImage;
+  }
+
+  void SetVoronoiImage(const VoronoiImageType::Pointer & voronoiImage){
+	  m_VoronoiImage=voronoiImage;
   }
 
   /** Set the Speed Constant. If the Speed Image is NULL,
@@ -375,6 +383,7 @@ protected:
   itkGetConstReferenceMacro(StartIndex, LevelSetIndexType);
   itkGetConstReferenceMacro(LastIndex, LevelSetIndexType);
 
+
 private:
   FastMarchingImageFilter(const Self &); //purposely not implemented
   void operator=(const Self &);          //purposely not implemented
@@ -387,6 +396,7 @@ private:
 
   ClusterImagePointer m_ClusterImage;
 
+  VoronoiImagePointer m_VoronoiImage;
 
   double m_SpeedConstant;
   double m_InverseSpeed;

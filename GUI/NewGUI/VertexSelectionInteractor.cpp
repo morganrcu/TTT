@@ -20,14 +20,17 @@ void VertexSelectionInteractor::OnLeftButtonDown(){
 
 			vtkSmartPointer<vtkActor> pickedActor = picker->GetActor();
 
+			vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 			if(pickedActor){
 				this->SetSelection(pickedActor);
+				emit vertexSelected(this->m_PickedVertexActor);;
 			}
 
-			vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+
 	}
 void VertexSelectionInteractor::OnRightButtonUp(){
 
-		this->UnsetSelection();
-		vtkInteractorStyleTrackballCamera::OnRightButtonUp();
+	vtkInteractorStyleTrackballCamera::OnRightButtonUp();
+	this->UnsetSelection();
+	emit vertexUnselected(this->m_PickedVertexActor);
 	}

@@ -74,8 +74,8 @@ void compareGraphs(const ttt::TissueDescriptor::Pointer & reference, const ttt::
 	}
 	double precision=(double)hit/retrieved;
 	double recall = (double)hit/total;
-
-	std::cout << precision << "\t" << recall  << std::endl;
+	double f1= (2*precision*recall)/(precision+recall);
+	std::cout << precision << "," << recall << "," << f1;
 }
 int main(int argc,char ** argv){
 
@@ -96,7 +96,7 @@ int main(int argc,char ** argv){
 	m_Project.SetUser("root");
 	m_Project.SetPassword("ttt1Tracker");
 	assert(m_Project.openDB());
-	m_Project.OpenProject(2);
+	m_Project.OpenProject(16);
 
 	m_Project.SetFrame(0);
 
@@ -122,9 +122,14 @@ int main(int argc,char ** argv){
 
 
 	PlatenessImageType::SpacingType spacing;
-	spacing[0]=0.1022727;
-	spacing[1]=0.1022727;
-	spacing[2]=1.0192918;
+	//spacing[0]=0.1022727;
+	//spacing[1]=0.1022727;
+	//spacing[2]=1.0192918;
+
+	spacing[0]=0.1395089;
+	spacing[1]=0.1395089;
+	spacing[2]=0.5;
+
 	platenessImage->SetSpacing(spacing);
 	vertexnessImage->SetSpacing(spacing);
 
@@ -136,7 +141,7 @@ int main(int argc,char ** argv){
 	double step = (log(maxLimit)/log(10)- log(minLimit)/log(10))/nSamples;
 
 	double prod=10;
-
+	std::cout << "Limit,Precision,Recall,F1" << std::endl;
 	double limit= minLimit;
 	for(int i=0;i<=nSamples;i++){
 	//while(limit<=maxLimit){
@@ -153,8 +158,9 @@ int main(int argc,char ** argv){
 
 			ttt::TissueDescriptor::Pointer result = command.GetTissueDescriptor();
 
-			std::cout << limit << "\t";
+			std::cout << limit << ",";
 			compareGraphs(gt,result);
+			std::cout << std::endl;
 			//limit=limit*prod;
 	}
 

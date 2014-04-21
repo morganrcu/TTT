@@ -594,6 +594,7 @@ void TissueTracker::SetupVertexAdditionInteractor(){
 
 
 void TissueTracker::AddVertex(){
+	this->m_VertexAdditionInteractor
 	this->SetInteractionModeToAddVertex();
 }
 

@@ -56,7 +56,7 @@ public:
 		this->m_PickedVertexActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 		this->m_PickedVertexActor->GetProperty()->SetDiffuse(1.0);
 		this->m_PickedVertexActor->GetProperty()->SetSpecular(0.0);
-		emit vertexSelected(this->m_PickedVertexActor);;
+
 #if 0
 		if (this->m_pVertexSelected) {
 			this->m_pVertexSelected->SetCaller(this);
@@ -67,7 +67,7 @@ public:
 
 	void UnsetSelection(){
 		if (this->m_PickedVertexActor){
-			emit vertexUnselected(this->m_PickedVertexActor);
+
 			this->m_PickedVertexActor->GetProperty()->DeepCopy(this->m_PickedProperty);
 			//m_PointWidget->Off();
 

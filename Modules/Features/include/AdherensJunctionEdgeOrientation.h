@@ -31,7 +31,7 @@ public:
 			itkpt b = boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),tgt).position;
 
 			//double slope = (a[1] - b[1]) / (a[0] - b[0]);
-			double deg = (180.0 / M_PI) * (atan2(abs(a[1]-b[1]),abs(a[0]-b[0])));
+			double deg = (180.0 / M_PI) * (atan2(fabs(a[1]-b[1]),fabs(a[0]-b[0])));
 
 
 			this->Insert(*it,deg);

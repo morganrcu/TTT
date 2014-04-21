@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 2.8)
 
 SET(CMAKE_BUILD_TYPE Debug)
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} -Wall)
+#SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall -O3" )
+SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall" )
 
 INCLUDE(CPack)
 
@@ -24,7 +25,7 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 #add_subdirectory(Modules/GUI)
-
+#add_subdirectory(ThirdParty/mysql-connector-c++-1.1.3)
 
 add_subdirectory(Modules/Core)
 add_subdirectory(Modules/Drawers)
@@ -32,7 +33,7 @@ add_subdirectory(Modules/Commands/Base)
 add_subdirectory(Modules/Commands/AdherensJunctionSegmentation)
 add_subdirectory(Modules/Commands/AdherensJunctionSegmentationDijkstra)
 add_subdirectory(Modules/Commands/AnisotropicDiffusion)
-add_subdirectory(Modules/Commands/CellGraph)
+add_subdirectory(Modules/Commands/CellGraph)    
 add_subdirectory(Modules/Commands/ComputeDomains)
 add_subdirectory(Modules/Commands/DataCasting)
 add_subdirectory(Modules/Commands/Ellipses)
@@ -50,6 +51,14 @@ add_subdirectory(Modules/IO)
 
 add_subdirectory(Modules/Assesment/VertexLocationAssesment)
 add_subdirectory(Modules/Assesment/SegmentationAssesment)
-
+add_subdirectory(Modules/Assesment/TrackingAssesment)
+add_subdirectory(Modules/PaperFigures/VertexLocationDrawing)
+add_subdirectory(Modules/PaperFigures/SegmentationDrawing)
+add_subdirectory(Modules/PaperFigures/PrimalDrawing)
 add_subdirectory(GUI/NewGUI)
 add_subdirectory(Modules/ScaleSpaceExplorer)
+add_subdirectory(Modules/TrackExplorer)
+add_subdirectory(Modules/ObservationExplorer)
+add_subdirectory(Modules/TrackVolume)
+add_subdirectory(Modules/TrackAnnotation)
+add_subdirectory(VertexRelabel)

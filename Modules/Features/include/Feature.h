@@ -10,8 +10,28 @@
 
 #include <map>
 template<class ValueType> struct ValueTraits{
-	ValueType zero=0;
+	static const ValueType zero;
 };
+
+template<> struct ValueTraits< double >{
+	static const double zero=0;
+};
+
+
+static bool operator<(const itk::Point<double,3> & a,const itk::Point<double,3> & b){
+	if(a[0] < b[0] ){
+		return true;
+	}else if(a[0]==b[0]){
+		if(a[1] < b[1] ){
+			return true;
+		}else if(a[1]==b[1]){
+			if(a[2] < b[2] ){
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 template<class TObject,class TValue > class Feature : public std::map<TObject,TValue>{
 public:
@@ -39,7 +59,7 @@ public:
 		if(value < m_Min){
 			m_Min=value;
 		}
-		if(value > m_Max){
+		if( m_Max < value){
 			m_Max=value;
 		}
 		this->insert(toInsert);
@@ -59,14 +79,28 @@ public:
 		return m_Min;
 	}
 
-	ValueType GetMean(){
-		ValueType sum =std::accumulate(this->begin(),this->end(),ValueTraits<ValueType>::zero);
+	ValueType GetMean(){;
+		ValueType sum = ValueTraits<ValueType>::zero;
+
+		for(Iterator it= this->begin();it!=this->end();++it){
+			sum= sum + it->second;
+		}
 		sum=sum/this->GetNumFeatures();
 		return sum;
 	}
 
 	ValueType GetStd(){
-		return 0;
+		ValueType sum = ValueTraits<ValueType>::zero;
+		ValueType sum2 = ValueTraits<ValueType>::zero;
+
+		for(Iterator it= this->begin();it!=this->end();++it){
+			sum= sum + it->second;
+			sum2=sum2 + it->second*it->second;
+		}
+		sum=sum/this->GetNumFeatures();
+		sum2=sum2/this->GetNumFeatures();
+
+		return sqrt(sum2 - sum*sum);
 	}
 	unsigned int GetNumFeatures(){
 		return this->size();

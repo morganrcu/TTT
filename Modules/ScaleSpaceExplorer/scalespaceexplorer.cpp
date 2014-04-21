@@ -1,9 +1,14 @@
 #include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkSCIFIOImageIO.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkMinimumMaximumImageCalculator.h>
 #include <vtkAxesActor.h>
 #include <QFileDialog>
 #include <QString>
+#include <vtkWindowToImageFilter.h>
+#include <vtkTIFFWriter.h>
+#include <vtkCamera.h>
 #include "scalespaceexplorer.h"
 #include "ui_scalespaceexplorer.h"
 
@@ -21,24 +26,25 @@ ScaleSpaceExplorer::ScaleSpaceExplorer(QWidget *parent) :
 
 	{
 	m_CentralRenderer = vtkSmartPointer<vtkRenderer>::New();
-	m_CentralRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+	//m_CentralRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
 
 	m_CentralRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
 	m_CentralRenderWindow->AddRenderer(m_CentralRenderer);
-	m_CentralRenderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+
 
     m_CentralRenderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
     m_CentralRenderWindowInteractor->SetRenderWindow(m_CentralRenderWindow);
     m_CentralRenderWindowInteractor->Initialize();
 
-    vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+    //vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
 
-    m_CentralRenderer->AddActor(axes);
+    //m_CentralRenderer->AddActor(axes);
 
     this->m_pUI->centralQVTKView->SetRenderWindow(m_CentralRenderWindow);
 
 	}
-
 
 
 	connect(this->m_pUI->actionOPen,SIGNAL(triggered()),this,SLOT(Open()));
@@ -51,16 +57,31 @@ ScaleSpaceExplorer::ScaleSpaceExplorer(QWidget *parent) :
 	connect(this->m_pUI->showVertexnessCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowVertexness(int)));
 	connect(this->m_pUI->showVertexLocationsCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowVertexLocations(int)));
 
+	connect(this->m_pUI->saveScreenshotButton,SIGNAL(clicked()),this,SLOT(SaveScreenshot()));
+
+
+	connect(this->m_pUI->savePlatenessButton,SIGNAL(clicked()),this,SLOT(SavePlateness()));
+	connect(this->m_pUI->saveVertexnessButton,SIGNAL(clicked()),this,SLOT(SaveVertexness()));
 
 	m_VertexnessDrawer.SetRenderer(m_CentralRenderer);
 	m_PlatenessDrawer.SetRenderer(m_CentralRenderer);
 	m_VertexLocationsDrawer.SetRenderer(m_CentralRenderer);
 
-	m_Spacing[0]=0.1022727;
-	m_Spacing[1]=0.1022727;
-	m_Spacing[2]=1.0192918;
+	//m_Spacing[0]=0.1395089;
+	//m_Spacing[1]=0.1395089;
+	//m_Spacing[2]=0.5000000;
 
 
+	//m_Spacing[0]=0.1395089;
+	//m_Spacing[1]=0.1395089;
+	//m_Spacing[2]=0.5000000;
+	//m_Spacing[0]=0.1022727;
+	//m_Spacing[1]=0.1022727;
+	//m_Spacing[2]=1.0192918;
+
+	m_Spacing[0]=0.0949848;
+	m_Spacing[1]=0.0949848;
+	m_Spacing[2]=1.2420000;
 }
 
 void ScaleSpaceExplorer::Open(){
@@ -96,7 +117,13 @@ void ScaleSpaceExplorer::Open(){
 
 	this->m_ReescaledImage=rescaler->GetOutput();
 	m_ReescaledImage->SetSpacing(m_Spacing);
-
+	ImageType::DirectionType directionType = m_ReescaledImage->GetDirection();
+//	directionType[0]= -directionType[0];
+	//	directionType[1]= -directionType[1];
+	//directionType[2]= -directionType[2];
+	std::cout << directionType << std::endl;
+	directionType[2][2]=-1;
+	m_ReescaledImage->SetDirection(directionType);
 }
 
 void ScaleSpaceExplorer::ComputeVertexness(){
@@ -249,6 +276,7 @@ void ScaleSpaceExplorer::ShowVertexLocations(int mode){
 }
 
 void ScaleSpaceExplorer::DrawVertexness(int scale){
+	m_CurrentVertexness=scale;
 	m_VertexnessDrawer.SetImage(m_VertexnessImages[scale]);
 	m_VertexnessDrawer.Draw();
 	m_VertexnessDrawer.SetVisibility(this->m_pUI->showVertexnessCBox->isChecked());
@@ -267,6 +295,7 @@ void ScaleSpaceExplorer::DrawVertexness(int scale){
 	this->m_CentralRenderWindow->Render();
 }
 void ScaleSpaceExplorer::DrawPlateness(int scale){
+	m_CurrentPlateness=scale;
 	m_PlatenessDrawer.SetImage(m_PlatenessImages[scale]);
 	m_PlatenessDrawer.Draw();
 	m_PlatenessDrawer.SetVisibility(this->m_pUI->showPlatenessCBox->isChecked());
@@ -276,9 +305,101 @@ void ScaleSpaceExplorer::DrawPlateness(int scale){
 
 	QString shownScaleString("%1");
 	this->m_pUI->platenessShownScaleLabel->setText(shownScaleString.arg(shownScale));
+
+
+
+	VertexnessImageType::PointType origin;
+	origin=m_PlatenessImages[scale]->GetOrigin();
+
+	vtkSmartPointer<vtkCamera> camera = m_CentralRenderer->GetActiveCamera();
+	 camera->ParallelProjectionOn();
+
+	VertexnessImageType::RegionType region = m_PlatenessImages[scale]->GetLargestPossibleRegion();
+	float xc = origin[0] + 0.5*(region.GetIndex(0) + region.GetSize(0))*m_Spacing[0];
+	float yc = origin[1] + 0.5*(region.GetIndex(1) + region.GetSize(1))*m_Spacing[1];
+	float zc = origin[2] + (region.GetIndex(2) + region.GetSize(2))*m_Spacing[2];
+	//
+	//  float xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
+	//  float yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+	//  float xd = (extent[1] - extent[0] + 1)*spacing[0]; // not used
+	  float yd = (region.GetSize(1) - region.GetIndex(1) + 1)*m_Spacing[1];
+
+	  float d = camera->GetDistance();
+	  camera->SetParallelScale(0.5f*static_cast<float>(yd));
+	  camera->SetFocalPoint(xc,yc,zc);
+	  camera->SetPosition(xc,yc,-d-10);
+
+
+
+	  m_CentralRenderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
 	this->m_CentralRenderWindow->Render();
 }
 ScaleSpaceExplorer::~ScaleSpaceExplorer()
 {
     delete m_pUI;
 }
+
+void ScaleSpaceExplorer::SaveScreenshot(){
+	QFileDialog dialog;
+	dialog.setAcceptMode(QFileDialog::AcceptSave);
+	dialog.setNameFilter("Image files (*.tif)");
+	dialog.setFileMode(QFileDialog::AnyFile);
+	if(dialog.exec()){
+		QString fileName = dialog.selectedFiles().first();
+		vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =vtkSmartPointer<vtkWindowToImageFilter>::New();
+		windowToImageFilter->SetInput(this->m_CentralRenderWindow);
+		windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+		windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+		windowToImageFilter->Update();
+
+		vtkSmartPointer<vtkTIFFWriter> writer = vtkSmartPointer<vtkTIFFWriter>::New();
+		writer->SetFileName(fileName.toStdString().c_str());
+		writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+		writer->Write();
+}
+
+
+}
+
+void ScaleSpaceExplorer::SavePlateness(){
+	QFileDialog dialog;
+	dialog.setAcceptMode(QFileDialog::AcceptSave);
+	dialog.setNameFilter("Image files (*.ome.tif)");
+	dialog.setFileMode(QFileDialog::AnyFile);
+	if(dialog.exec()){
+			QString fileName = dialog.selectedFiles().first();
+
+			typedef itk::ImageFileWriter<VertexnessImageType> WriterType;
+
+			WriterType::Pointer writer = WriterType::New();
+			itk::SCIFIOImageIO::Pointer iodriver = itk::SCIFIOImageIO::New();
+			writer->SetImageIO(iodriver);
+			writer->SetFileName(fileName.toStdString());
+			writer->SetInput(m_PlatenessImages[m_CurrentPlateness]);
+			writer->Update();
+
+	}
+}
+
+void ScaleSpaceExplorer::SaveVertexness(){
+	QFileDialog dialog;
+	dialog.setAcceptMode(QFileDialog::AcceptSave);
+	dialog.setNameFilter("Image files (*.ome.tif)");
+	dialog.setFileMode(QFileDialog::AnyFile);
+	if(dialog.exec()){
+			QString fileName = dialog.selectedFiles().first();
+
+			typedef itk::ImageFileWriter<VertexnessImageType> WriterType;
+
+
+			WriterType::Pointer writer = WriterType::New();
+			itk::SCIFIOImageIO::Pointer iodriver = itk::SCIFIOImageIO::New();
+			writer->SetImageIO(iodriver);
+			writer->SetFileName(fileName.toStdString());
+			writer->SetInput(m_VertexnessImages[m_CurrentVertexness]);
+			writer->Update();
+
+	}
+}
+
