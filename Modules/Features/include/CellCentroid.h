@@ -30,8 +30,6 @@ public:
 
 		std::vector<PointType> points,centeredPoints;
 
-		typedef typename std::vector<ttt::SkeletonVertexType>::const_iterator SkeletonPointIterator;
-
 		boost::tie(it,it_end)=boost::vertices(*(this->GetTissueDescriptor()->m_CellGraph));
 		while(it!=it_end){
 			typename ttt::TissueDescriptorTraits<T>::CellVertexType v = *it;
@@ -43,10 +41,10 @@ public:
 
 			int total=0;
 
-			for(SkeletonPointIterator it= cell.Begin();
-					it!=cell.End();
-					++it){
-				itk::Point<double,3> position = boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*it).position;
+			for(typename CellType::PerimeterIterator perimeterIt= cell.PerimeterBegin();
+					perimeterIt!=cell.PerimeterEnd();
+					++perimeterIt){
+				itk::Point<double,3> position = boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*perimeterIt).position;
 				points.push_back(position);
 				meanPoint[0]+=position[0];
 				meanPoint[1]+=position[1];
@@ -62,8 +60,8 @@ public:
 			vnl_matrix<double> A(total,3);
 			int row=0;
 
-			for(std::vector<PointType>::iterator it = points.begin();it!=points.end();++it){
-				PointType diff = *it-meanPoint;
+			for(std::vector<PointType>::iterator pointIt = points.begin();pointIt!=points.end();++pointIt){
+				PointType diff = *pointIt-meanPoint;
 				centeredPoints.push_back(diff);
 				A(row,0)=diff[0];
 				A(row,1)=diff[1];
@@ -79,9 +77,9 @@ public:
 			vnl_vector<double> supportingPlane = eigensystem.get_eigenvector(0);
 
 			std::vector<PointType> projectedPoints;
-			for(std::vector<PointType>::iterator it = centeredPoints.begin();it!=centeredPoints.end();++it){
+			for(std::vector<PointType>::iterator pointIt = centeredPoints.begin();pointIt!=centeredPoints.end();++pointIt){
 
-				PointType a = *it;
+				PointType a = *pointIt;
 				PointType proj;
 
 				double dot = a[0]*supportingPlane[0] + a[1]*supportingPlane[1] + a[2]*supportingPlane[2];
@@ -97,9 +95,9 @@ public:
 
 			std::vector<vnl_vector<double> > transformedPoints;
 
-			for(std::vector<PointType>::iterator it = projectedPoints.begin();it!=projectedPoints.end();++it){
+			for(std::vector<PointType>::iterator pointIt = projectedPoints.begin();pointIt!=projectedPoints.end();++pointIt){
 
-				PointType a = *it;
+				PointType a = *pointIt;
 				vnl_vector<double> vec(3);
 				vec(0)=a[0]; vec(1)=a[1];vec(2)=a[2];
 

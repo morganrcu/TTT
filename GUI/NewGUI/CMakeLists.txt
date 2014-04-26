@@ -66,7 +66,7 @@ target_link_libraries(TTTNewGui
 					TTTTracking
 					TTTTectonics
 					TTTComputeDomains
-					
+					TTTIO
 					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
 					)
 

@@ -25,15 +25,13 @@ public:
 			typedef typename ttt::TissueDescriptorTraits<T>::SkeletonPointPropertyTag SkeletonPointPropertyTag;
 			typename ttt::TissueDescriptorTraits<T>::CellType cell =boost::get(CellPropertyTagType(),*(this->GetTissueDescriptor()->m_CellGraph),*it);
 
-			itk::Point<double,3> C = cell.m_Centroid;
 
+			typename ttt::TissueDescriptorTraits<T>::CellType::PerimeterIterator itSkel,itSkelNext;
 
-			typename std::vector<ttt::SkeletonVertexType>::const_iterator itSkel,itSkelNext;
-
-			itSkel =cell.Begin();
-			itSkelNext=cell.Begin();
+			itSkel =cell.PerimeterBegin();
+			itSkelNext=cell.PerimeterBegin();
 			++itSkelNext;
-			while(itSkelNext!=cell.End()){
+			while(itSkelNext!=cell.PerimeterEnd()){
 
 				itk::Point<double,3> A= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkel).position;
 				itk::Point<double,3> B= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkelNext).position;
@@ -42,7 +40,7 @@ public:
 				++itSkel;
 				++itSkelNext;
 			}
-			itSkelNext=cell.Begin();
+			itSkelNext=cell.PerimeterBegin();
 			itk::Point<double,3> A= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkel).position;
 			itk::Point<double,3> B= boost::get(SkeletonPointPropertyTag(),*(this->GetTissueDescriptor()->m_SkeletonGraph),*itSkelNext).position;
 			area+=(A[0]*B[1]-B[0]*A[1]);

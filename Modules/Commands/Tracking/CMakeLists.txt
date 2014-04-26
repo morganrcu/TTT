@@ -10,7 +10,7 @@ find_package( ZLIB REQUIRED )
 #link_directories(/home/morgan/Development/solvers/coin-Cbc/lib)
 
 set(TTTTracking_SRCS source/TrackingCommand.cpp 
-                     source/giaaCellTracker.cpp
+                     #source/giaaCellTracker.cpp
                      source/tttMinCostMaxFlowCellTracker.cpp)
 
 add_executable(mincostmaxflowcelltrackertest source/mincostmaxflowcelltrackertest.cpp source/tttMinCostMaxFlowCellTracker.cpp)

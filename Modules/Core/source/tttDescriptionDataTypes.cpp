@@ -6,7 +6,7 @@ ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType ttt::CellID2VertexDe
 	assert(descriptor->m_CellGraph);
 	BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::TrackedTissueDescriptor::DualGraphType){
 
-		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).m_ID==ID){
+		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).GetID()==ID){
 			return v;
 		}
 	}
@@ -21,7 +21,7 @@ std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::Track
 
 	BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::TrackedTissueDescriptor::DualGraphType){
 
-		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).m_ParentID==ID){
+		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).GetParentID()==ID){
 			if(!firstFound){
 				result.first=v;
 				firstFound=true;

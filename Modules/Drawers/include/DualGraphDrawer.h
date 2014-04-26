@@ -70,7 +70,7 @@ public:
 		this->Reset();
 			BGL_FORALL_VERTICES_T(v,*m_Descriptor->m_CellGraph,typename TissueDescriptor::DualGraphType){
 				typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType CellPropertyTag;
-				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_Centroid;
+				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,v).GetCentroid();
 				vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 				newSphere->SetCenter(a[0],a[1],a[2]);
 				newSphere->SetRadius(0.8);
@@ -95,9 +95,9 @@ public:
 			BGL_FORALL_EDGES_T(e,*m_Descriptor->m_CellGraph,typename TissueDescriptor::DualGraphType){
 				vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
 				typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType CellPropertyTag;
-				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).m_Centroid;
+				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).GetCentroid();
 				newLine->SetPoint1(a[0],a[1],a[2]);
-				itk::Point<double,3> b= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).m_Centroid;
+				itk::Point<double,3> b= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).GetCentroid();
 
 			//IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
 				newLine->SetPoint2(b[0],b[1],b[2]);

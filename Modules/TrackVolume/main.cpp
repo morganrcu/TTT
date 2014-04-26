@@ -8,7 +8,7 @@ int main(){
 	ttt::TissueTrackingProject m_Project;
 
 	m_Project.openDB();
-	m_Project.OpenProject(2);//LEG
+	m_Project.OpenProject(26);//LEG
 	//m_Project.OpenProject(2);//Notum
 
 

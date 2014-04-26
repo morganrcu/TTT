@@ -208,10 +208,14 @@ public:
 	/**
 	 * Position of the centroid of the cell, in Real World? Coordinates
 	 */
-	typedef itk::Point<double, 3> PointIdx;
+	typedef itk::Point<double, 3> Point;
+
+	typedef std::vector<SkeletonVertexType>::iterator PerimeterIterator;
+
 	/**
 	 *  Default constructor. Sets m_Centroid to zero.
 	 */
+
 
 	Cell() {
 		m_Centroid.Fill(0);
@@ -239,13 +243,13 @@ public:
 			m_SkeletonNodes.push_back(vertex);
 		}
 	}
-	inline std::vector<SkeletonVertexType>::iterator Begin() {
+	inline PerimeterIterator PerimeterBegin() {
 		return m_SkeletonNodes.begin();
 	}
 	/**
 	 * Returns an iterator pointing to the last skeletonpoint
 	 */
-	inline std::vector<SkeletonVertexType>::iterator End() {
+	inline PerimeterIterator PerimeterEnd() {
 		return m_SkeletonNodes.end();
 	}
 #ifdef BOOST_SERIALIZATION
@@ -258,6 +262,14 @@ public:
 		ar & m_Centroid;
 	}
 #endif
+	inline void SetCentroid(const Point & centroid){
+		m_Centroid=centroid;
+	}
+	inline Point GetCentroid(){
+		return m_Centroid;
+	}
+
+private:
 	/**
 	 * Container with the points in the Cellular Border
 	 */
@@ -266,7 +278,7 @@ public:
 	/**
 	 * Cell centroid location
 	 */
-	PointIdx m_Centroid;
+	Point m_Centroid;
 };
 
 /**
@@ -304,6 +316,7 @@ public:
 	 * Next identifier for new tracks
 	 */
 	static int m_NextID;
+private:
 	/**
 	 * Track ID
 	 */
@@ -320,6 +333,37 @@ public:
 	 *
 	 */
 	ttt::CellVertexType m_ObservedCell;
+
+public:
+
+	void SetID(int ID){
+		m_ID=ID;
+	}
+	int GetID(){
+		return m_ID;
+	}
+	int GetParentID(){
+		return m_ParentID;
+	}
+	void SetParentID(int ParentID){
+		m_ParentID=ParentID;
+	}
+	itk::Vector<double,3> GetVelocity(){
+		return m_Velocity;
+	}
+	void SetVelocity(const itk::Vector<double,3> & velocity){
+		m_Velocity=velocity;
+	}
+
+	void SetObservedCell(int observedCell){
+		m_ObservedCell=observedCell;
+	}
+
+	int GetObservedCell(){
+		return m_ObservedCell;
+	}
+
+
 	template<typename Archive>
 	void serialize(Archive& ar, const unsigned version) {
 		ar & boost::serialization::base_object<Cell>(*this);
@@ -344,6 +388,16 @@ public:
 		this->m_ID = other.m_ID;
 		this->m_ParentID=other.m_ParentID;
 		this->m_ObservedCell=other.m_ObservedCell;
+	}
+
+	/**
+	 * Copy constructor. Copies fields from the other cell
+     */
+	TrackedCell(const Cell & other) : Cell(other) {
+		this->m_Velocity.Fill(0);
+		this->m_ID = -1;
+		this->m_ParentID=-1;
+		this->m_ObservedCell=-1;
 	}
 };
 
@@ -556,6 +610,32 @@ std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::Track
 TissueDescriptor::Pointer cloneTissueDescriptor(const TissueDescriptor::Pointer & descriptor);
 
 
+
+template<class CellType> void CellUnion(const CellType & a, const CellType & b,CellType & result){
+#if 0
+	CellType::PerimeterIterator itA = a.PerimeterBegin();
+	CellType::PerimeterIterator itAEnd = a.PerimeterEnd();
+
+	CellType::PerimeterIterator itB = b.PerimeterBegin();
+	CellType::PerimeterIterator itBEnd = b.PerimeterEnd();
+
+	std::vector<ttt::SkeletonVertexType> pointsInA;
+	pointsInA.insert(pointsInA.begin(),itA,itAEnd);
+	std::sort(pointsInA.begin(),pointsInA.end());
+	std::vector<ttt::SkeletonVertexType> pointsInB;
+	pointsInB.insert(pointsInB.begin(),itB,itBEnd);
+	std::sort(pointsInB.begin(),pointsInB.end());
+
+	std::vector<ttt::SkeletonVertexType> common;
+
+	std::set_intersection(itA,itAEnd,itB,itBEnd,common.begin());
+
+	assert(common.size()==2);
+
+	ttt::SkeletonVertexType a = common[0];
+	ttt::SkeletonVertexType b = common[1];
+#endif
+}
 
 /**
  * Return all the domains in a tissue

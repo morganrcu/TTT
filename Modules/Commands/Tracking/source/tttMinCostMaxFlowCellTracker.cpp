@@ -4,6 +4,7 @@
 #include <coin/CoinPackedVector.hpp>
 #include "tttMinCostMaxFlowCellTracker.h"
 #include "CellArea.h"
+#include "CellEllipse.h"
 
 class CoinSolver{
 
@@ -90,13 +91,13 @@ public:
 
 		 const double * solution = model.bestSolution();
 		 memcpy(m_x.data_block(),solution,sizeof(double)*n_cols);
-		for (int iColumn=0;iColumn<numberColumns;iColumn++) {
+	//	for (int iColumn=0;iColumn<numberColumns;iColumn++) {
 
-		    double value=solution[iColumn];
+		//    double value=solution[iColumn];
 		    //if (fabs(value)>1.0e-7&&model.solver()->isInteger(iColumn))
 		      //printf("%d has value %g\n",iColumn,value);
 
-		 }
+		 //}
 	}
 
 };
@@ -110,12 +111,13 @@ struct CompareSecond {
 };
 MinCostMaxFlowCellTracker::MinCostMaxFlowCellTracker(){
 	m_NextID=0;
-	m_AreaWeight=0.1;
-	m_DistanceWeight=0.9;
-	m_MitosisWeight=5;
-	m_CreationWeight=1;
-	m_TerminationWeight=1;
-	m_AssociationWeight=1;
+	//m_AreaWeight=0.0625;
+	m_AreaWeight=0;
+	//m_DistanceWeight=0.9;
+	m_MitosisWeight=0.6;
+	m_CreationWeight=0;
+	m_TerminationWeight=0.6;
+	m_AssociationWeight=0.5;
 }
 
 
@@ -185,20 +187,18 @@ void MinCostMaxFlowCellTracker::Track() {
 	BGL_FORALL_VERTICES(v,*m_Observations[0]->m_CellGraph,CellGraph){
 
 		TrackedCellVertexType n= boost::add_vertex(*m_Tracks[0]->m_CellGraph);
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID=m_NextID++;
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_SkeletonNodes=
-				boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v).m_SkeletonNodes;
+		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n)=
+				boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v);
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_Centroid=
-				boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v).m_Centroid;
+		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetID(m_NextID++);
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ObservedCell=v;
+		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetObservedCell(v);
 
 		//std::cout << "Init track: " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID << " "
 		//	<< boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_Centroid << std::endl;
 
-		idsToSkeletonVertex[0][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID]=n;
+		idsToSkeletonVertex[0][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).GetID()]=n;
 
 		obsToTrack[v]=n;
 	}
@@ -248,7 +248,7 @@ void MinCostMaxFlowCellTracker::Track() {
 		double sx=0,sy=0,sz=0,sx2=0,sy2=0,sz2=0,mux,muy,muz,stdx,stdy,stdz;
 		int total=0;
 		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
 			sx+=centroid[0];
 			sy+=centroid[1];
 			sz+=centroid[2];
@@ -260,7 +260,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			total++;
 		}
 		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 			sx += centroid[0];
 			sy += centroid[1];
 			sz += centroid[2];
@@ -304,7 +304,7 @@ void MinCostMaxFlowCellTracker::Track() {
 
 		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
 
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
 			centroid[0] -= mux;
 			centroid[0] /= stdx;
 
@@ -314,7 +314,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			centroid[2] -= muz;
 			centroid[2] /= stdz;
 
-			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid=centroid;
+			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).SetCentroid(centroid);
 		}
 
 		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Observations[t]->BeginPerimeter();it!=m_Observations[t]->EndPerimeter();++it){
@@ -332,7 +332,7 @@ void MinCostMaxFlowCellTracker::Track() {
 		}
 
 		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 			centroid[0] -= mux;
 			centroid[0] /= stdx;
 
@@ -342,7 +342,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			centroid[2] -= muz;
 			centroid[2] /= stdz;
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid=centroid;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).SetCentroid(centroid);
 
 		}
 
@@ -367,7 +367,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			 * Destruction HYPOTHESIS
 			 */
 
-			itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 
 			double costDistance = DistToPerimeter<ttt::TrackedTissueDescriptor>(trackCentroid,m_Tracks[t-1]);
 			double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
@@ -388,7 +388,7 @@ void MinCostMaxFlowCellTracker::Track() {
 		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
 			associationGraph.AddObservation(v);
 
-			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
 
 			double costDistance = DistToPerimeter<ttt::TissueDescriptor>(observationCentroid,m_Observations[t]);
 			double costArea = fabs((m_ObservationAreas[v]-meanObsArea)/stdObsArea);
@@ -402,14 +402,14 @@ void MinCostMaxFlowCellTracker::Track() {
 
 		BGL_FORALL_VERTICES(obs,*m_Observations[t]->m_CellGraph,CellGraph){
 			//std::cout << "ASSOCIATION " << obs << std::endl;
-			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).m_Centroid;
+			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).GetCentroid();
 
 
 			/*
 			 * ASSOCIATION HYPOTHESIS
 			 */
 			BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
-				itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).m_Centroid;
+				itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
 				itk::Vector<double,3> diff = trackCentroid - observationCentroid;
 
 				double distance = sqrt(pow(diff[0],2)+pow(diff[1],2) + pow(diff[2],2));
@@ -446,7 +446,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			std::pair<adjacency_iterator, adjacency_iterator> neighbors = boost::adjacent_vertices(obs, *m_Observations[t]->m_CellGraph);
 
 			for(; neighbors.first != neighbors.second; ++neighbors.first){
-				itk::Point<double,3> neighborCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*neighbors.first).m_Centroid;
+				itk::Point<double,3> neighborCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*neighbors.first).GetCentroid();
 
 				itk::Point<double,3> mythosisCentroid;
 				for(int i=0;i<3;i++){
@@ -454,7 +454,7 @@ void MinCostMaxFlowCellTracker::Track() {
 					mythosisCentroid[i]=mythosisCentroid[i]/(m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]);
 				}
 				BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
-					itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).m_Centroid;
+					itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
 
 					itk::Vector<double,3> diff = trackCentroid - mythosisCentroid;
 					double distance = sqrt(pow(diff[0],2)+pow(diff[1],2) + pow(diff[2],2));
@@ -481,7 +481,7 @@ void MinCostMaxFlowCellTracker::Track() {
 		}
 
 		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
 			centroid[0] *= stdx;
 			centroid[0] += mux;
 
@@ -491,10 +491,10 @@ void MinCostMaxFlowCellTracker::Track() {
 			centroid[2] *= stdz;
 			centroid[2] += muz;
 
-			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).m_Centroid=centroid;
+			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).SetCentroid(centroid);
 		}
 		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid;
+			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 			centroid[0] *= stdx;
 			centroid[0] += mux;
 
@@ -504,7 +504,7 @@ void MinCostMaxFlowCellTracker::Track() {
 			centroid[2] *= stdz;
 			centroid[2] += muz;
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).m_Centroid=centroid;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).SetCentroid(centroid);
 
 		}
 
@@ -595,21 +595,17 @@ void MinCostMaxFlowCellTracker::Track() {
 
 
 
-			int trackID= boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->second).m_ID;
+			int trackID= boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->second).GetID();
 
 			TrackedCellVertexType n= boost::add_vertex(*m_Tracks[t]->m_CellGraph);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID=trackID;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=
+			           			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first);
 
-           	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_Centroid=
-           			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first).m_Centroid;
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetID(trackID);
 
-           	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes=
-           			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first).m_SkeletonNodes;
 
-           	assert(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes.size()==boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first).m_SkeletonNodes.size());
-
-           	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=it->first;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetObservedCell(it->first);
 
            	idsToSkeletonVertex[t][ trackID]=n;
 
@@ -624,19 +620,15 @@ void MinCostMaxFlowCellTracker::Track() {
 
 			TrackedCellVertexType n = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID=m_NextID++;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=
+								boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*it);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_Centroid=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*it).m_Centroid;
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetID(m_NextID++);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*it).m_SkeletonNodes;
 
-			assert(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes.size()==boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*it).m_SkeletonNodes.size());
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetObservedCell(*it);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=*it;
-
-			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID]=n;
+			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).GetID()]=n;
 
 			obsToTrack[*it]=n;
 
@@ -646,40 +638,33 @@ void MinCostMaxFlowCellTracker::Track() {
 			{
 			TrackedCellVertexType a = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ID=m_NextID++;
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ParentID=
-					boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).m_ID;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a)=
+								boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->A);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_Centroid=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->A).m_Centroid;
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetID(m_NextID++);
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetParentID(
+					boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).GetParentID());
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_SkeletonNodes=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->A).m_SkeletonNodes;
-			assert(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_SkeletonNodes.size()==boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->A).m_SkeletonNodes.size());
-
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ObservedCell=it->A;
-				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).m_ID]=a;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetObservedCell(it->A);
+				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).GetID()]=a;
 
 				obsToTrack[it->A]=a;
 			}
 			{
 			TrackedCellVertexType b = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ID=m_NextID++;
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ParentID=
-								boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).m_ID;
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b)=
+					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_Centroid=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B).m_Centroid;
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetID(m_NextID++);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_SkeletonNodes=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B).m_SkeletonNodes;
+			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetParentID(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).GetParentID());
 
-			assert(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_SkeletonNodes.size()==boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B).m_SkeletonNodes.size());
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ObservedCell=it->B;
-			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).m_ID]=b;
+
+			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetObservedCell(it->B);
+			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).GetID()]=b;
 			obsToTrack[it->B]=b;
 			}
 		}
@@ -707,20 +692,20 @@ void MinCostMaxFlowCellTracker::Track() {
 
         BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph) {
         	itk::Point<double,3> t_1,t0,t1;
-        	int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_ID;
+        	int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetID();
 
-        	t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_Centroid;
+        	t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetCentroid();
         	bool previous=false;
         	bool next=false;
 
         	if(t>0 && idsToSkeletonVertex[t-1].count(id)>0 ){
         		previous=true;
-        		t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).m_Centroid;
+        		t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).GetCentroid();
         	}
 
         	if(t<m_Tracks.size()-1 && idsToSkeletonVertex[t+1].count(id)>0 ){
         		next=true;
-        	    t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).m_Centroid;
+        	    t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).GetCentroid();
         	}
 
         	itk::Vector<double,3> vel;
@@ -744,7 +729,7 @@ void MinCostMaxFlowCellTracker::Track() {
         		vel.Fill(0);
         	}
 
-        	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_Velocity=vel;
+        	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).SetVelocity(vel);
         }
     }
 

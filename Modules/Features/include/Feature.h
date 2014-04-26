@@ -66,10 +66,10 @@ public:
 	}
 
 	virtual Iterator Begin(){
-		this->begin();
+		return this->begin();
 	}
 	virtual Iterator End(){
-		this->end();
+		return this->end();
 	}
 	ValueType GetMax(){
 		return m_Max;

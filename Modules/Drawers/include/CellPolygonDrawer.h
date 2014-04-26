@@ -56,8 +56,8 @@ public:
 		BGL_FORALL_VERTICES_T(v,*(m_Descriptor->m_CellGraph),CellGraph){
 				vtkSmartPointer<vtkPoints> points =  vtkSmartPointer<vtkPoints>::New();
 				int npoints=0;
-				for( std::vector<SkeletonVertexType>::iterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).Begin();
-						it!= boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).End();
+				for( std::vector<SkeletonVertexType>::iterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterBegin();
+						it!= boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterEnd();
 						++it){
 
 						points->InsertNextPoint(boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[0],
@@ -88,7 +88,7 @@ public:
 				  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
 				  actor->SetMapper(mapper);
-				  int trackID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).m_ID;
+				  int trackID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).GetID();
 
 				  std::vector<double> color;
 				  if(m_TrackID2Color.count(trackID)){

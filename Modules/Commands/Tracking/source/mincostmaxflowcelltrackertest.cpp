@@ -88,54 +88,68 @@ int main(){
 	ttt::TissueDescriptor::Pointer obs0 = ttt::TissueDescriptor::New();
 
 	ttt::Cell cellA0;
-	cellA0.m_Centroid[0]=0;
-	cellA0.m_Centroid[1]=-0.5;
-	cellA0.m_Centroid[2]=0;
+	itk::Point<double,3> cellA0Centroid;
+	cellA0Centroid[0]=0;
+	cellA0Centroid[1]=-0.5;
+	cellA0Centroid[2]=0;
+	cellA0.SetCentroid(cellA0Centroid);
 
 	ttt::Cell cellB0;
-	cellB0.m_Centroid[0]=0;
-	cellB0.m_Centroid[1]=0.5;
-	cellB0.m_Centroid[2]=0;
+	itk::Point<double,3> cellB0Centroid;
+	cellB0Centroid[0]=0;
+	cellB0Centroid[1]=0.5;
+	cellB0Centroid[2]=0;
+
+	cellB0.SetCentroid(cellB0Centroid);
 
 	ttt::CellVertexType va0 = boost::add_vertex(ttt::CellProperty(),*obs0->m_CellGraph);
-	boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,va0).m_Centroid=cellA0.m_Centroid;
-	std::cout << boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,va0).m_Centroid << std::endl;
+	boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,va0).SetCentroid(cellA0.GetCentroid());
+	std::cout << boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,va0).GetCentroid() << std::endl;
 
 	ttt::CellVertexType vb0 = boost::add_vertex(ttt::CellProperty(),*obs0->m_CellGraph);
-	boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,vb0).m_Centroid=cellB0.m_Centroid;
-	std::cout << boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,vb0).m_Centroid << std::endl;
+	boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,vb0).SetCentroid(cellB0.GetCentroid());
+	std::cout << boost::get(ttt::CellPropertyTag(),*obs0->m_CellGraph,vb0).GetCentroid() << std::endl;
 
 	boost::add_edge(va0,vb0,*obs0->m_CellGraph);
 
 	ttt::TissueDescriptor::Pointer obs1 = ttt::TissueDescriptor::New();
 
 	ttt::Cell cellA1;
-	cellA1.m_Centroid[0]=0;
-	cellA1.m_Centroid[1]=-0.6;
-	cellA1.m_Centroid[2]=0;
+	itk::Point<double,3> cellA1Centroid;
+
+	cellA1Centroid[0]=0;
+	cellA1Centroid[1]=-0.6;
+	cellA1Centroid[2]=0;
+	cellA1.SetCentroid(cellA1Centroid);
 
 	ttt::Cell cellB1;
-	cellB1.m_Centroid[0]=0.5;
-	cellB1.m_Centroid[1]=0.5;
-	cellB1.m_Centroid[2]=0;
+	itk::Point<double,3> cellB1Centroid;
+	cellB1Centroid[0]=0.5;
+	cellB1Centroid[1]=0.5;
+	cellB1Centroid[2]=0;
+	cellA1.SetCentroid(cellB1Centroid);
 
 	ttt::Cell cellC1;
-	cellC1.m_Centroid[0]=-0.5;
-	cellC1.m_Centroid[1]=0.5;
-	cellC1.m_Centroid[2]=0;
+	itk::Point<double,3> cellC1Centroid;
+	cellC1Centroid[0]=-0.5;
+	cellC1Centroid[1]=0.5;
+	cellC1Centroid[2]=0;
+
+	cellC1.SetCentroid(cellC1Centroid);
+
 
 
 	ttt::CellVertexType va1 = boost::add_vertex(ttt::CellProperty(),*obs1->m_CellGraph);
-	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,va1).m_Centroid= cellA1.m_Centroid;
-	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,va1).m_Centroid << std::endl;
+	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,va1).SetCentroid(cellA1.GetCentroid());
+	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,va1).GetCentroid() << std::endl;
 
 	ttt::CellVertexType vb1 = boost::add_vertex(ttt::CellProperty(),*obs1->m_CellGraph);
-	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vb1).m_Centroid=cellB1.m_Centroid;
-	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vb1).m_Centroid << std::endl;
+	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vb1).SetCentroid(cellB1.GetCentroid());
+	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vb1).GetCentroid() << std::endl;
 
 	ttt::CellVertexType vc1 = boost::add_vertex(ttt::CellProperty(),*obs1->m_CellGraph);
-	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vc1).m_Centroid=cellC1.m_Centroid;
-	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vc1).m_Centroid << std::endl;
+	boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vc1).SetCentroid(cellC1.GetCentroid());
+	std::cout << boost::get(ttt::CellPropertyTag(),*obs1->m_CellGraph,vc1).GetCentroid() << std::endl;
 
 	boost::add_edge(va1,vb1,*obs1->m_CellGraph);
 	boost::add_edge(va1,vc1,*obs1->m_CellGraph);
@@ -154,7 +168,7 @@ int main(){
 	for(int t=0;t<tracks.size();t++){
 		std::cout << "T: "<< t << std::endl;
 		BGL_FORALL_VERTICES_T(v,*tracks[t]->m_CellGraph,ttt::TrackedCellGraph){
-			std::cout <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).m_ID << " "  <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).m_Centroid << " " << boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).m_ParentID <<  std::endl;
+			std::cout <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetID() << " "  <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetCentroid() << " " << boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetParentID() <<  std::endl;
 		}
 	}
 }

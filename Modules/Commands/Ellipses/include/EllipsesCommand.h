@@ -71,6 +71,7 @@ template<class T> int CalcEllipseValues(std::vector<itk::Point<T, 3> > &pts, Ell
 			std::cout << "\t" << pts[i] <<std::endl;
 		}
 	}
+	return 0;
 }
 
 template<class TissueDescriptor> EllipsesCommand<TissueDescriptor>::EllipsesCommand() {
@@ -85,10 +86,14 @@ template<class TissueDescriptor> void EllipsesCommand<TissueDescriptor>::Do(){
 	assert(m_Descriptor->m_CellGraph);
 
 	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,CellGraph) {
-		std::vector<SkeletonVertexType> svt = boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_SkeletonNodes;
+
+
+		//std::vector<SkeletonVertexType> svt = boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_SkeletonNodes;
+		typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellType CellType;
+		CellType currentCell =boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v);
 		std::vector<itk::Point<double,3> > points;
 
-		for(std::vector<SkeletonVertexType>::iterator itr = svt.begin(); itr != svt.end(); ++itr){
+		for(typename CellType::PerimeterIterator itr = currentCell.PerimeterBegin(); itr != currentCell.PerimeterEnd(); ++itr){
 			itk::Point<double,3> pos = boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,*itr).position;
 			points.push_back(pos);
 		}

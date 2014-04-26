@@ -11,5 +11,5 @@ include_directories( ../../IO/include/)
 
 add_executable(SegmentationAssesment source/SegmentationAssesment.cpp)
 
-target_link_libraries(SegmentationAssesment ${ITK_LIBRARIES} TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
+target_link_libraries(SegmentationAssesment ${ITK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
  

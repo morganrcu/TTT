@@ -43,7 +43,7 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 		BGL_FORALL_VERTICES(v,*(currentTissue->m_CellGraph),ttt::TrackedCellGraph){
 
 
-			int ID=boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).m_ID;
+			int ID=boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).GetID();
 
 			std::vector<double> color;
 			if(m_TrackID2Color.count(ID)){
@@ -60,8 +60,8 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 			ttt::TrackedCellVertexType nextV=ttt::CellID2VertexDescriptor(ID,nextTissue);
 			if(nextV!=-1){
 
-				itk::Point<double,3> a =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).m_Centroid;
-				itk::Point<double,3> b =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),nextV).m_Centroid;
+				itk::Point<double,3> a =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).GetCentroid();
+				itk::Point<double,3> b =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),nextV).GetCentroid();
 
 				vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
 
@@ -83,19 +83,17 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 				std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> children=CellParentID2VertexDescriptor(ID,nextTissue);
 				if(children.first==-1 || children.second==-1) continue;
 
-				itk::Point<double,3> a =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).m_Centroid;
-				itk::Point<double,3> b =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.first).m_Centroid;
+				itk::Point<double,3> a =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).GetCentroid();
+				itk::Point<double,3> b =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.first).GetCentroid();
 
-				itk::Point<double,3> c =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).m_Centroid;
-				itk::Point<double,3> d =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.second).m_Centroid;
+				itk::Point<double,3> c =boost::get(ttt::TrackedCellPropertyTag(),(*currentTissue->m_CellGraph),v).GetCentroid();
+				itk::Point<double,3> d =boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.second).GetCentroid();
 
-				int IDA=boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.first).m_ID;
-				int IDB=boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.second).m_ID;
+				int IDA=boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.first).GetID();
+				int IDB=boost::get(ttt::TrackedCellPropertyTag(),(*nextTissue->m_CellGraph),children.second).GetID();
 
 				m_TrackID2Color[IDA]=color;
 				m_TrackID2Color[IDB]=color;
-
-
 
 
 				vtkSmartPointer<vtkLineSource> lineA=vtkSmartPointer<vtkLineSource>::New();
@@ -109,14 +107,14 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 
 				actorA->GetProperty()->SetColor(color[0],color[1],color[2]);
 				actorA->SetMapper(mapperA);
-
+				actorA->GetProperty()->SetLineWidth(5);
 
 				renderer->AddActor(actorA);
 
 				vtkSmartPointer<vtkLineSource> lineB=vtkSmartPointer<vtkLineSource>::New();
 
-				lineB->SetPoint1(c[0],c[1],2*t);
-				lineB->SetPoint2(d[0],d[1],2*(t+1));
+				lineB->SetPoint1(c[0],c[1],3*t);
+				lineB->SetPoint2(d[0],d[1],3*(t+1));
 				lineB->Update();
 				vtkSmartPointer<vtkOpenGLPolyDataMapper> mapperB = vtkSmartPointer<vtkOpenGLPolyDataMapper>::New();
 				mapperB->SetInputConnection(lineB->GetOutputPort());
@@ -125,6 +123,7 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 				actorB->GetProperty()->SetColor(color[0],color[1],color[2]);
 				actorB->SetMapper(mapperB);
 
+				actorB->GetProperty()->SetLineWidth(5);
 
 				renderer->AddActor(actorB);
 

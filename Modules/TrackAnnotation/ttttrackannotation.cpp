@@ -114,8 +114,8 @@ void TrackAnnotation::DoCorrection(){
 		ttt::TrackedCellVertexType a = ttt::CellID2VertexDescriptor(this->m_CurrentTrack,current);
 		ttt::TrackedCellVertexType b = ttt::CellID2VertexDescriptor(this->m_NextTrack,current);
 
-		if(a!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),a).m_ID=this->m_NextTrack;
-		if(b!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),b).m_ID=this->m_CurrentTrack;
+		if(a!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),a).SetID(this->m_NextTrack);
+		if(b!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),b).SetID(this->m_CurrentTrack);
 
 		m_Project.SetTrackedTissueDescriptor(current);
 
@@ -129,7 +129,7 @@ void TrackAnnotation::CurrentCellSelected(vtkSmartPointer<vtkActor>& cell){
 
 	ttt::TrackedCellVertexType selected = m_NowVertexAndActor.right.at(cell);
 
-	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentTissueDescriptor->m_CellGraph),selected).m_ID;
+	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentTissueDescriptor->m_CellGraph),selected).GetID();
 	CurrentTrackChanged(trackID);
 }
 
@@ -138,7 +138,7 @@ void TrackAnnotation::NextCellSelected(vtkSmartPointer<vtkActor>& cell){
 	ttt::TrackedCellVertexType selected = m_NextVertexAndActor.right.at(cell);
 
 
-	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*m_NextTissueDescriptor->m_CellGraph),selected).m_ID;
+	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*m_NextTissueDescriptor->m_CellGraph),selected).GetID();
 	NextTrackChanged(trackID);
 }
 void TrackAnnotation::GlobalTrackChanged(int track){
@@ -176,7 +176,7 @@ void TrackAnnotation::SplitCorrespondence(const ttt::TrackedTissueDescriptor::Po
 	BGL_FORALL_VERTICES(v0,*t0->m_CellGraph,ttt::TrackedCellGraph){
 
 		ttt::TrackedCell cell0=boost::get(ttt::TrackedCellPropertyTag(),*t0->m_CellGraph,v0);
-		int trackID=cell0.m_ID;
+		int trackID=cell0.GetID();
 
 		ttt::TrackedCellVertexType v1=ttt::CellID2VertexDescriptor(trackID,t1);
 
@@ -197,13 +197,13 @@ void TrackAnnotation::SplitCorrespondence(const ttt::TrackedTissueDescriptor::Po
 	BGL_FORALL_VERTICES(v1,*t1->m_CellGraph,ttt::TrackedCellGraph){
 		ttt::TrackedCell cell1=boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,v1);
 
-		int trackID=cell1.m_ID;
+		int trackID=cell1.GetID();
 
 		ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(trackID,t0);
 
 		if(v0==-1){
 
-			int parentID=cell1.m_ParentID;
+			int parentID=cell1.GetParentID();
 
 			ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(parentID,t0);
 
@@ -281,8 +281,8 @@ void TrackAnnotation::DrawPolygons(CellVertexAndActorBiMap & storage, ttt::Track
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 		int npoints = 0;
 
-		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissue->m_CellGraph), v).Begin();
-				it!= boost::get(ttt::TrackedCellPropertyTag(),*(tissue->m_CellGraph), v).End();
+		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissue->m_CellGraph), v).PerimeterBegin();
+				it!= boost::get(ttt::TrackedCellPropertyTag(),*(tissue->m_CellGraph), v).PerimeterEnd();
 				++it) {
 
 			points->InsertNextPoint(boost::get(ttt::SkeletonPointPropertyTag(),

@@ -59,7 +59,7 @@ target_link_libraries(TTTObservationExplorer
 					TTTDataCasting 
 					TTTCore
 					TTTVertexLocation
-					
+					TTTIO
 					mysqlcppconn
 					
 					

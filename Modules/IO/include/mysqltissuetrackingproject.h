@@ -46,62 +46,130 @@
 #include <tectonics.h>
 
 #endif
+#include "tissuetrackingabstractproject.h"
 namespace ttt {
-class TissueTrackingProject {
-
-public:
-
-	typedef itk::Image<unsigned char, 3> RawImageType;
-	typedef itk::Image<unsigned char, 3> SurfaceSegmentedImageType;
-	typedef itk::Image<float, 3> DiffusedImageType;
-	typedef itk::Image<float, 3> PlatenessImageType;
-	typedef itk::Image<itk::Vector<float, 3>, 3> OrientationImageType;
-	typedef itk::Image<float, 3> VertexnessImageType;
-
-	typedef ttt::TissueDescriptor TissueDescriptorType;
-	typedef ttt::TrackedTissueDescriptor TrackedTissueDescriptorType;
-
-	typedef typename RawImageType::SpacingType SpacingType;
-
-	typedef Ellipse<double> EllipseType;
-
-	typedef std::map<
-			typename TissueDescriptorType::DualGraphVertexDescriptorType,
-			EllipseType> EllipseMapType;
-
-	typedef boost::shared_ptr<EllipseMapType> EllipseMapTypePointer;
-	typedef std::vector<ttt::TrackedDomain> TrackedDomainVectorType;
-	typedef boost::shared_ptr<TrackedDomainVectorType> TrackedDomainVectorTypePointer;
-
-	typedef RawImageType::RegionType RegionType;
-	typedef RawImageType::SizeType SizeType;
+class TissueTrackingProject : public TissueTrackingAbstractProject{
 
 private:
 
 	sql::Driver * m_Driver;
-
 	std::auto_ptr<sql::Connection> m_DB;
 
-	RegionType m_Region;
-
-	SpacingType m_Spacing;
-	double m_TimeDelta;
-
-	std::string m_WorkingDirectory;
-	std::string m_ProjectName;
-
 	int m_ProjectID;
-
-	unsigned int m_Frame;
 
 	std::string m_Host;
 	std::string m_DBName;
 	std::string m_User;
 	std::string m_Password;
 	unsigned int m_Port;
-public:
 
-	TissueTrackingProject() : m_Host("localhost"), m_DBName("TuftsTissueTracker"),m_User("root"),m_Password("ttt1Tracker") {
+	/////////////////////////////////// Images /////////////////////////////////////////////
+#define tttIsImageReadyMacro(name, type,tablename) \
+virtual  bool Is##name##Ready()  \
+{										\
+	return this->isImageInTable(tablename, m_Frame); \
+}
+
+#define tttLoadImageMacro(name, type,tablename) \
+virtual  void Load##name()  \
+{										\
+	m_##name=readImageFromTable< type >(tablename, m_Frame);						\
+	m_##name##Dirty=false; \
+	m_##name##Loaded=true; \
+}
+#define tttStoreImageMacro(name, type,tablename) \
+virtual  void Store##name()  \
+{										\
+	storeImageInTable< type >( m_##name, tablename, m_Frame); \
+	m_##name##Dirty=false; \
+} \
+
+#define tttImageMacro(name,type,tablename) \
+protected: \
+	tttLoadImageMacro(name,type,tablename); \
+	tttStoreImageMacro(name,type,tablename); \
+public: \
+	tttIsImageReadyMacro(name,type,tablename); \
+
+
+	tttImageMacro(RawImage,RawImageType,"RawImages")
+	;tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages")
+	;tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages")
+	;tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages")
+	;tttImageMacro(DiffusedImage,DiffusedImageType,"DiffusedImages")
+	;tttImageMacro(PlatenessImage,PlatenessImageType,"PlatenessImages")
+	;tttImageMacro(VertexnessImage,VertexnessImageType,"VertexnessImages")
+	;
+
+
+public:
+	TissueTrackingProject();
+	void SetHost(const std::string & host);
+	void SetDBName(const std::string & dbname);
+	void SetUser(const std::string & user);
+	void SetPassword(const std::string & password);
+	void SetPort(unsigned int port);
+	bool openDB();
+	void OpenProject(int projectID);
+	void NewProject(const std::string & name,
+				const std::string & workingDirectory, double spacingX,
+				double spacingY, double spacingZ, double timeDelta,
+				unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ);
+
+	virtual void NewFrame(int numFrame);
+
+	virtual unsigned  int GetNumFrames();
+
+	void SetProjectID(int ProjectID);
+	void StoreConfig();
+	void Load(std::string & basePath);
+
+	virtual void LoadVertexLocations();
+	virtual void StoreVertexLocations();
+	virtual bool IsVertexLocationsReady();
+
+	virtual void LoadTissueDescriptor();
+	virtual void StoreTissueDescriptor();
+	virtual void SetTissueDescriptorDirty();
+	virtual bool IsTissueDescriptorReady();
+
+
+	virtual bool IsTrackedTissueDescriptorReady();
+	virtual void LoadTrackedTissueDescriptor();
+	virtual void StoreTrackedTissueDescriptor();
+
+	virtual void LoadTrackedEllipses();
+	virtual void StoreTrackedEllipses();
+	virtual bool IsTrackedEllipsesReady();
+
+	virtual void LoadTrackedDomains();
+	virtual void StoreTrackedDomains();
+	virtual bool IsTrackedDomainsReady();
+
+	virtual void LoadDomainStrainRates();
+	virtual void StoreDomainStrainRates();
+	virtual bool IsDomainStrainRatesReady();
+
+	virtual void SetProjectName(const std::string & name);
+	virtual void SetSpacingX(double spacingX);
+	virtual void SetSpacingY(double spacingY);
+	virtual void SetSpacingZ(double spacingZ);
+	virtual void SetSamplingRate(double rate);
+	virtual void SetHighestScale(double scale);
+	virtual void SetLowestScale(double scale);
+	virtual void SetScaleSteps(int nscales);
+	virtual double GetLowestScale();
+	virtual double GetHighestScale();
+	virtual int GetScaleSteps();
+	virtual int GetNumTracks();
+private:
+	bool isImageInTable(const std::string & table, int frame) ;
+	template<class TImage> typename TImage::Pointer readImageFromTable(const std::string & table, int frame);
+
+	template<class TImage> void storeImageInTable(const typename TImage::Pointer & image, const std::string & table,unsigned int frame);
+
+#if 0
+	TissueTrackingProject(); : TissueTrackingAbstractProject(),m_Host("localhost"), m_DBName("TuftsTissueTracker"),m_User("root"),m_Password("ttt1Tracker") {
 		m_ProjectID = 0;
 		m_TimeDelta = -1;
 		m_Frame = 0;
@@ -109,9 +177,6 @@ public:
 
 	}
 
-	RegionType::SizeType GetSize(){
-		return m_Region.GetSize();
-	}
 	void SetHost(const std::string & host) {
 		m_Host = host;
 	}
@@ -128,14 +193,7 @@ public:
 		m_Port = port;
 	}
 
-	int GetFrame() {
-		return m_Frame;
-	}
-	void SetFrame(int frame) {
-		this->Flush();
-		m_Frame = frame;
-		this->Clear();
-	}
+
 	bool openDB() {
 
 		try {
@@ -272,7 +330,7 @@ public:
 		}
 	}
 
-	void NewFrame(int numFrame) {
+	virtual void NewFrame(int numFrame) {
 		//Insert new Frame to Database
 		try {
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
@@ -301,7 +359,7 @@ public:
 		}
 
 	}
-	unsigned int GetNumFrames() {
+	unsigned virtual int GetNumFrames() {
 
 		try {
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
@@ -345,159 +403,13 @@ public:
 
 	}
 
-	void Flush() {
-		if (this->m_RawImageDirty) {
-			this->StoreRawImage();
-		}
-		if (this->m_CLAHEDImageDirty) {
-			this->StoreCLAHEDImage();
-		}
-		if (this->m_LateralImageVolumeSegmentedImageDirty) {
-			this->StoreLateralImageVolumeSegmentedImage();
-		}
-		if (this->m_SurfaceSegmentedImageDirty) {
-			this->StoreSurfaceSegmentedImage();
-		}
-		if (this->m_DiffusedImageDirty) {
-			this->StoreDiffusedImage();
-		}
-		if (this->m_PlatenessImageDirty) {
-			this->StorePlatenessImage();
-		}
-		if (this->m_VertexnessImageDirty) {
-			this->StoreVertexnessImage();
-		}
-		if (this->m_VertexLocationsDirty) {
-			this->StoreVertexLocations();
-		}
-		if (this->m_TissueDescriptorDirty) {
-			this->StoreTissueDescriptor();
-		}
-		if (this->m_TrackedTissueDescriptorDirty) {
-			this->StoreTrackedTissueDescriptor();
-		}
-		if (this->m_TrackedEllipsesDirty){
-			this->StoreTrackedEllipses();
-		}
-		if (this->m_DomainStrainRatesDirty){
-			this->StoreDomainStrainRates();
-		}
-	}
-	void Clear() {
 
-		this->m_RawImage = 0;
-		this->m_CLAHEDImage = 0;
-		this->m_LateralImageVolumeSegmentedImage = 0;
-		this->m_SurfaceSegmentedImage = 0;
-		this->m_DiffusedImage = 0;
-		this->m_PlatenessImage = 0;
-		this->m_VertexnessImage = 0;
-		this->m_VertexLocations = 0;
-		this->m_TissueDescriptor = 0;
-		this->m_TrackedTissueDescriptor=0;
 
-		this->m_RawImageLoaded=false;
-		this->m_CLAHEDImageLoaded=false;
-		this->m_LateralImageVolumeSegmentedImageLoaded=false;
-		this->m_SurfaceSegmentedImageLoaded=false;
-		this->m_DiffusedImageLoaded=false;
-		this->m_PlatenessImageLoaded=false;
-		this->m_VertexnessImageLoaded=false;
-		this->m_VertexLocationsLoaded=false;
-		this->m_TissueDescriptorLoaded=false;
-		this->m_TrackedTissueDescriptorLoaded=false;
-	}
 
-#define tttDefineImageMacro(name,type) \
-	type::Pointer m_##name;\
-	bool m_##name##Dirty=false;\
-	bool m_##name##Loaded=false;
 
-#define tttGetImageMacro(name, type) \
-virtual  type::Pointer  Get##name()  \
-{										\
-	if(!m_##name##Loaded) Load##name(); \
-	return m_##name;						\
-}										\
+protected:
 
-#define tttSetImageMacro(name, type) \
-virtual  void Set##name(const type::Pointer & arg)  \
-{										\
-	m_##name##Dirty=true;\
-	m_##name##Loaded=true;\
-	m_##name=arg;						\
-}										\
-
-#define tttLoadImageMacro(name, type,tablename) \
-virtual  void Load##name()  \
-{										\
-	m_##name=readImageFromTable< type >(tablename, m_Frame);						\
-	m_##name##Dirty=false; \
-	m_##name##Loaded=true; \
-} \
-
-#define tttStoreImageMacro(name, type,tablename) \
-virtual  void Store##name()  \
-{										\
-	storeImageInTable< type >( m_##name, tablename, m_Frame); \
-	m_##name##Dirty=false; \
-} \
-
-#define tttIsImageReadyMacro(name, type,tablename) \
-virtual  bool Is##name##Ready()  \
-{										\
-	return this->isImageInTable(tablename, m_Frame); \
-} \
-
-#define tttSetImageDirtyMacro(name) \
-virtual  void Set##name##Dirty()  \
-{										\
-	m_##name##Dirty=false; \
-} \
-
-#define tttImageMacro(name,type,tablename) \
-private: \
-	tttDefineImageMacro(name,type); \
-public: \
-	tttGetImageMacro(name,type); \
-	tttSetImageMacro(name,type); \
-	tttLoadImageMacro(name,type,tablename); \
-	tttStoreImageMacro(name,type,tablename); \
-	tttIsImageReadyMacro(name,type,tablename); \
-	tttSetImageDirtyMacro(name); \
-
-	/////////////////////////////////// Images /////////////////////////////////////////////
-
-tttImageMacro(RawImage,RawImageType,"RawImages")
-	;tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages")
-	;tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages")
-	;tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages")
-	;tttImageMacro(DiffusedImage,DiffusedImageType,"DiffusedImages")
-	;tttImageMacro(PlatenessImage,PlatenessImageType,"PlatenessImages")
-	;tttImageMacro(VertexnessImage,VertexnessImageType,"VertexnessImages")
-	;
-
-/////////////////////////////////// Vertex Locations/////////////////////////////////////////////
-private:
-	ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
-	bool m_VertexLocationsDirty = false;
-	bool m_VertexLocationsLoaded = false;
-
-public:
-
-	ttt::AdherensJunctionVertices::Pointer GetVertexLocations() {
-		if (!m_VertexLocationsLoaded) LoadVertexLocations();
-		return m_VertexLocations;
-	}
-
-	void SetVertexLocations(
-			const ttt::AdherensJunctionVertices::Pointer & vertexLocations) {
-		m_VertexLocations = vertexLocations;
-		m_VertexLocationsDirty = true;
-		m_VertexLocationsLoaded = true;
-	}
-
-	void LoadVertexLocations() {
+	virtual void LoadVertexLocations() {
 		m_VertexLocations = ttt::AdherensJunctionVertices::New();
 		try {
 			std::string selectQuery(
@@ -545,7 +457,7 @@ public:
 		m_VertexLocationsLoaded = true;
 	}
 
-	void StoreVertexLocations() {
+	virtual void StoreVertexLocations() {
 
 		try {
 
@@ -600,23 +512,16 @@ public:
 		m_VertexLocationsDirty = false;
 	}
 
-	inline bool IsVertexLocationsReady() {
+public:
+	inline virtual bool IsVertexLocationsReady() {
 		//TODO
 		return true;
 	}
 
-	inline void SetVertexLocationsDirty() {
-		this->StoreVertexLocations();
-		m_VertexLocationsDirty = true;
-	}
-//////////////////////////////////Tissue Descriptor/////////////////////////////////////////////
-private:
-	TissueDescriptorType::Pointer m_TissueDescriptor;
-	bool m_TissueDescriptorDirty = false;
-	bool m_TissueDescriptorLoaded=false;
+	//////////////////////////////////Tissue Descriptor/////////////////////////////////////////////
 public:
 
-	void LoadTissueDescriptor() {
+	virtual void LoadTissueDescriptor() {
 		m_TissueDescriptor = TissueDescriptorType::New();
 
 		{
@@ -712,9 +617,12 @@ public:
 
 			while (resCell->next()) {
 				ttt::Cell newCell;
-				newCell.m_Centroid[0] = resCell->getDouble("posX");
-				newCell.m_Centroid[1] = resCell->getDouble("posY");
-				newCell.m_Centroid[2] = resCell->getDouble("posZ");
+				itk::Point<double,3> centroid;
+				centroid[0] = resCell->getDouble("posX");
+				centroid[1] = resCell->getDouble("posY");
+				centroid[2] = resCell->getDouble("posZ");
+
+				newCell.SetCentroid(centroid);
 
 				ttt::CellVertexType vertex = boost::add_vertex(newCell,
 						*m_TissueDescriptor->m_CellGraph);
@@ -772,19 +680,9 @@ public:
 		m_TissueDescriptorLoaded=true;
 	}
 
-	inline typename TissueDescriptorType::Pointer GetTissueDescriptor() {
-		if (!m_TissueDescriptorLoaded)
-			LoadTissueDescriptor();
-		return m_TissueDescriptor;
-	}
 
-	void SetTissueDescriptor(const TissueDescriptor::Pointer & descriptor) {
-		m_TissueDescriptor = descriptor;
-		m_TissueDescriptorDirty = true;
-		StoreTissueDescriptor();
-	}
 
-	void StoreTissueDescriptor() {
+	virtual void StoreTissueDescriptor() {
 
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
@@ -954,9 +852,9 @@ public:
 			insertCell_stmt->setInt(2,m_Frame);
 			insertCell_stmt->setInt(3,0);
 			insertCell_stmt->setInt(4,v);
-			insertCell_stmt->setDouble(5,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_Centroid[0]);
-			insertCell_stmt->setDouble(6,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_Centroid[1]);
-			insertCell_stmt->setDouble(7,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_Centroid[2]);
+			insertCell_stmt->setDouble(5,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetCentroid()[0]);
+			insertCell_stmt->setDouble(6,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetCentroid()[1]);
+			insertCell_stmt->setDouble(7,boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetCentroid()[2]);
 			insertCell_stmt->execute();
 		}
 	} catch(sql::SQLException &e) {
@@ -1024,8 +922,8 @@ public:
 			BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,ttt::CellGraph){
 
 			int order=0;
-			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).Begin();
-					it!=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).End();
+			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).PerimeterBegin();
+					it!=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).PerimeterEnd();
 					it++) {
 				insertCellToMembranePointString_stmt->setInt(1,m_ProjectID);
 				insertCellToMembranePointString_stmt->setInt(2,m_Frame);
@@ -1139,22 +1037,19 @@ public:
 	void SetTissueDescriptorDirty() {
 		m_TissueDescriptorDirty = true;
 	}
-	inline bool IsTissueDescriptorReady() {
+	inline virtual  bool IsTissueDescriptorReady() {
 		return true;
 	}
 
 
 	//////////////////////////////??TRACKED TISSUE DESCRIPTOR/////////////////////////////////////
-private:
-	TrackedTissueDescriptorType::Pointer m_TrackedTissueDescriptor;
 
-	bool m_TrackedTissueDescriptorDirty = false;
-	bool m_TrackedTissueDescriptorLoaded=false;
 public:
-	inline bool IsTrackedTissueDescriptorReady(){
+	inline virtual bool IsTrackedTissueDescriptorReady(){
 		return true;
 	}
-	void LoadTrackedTissueDescriptor() {
+protected:
+	virtual void LoadTrackedTissueDescriptor() {
 
 		m_TrackedTissueDescriptor = TrackedTissueDescriptorType::New();
 
@@ -1232,9 +1127,11 @@ public:
 
 			while (resCell->next()) {
 				ttt::TrackedCell newCell;
-				newCell.m_Centroid[0] = resCell->getDouble("posX");
-				newCell.m_Centroid[1] = resCell->getDouble("posY");
-				newCell.m_Centroid[2] = resCell->getDouble("posZ");
+				itk::Point<double,3> centroid;
+				centroid[0] = resCell->getDouble("posX");
+				centroid[1] = resCell->getDouble("posY");
+				centroid[2] = resCell->getDouble("posZ");
+				newCell.SetCentroid(centroid);
 
 				newCell.m_Velocity[0] = resCell->getDouble("velX");
 				newCell.m_Velocity[1] = resCell->getDouble("velY");
@@ -1300,18 +1197,9 @@ public:
 		}
 		m_TrackedTissueDescriptorLoaded=true;
 	}
-	inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor() {
-		if(!m_TrackedTissueDescriptorLoaded) LoadTrackedTissueDescriptor();
-		return m_TrackedTissueDescriptor;
-	}
 
-	void SetTrackedTissueDescriptor(
-			TrackedTissueDescriptorType::Pointer trackedTissueDescriptor) {
-		m_TrackedTissueDescriptor = trackedTissueDescriptor;
-		m_TrackedTissueDescriptorDirty = true;
-		m_TrackedTissueDescriptorLoaded = true;
-	}
-	void StoreTrackedTissueDescriptor() {
+
+	virtual void StoreTrackedTissueDescriptor() {
 
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
@@ -1495,9 +1383,9 @@ public:
 			insertCell_stmt->setInt(5,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_ObservedCell); //TODO obtain from ???
 			insertCell_stmt->setInt(6,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_ID);
 
-			insertCell_stmt->setDouble(7,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[0]);
-			insertCell_stmt->setDouble(8,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[1]);
-			insertCell_stmt->setDouble(9,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Centroid[2]);
+			insertCell_stmt->setDouble(7,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).GetCentroid()[0]);
+			insertCell_stmt->setDouble(8,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).GetCentroid()[1]);
+			insertCell_stmt->setDouble(9,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).GetCentroid()[2]);
 
 			insertCell_stmt->setDouble(10,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Velocity[0]);
 			insertCell_stmt->setDouble(11,boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).m_Velocity[1]);
@@ -1574,8 +1462,8 @@ public:
 
 			BGL_FORALL_VERTICES(v,*m_TrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
 			int order=0;
-			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).Begin();
-					it!=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).End();
+			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).PerimeterBegin();
+					it!=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).PerimeterEnd();
 					it++) {
 
 				insertTrackedCellToTrackedMembranePointString_stmt->setInt(1,m_ProjectID);
@@ -1611,11 +1499,6 @@ public:
 
 	}
 
-	////////////////////////////TRACKED ELLIPSES/////////////////////////////////
-private:
-	EllipseMapTypePointer m_TrackedEllipses;
-	bool m_TrackedEllipsesDirty=false;
-	bool m_TrackedEllipsesReady=false;
 
 public:
 	void LoadTrackedEllipses() {
@@ -1650,17 +1533,6 @@ public:
 		m_TrackedEllipsesDirty=true;
 	}
 
-	EllipseMapTypePointer GetTrackedEllipses() {
-		if(!m_TrackedEllipsesDirty)this->LoadTrackedEllipses();
-		return m_TrackedEllipses;
-	}
-
-	void SetTrackedEllipses(const EllipseMapTypePointer & trackedEllipses) {
-		m_TrackedEllipses = trackedEllipses;
-		m_TrackedEllipsesDirty = true;
-		m_TrackedEllipsesReady = true;
-		//this->StoreTrackedEllipses();
-	}
 	void StoreTrackedEllipses() {
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
@@ -1738,11 +1610,8 @@ public:
 		}
 		return false;
 	}
-	////////////////////////////TRACKED DOMAINS/////////////////////////////////
-private:
-	TrackedDomainVectorTypePointer m_TrackedDomains;
-	bool m_TrackedDomainsDirty;
-public:
+
+protected:
 	void LoadTrackedDomains() {
 		std::string selectTrackedDomainsString(
 				"SELECT idTrackedCell,`order` FROM TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=? AND TrackedDomain.idTissue=? ORDER BY TrackedDomain.idTrackedCell ASC");
@@ -1790,11 +1659,6 @@ public:
 			}
 			m_TrackedDomains->push_back(domain);
 		}
-	}
-
-	TrackedDomainVectorTypePointer GetTrackedDomains() {
-		LoadTrackedDomains();
-		return m_TrackedDomains;
 	}
 
 	void StoreTrackedDomains() {
@@ -1886,12 +1750,7 @@ public:
 		transStatement->execute("COMMIT;");
 	}
 
-	void SetTrackedDomains(const TrackedDomainVectorTypePointer & domains) {
-		m_TrackedDomains = domains;
-		m_TrackedDomainsDirty = true;
-		StoreTrackedDomains();
-	}
-
+public:
 	bool IsTrackedDomainsReady() {
 		try {
 			std::string trackedDomainsReadyQuery(
@@ -1925,13 +1784,9 @@ public:
 		return false;
 	}
 
-private:
-	DomainStrainRatesMapTypePointer m_DomainStrainRates;
-	bool m_DomainStrainRatesDirty=false;
-	bool m_DomainStrainRatesReady=false;
 
-public:
-	void LoadDomainStrainRates() {
+protected:
+	virtual void LoadDomainStrainRates() {
 		 m_DomainStrainRates =boost::shared_ptr<DomainStrainRatesMapType>(new DomainStrainRatesMapType);
 
 		try {
@@ -2160,21 +2015,7 @@ public:
 		bool m_DomainStrainRatesDirty=false;
 	}
 
-
-	DomainStrainRatesMapTypePointer GetDomainStrainRates() {
-		if(!m_DomainStrainRatesReady)this->LoadDomainStrainRates();
-		//return 	boost::shared_ptr<	DomainStrainRatesMapType>(new DomainStrainRatesMapType);;
-		return m_DomainStrainRates;
-
-	}
-	void SetDomainStrainRates(
-			const DomainStrainRatesMapTypePointer & domainStrainRates) {
-		m_DomainStrainRates = domainStrainRates;
-		this->StoreDomainStrainRates();
-		m_DomainStrainRatesDirty=true;
-		 m_DomainStrainRatesReady=true;
-	}
-
+public:
 	inline bool IsDomainStrainRatesReady() {
 		try {
 			std::string strainRatesReadyQuery(
@@ -2208,16 +2049,7 @@ public:
 		return false;
 	}
 
-	inline SpacingType GetSpacing() {
-		return m_Spacing;
-	}
-	inline double GetTemporalScale() {
-		return m_TimeDelta;
-	}
 
-	inline std::string GetProjectName() {
-		return m_ProjectName;
-	}
 
 	void SetProjectName(const std::string & name) {
 		try {
@@ -2714,7 +2546,7 @@ private:
 		}
 
 	}
-
+#endif
 };
 }
 

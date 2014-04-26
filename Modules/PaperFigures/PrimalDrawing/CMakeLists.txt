@@ -12,5 +12,5 @@ include_directories( ../../IO/include/)
 
 add_executable(PrimalDrawing source/PrimalDrawing.cpp)
 
-target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
+target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
  

@@ -32,12 +32,19 @@ void ttt::CellTracker::Track() {
 
 
             TrackedCellVertexType n= boost::add_vertex(*m_Tracks[0]->m_CellGraph);
+            boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n) = boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v);
             boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID=m_NextID++;
+            boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ObservedCell=v;
+#if 0
+
             boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_SkeletonNodes=
             		boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v).m_SkeletonNodes;
             boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_Centroid=
                         		boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v).m_Centroid;
-            boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ObservedCell=v;
+
+
+
+#endif
             std::cout << "Init track: " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID << std::endl;
 
             idsToSkeletonVertex[0][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID]=n;
@@ -88,10 +95,10 @@ void ttt::CellTracker::Track() {
 
             BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
 
-                itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).m_Centroid;
+                itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
 
                 BGL_FORALL_VERTICES(obs,*m_Observations[t]->m_CellGraph,CellGraph) {
-                    itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).m_Centroid;
+                    itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).GetCentroid();
                     itk::Vector<double,3> diff = trackCentroid - observationCentroid;
                     double distance = sqrt(pow(diff[0],2)+pow(diff[1],2) + pow(diff[2],2));
 
@@ -126,11 +133,8 @@ void ttt::CellTracker::Track() {
                 	boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID=
                 			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,minT).m_ID;
 
-                	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_Centroid=
-                			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,minO).m_Centroid;
 
-                	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes=
-                			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,minO).m_SkeletonNodes;
+                	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,minO);
 
                     boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=minO;
 
@@ -167,16 +171,13 @@ void ttt::CellTracker::Track() {
 				TrackedCellVertexType n = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
 
 
+				boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first);
+
 				boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID=m_NextID++;
 
-				boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_Centroid=
-						boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first).m_Centroid;
-
-				boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_SkeletonNodes=
-						boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first).m_SkeletonNodes;
 				boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell=it->first;
 
-				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ID]=n;
+				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).GetID()]=n;
 
 				obsToTrack[it->first]=n;
 
@@ -199,19 +200,19 @@ void ttt::CellTracker::Track() {
 
         BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph) {
         	itk::Point<double,3> t_1,t0,t1;
-        	int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_ID;
-        	t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_Centroid;
+        	int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetID();
+        	t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetCentroid();
         	bool previous=false;
         	bool next=false;
 
         	if(t>0 && idsToSkeletonVertex[t-1].count(id)>0 ){
         		previous=true;
-        		t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).m_Centroid;
+        		t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).GetCentroid();
         	}
 
         	if(t<m_Tracks.size()-1 && idsToSkeletonVertex[t+1].count(id)>0 ){
         		next=true;
-        	    t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).m_Centroid;
+        	    t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).GetCentroid();
         	}
 
         	itk::Vector<double,3> vel;

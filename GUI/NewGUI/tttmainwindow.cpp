@@ -602,7 +602,8 @@ void TTTMainWindow::HighlightProjectFrame(int frame){
 
 	RawImageDrawer drawer;
 	m_Project->SetFrame(frame);
-	drawer.SetImage(m_Project->GetRawImage());
+	itk::Image<unsigned char,3>::Pointer rawImage = m_Project->GetRawImage();
+	drawer.SetImage(rawImage);
 	drawer.SetRenderer(this->m_ProjectRenderer);
 	drawer.Draw();
 	drawer.SetVisibility(true);
@@ -819,7 +820,7 @@ void TTTMainWindow::DoEnhance(){
 	anisotropicDiffusionCommand.Do();
 
 	this->m_Project->SetDiffusedImage(anisotropicDiffusionCommand.GetOutputImage());
-#if 0
+
 	PlatenessCommand platenessCommand;
 
 	platenessCommand.SetSigmaMin(lowestScale);
@@ -830,7 +831,7 @@ void TTTMainWindow::DoEnhance(){
 	platenessCommand.Do();
 
 	this->m_Project->SetPlatenessImage(platenessCommand.GetPlatenessImage());
-#endif
+
 
 
 }

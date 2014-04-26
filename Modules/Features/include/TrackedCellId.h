@@ -29,8 +29,8 @@ public:
 	virtual void Compute(){
 		BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
 
-			std::cout << boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID << std::endl;
-			this->Insert(v,boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID);
+			std::cout << boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetID() << std::endl;
+			this->Insert(v,boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetID());
 			//this->at(v)=boost::get(ttt::TrackedCellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_ID;
 		}
 	}

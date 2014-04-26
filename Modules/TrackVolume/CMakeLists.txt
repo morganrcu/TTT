@@ -11,5 +11,5 @@ include_directories( ../IO/include/)
 
 add_executable(TTTTrackVolume main.cpp)
 
-target_link_libraries(TTTTrackVolume ${ITK_LIBRARIES} TTTDrawers TTTCore mysqlcppconn)
+target_link_libraries(TTTTrackVolume ${ITK_LIBRARIES} TTTDrawers TTTCore TTTIO mysqlcppconn)
  

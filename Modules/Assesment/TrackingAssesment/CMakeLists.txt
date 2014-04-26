@@ -13,6 +13,6 @@ include_directories( ../../IO/include/)
 
 add_executable(TrackingAssesment source/main.cpp)
 
-target_link_libraries(TrackingAssesment ${ITK_LIBRARIES} mysqlcppconn TTTCore TTTTracking 					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
+target_link_libraries(TrackingAssesment ${ITK_LIBRARIES} mysqlcppconn TTTCore TTTTracking 			TTTIO		Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
 )
  

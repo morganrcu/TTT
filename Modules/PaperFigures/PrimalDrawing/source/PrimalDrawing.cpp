@@ -103,14 +103,14 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 		ttt::SkeletonVertexType a = boost::source(e,*reference->m_CellGraph);
 		ttt::SkeletonVertexType b = boost::target(e,*reference->m_CellGraph);
 
-		typedef itk::Point<double,3> ItkPT;
+		typedef itk::Point<double,3> Point;
 
 		vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
-		ItkPT apt= boost::get(ttt::CellPropertyTag(),*reference->m_CellGraph,a).m_Centroid;
+		Point apt= boost::get(ttt::CellPropertyTag(),*reference->m_CellGraph,a).GetCentroid();
 
 		newLine->SetPoint1(apt[0],apt[1],apt[2]);
 
-		ItkPT bpt= boost::get(ttt::CellPropertyTag(),*reference->m_CellGraph,b).m_Centroid;
+		Point bpt= boost::get(ttt::CellPropertyTag(),*reference->m_CellGraph,b).GetCentroid();
 		newLine->SetPoint2(bpt[0],bpt[1],bpt[2]);
 
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();

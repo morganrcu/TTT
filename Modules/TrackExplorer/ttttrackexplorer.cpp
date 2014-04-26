@@ -65,7 +65,7 @@ void TrackExplorer::CellSelected(vtkSmartPointer<vtkActor>& cell){
 	ttt::TrackedCellVertexType selected = m_VertexAndActor.right.at(cell);
 	ttt::TrackedTissueDescriptor::Pointer tissueDescriptor = this->m_Project.GetTrackedTissueDescriptor();
 
-	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*tissueDescriptor->m_CellGraph),selected).m_ID;
+	int trackID=boost::get(ttt::TrackedCellPropertyTag(),(*tissueDescriptor->m_CellGraph),selected).GetID();
 	TrackChanged(trackID);
 }
 
@@ -109,8 +109,8 @@ void TrackExplorer::DrawPolygons(){
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 		int npoints = 0;
 
-		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissueDescriptor->m_CellGraph), v).Begin();
-				it!= boost::get(ttt::TrackedCellPropertyTag(),*(tissueDescriptor->m_CellGraph), v).End();
+		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissueDescriptor->m_CellGraph), v).PerimeterBegin();
+				it!= boost::get(ttt::TrackedCellPropertyTag(),*(tissueDescriptor->m_CellGraph), v).PerimeterEnd();
 				++it) {
 
 						points->InsertNextPoint(boost::get(ttt::SkeletonPointPropertyTag(),

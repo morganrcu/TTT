@@ -27,8 +27,8 @@ double TrackDistance(const std::vector<ttt::TrackedTissueDescriptor::Pointer> de
 		}else if(vertexA==-1 || vertexB==-1){
 			sum+=eps;
 		}else{
-			itk::Point<double,3> pointA=boost::get(ttt::TrackedCellPropertyTag(),*descA[t]->m_CellGraph,vertexA).m_Centroid;
-			itk::Point<double,3> pointB=boost::get(ttt::TrackedCellPropertyTag(),*descB[t]->m_CellGraph,vertexB).m_Centroid;
+			itk::Point<double,3> pointA=boost::get(ttt::TrackedCellPropertyTag(),*descA[t]->m_CellGraph,vertexA).GetCentroid();
+			itk::Point<double,3> pointB=boost::get(ttt::TrackedCellPropertyTag(),*descB[t]->m_CellGraph,vertexB).GetCentroid();
 
 			double dist=sqrt( pow(pointA[0]-pointB[0],2) + pow(pointA[1]-pointB[1],2) + pow(pointA[2]-pointB[2],2));
 			sum+=std::min(dist,eps);
@@ -44,7 +44,7 @@ unsigned int NumTracks(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 	for(unsigned int t=0;t<descriptor.size();t++){
 
 		BGL_FORALL_VERTICES(v,*descriptor[t]->m_CellGraph,ttt::TrackedCellGraph){
-			maxTrack=std::max(boost::get(ttt::TrackedCellPropertyTag(),*descriptor[t]->m_CellGraph,v).m_ID,maxTrack);
+			maxTrack=std::max(boost::get(ttt::TrackedCellPropertyTag(),*descriptor[t]->m_CellGraph,v).GetID(),maxTrack);
 		}
 	}
 	return maxTrack+1;
@@ -76,14 +76,14 @@ void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
 	BGL_FORALL_VERTICES(v0,*t0->m_CellGraph,ttt::TrackedCellGraph){
 
 		ttt::TrackedCell cell0=boost::get(ttt::TrackedCellPropertyTag(),*t0->m_CellGraph,v0);
-		int trackID=cell0.m_ID;
+		int trackID=cell0.GetID();
 
 		ttt::TrackedCellVertexType v1=ttt::CellID2VertexDescriptor(trackID,t1);
 
 		if(v1!=-1){
 
 			ttt::TrackedCell cell1=boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,v1);
-			associations[cell0.m_ObservedCell]=cell1.m_ObservedCell;
+			associations[cell0.GetObservedCell()]=cell1.GetObservedCell();
 		}else{
 			std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> children= ttt::CellParentID2VertexDescriptor(trackID,t1);
 
@@ -91,9 +91,9 @@ void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
 				ttt::TrackedCell cell1A= boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,children.first);
 				ttt::TrackedCell cell1B= boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,children.second);
 
-				mitosis[cell0.m_ObservedCell]=std::pair<int,int>(cell1A.m_ObservedCell,cell1B.m_ObservedCell);
+				mitosis[cell0.GetObservedCell()]=std::pair<int,int>(cell1A.GetObservedCell(),cell1B.GetObservedCell());
 			}else{
-				terminations.push_back(cell0.m_ObservedCell);
+				terminations.push_back(cell0.GetObservedCell());
 			}
 		}
 	}
@@ -101,18 +101,18 @@ void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
 	BGL_FORALL_VERTICES(v1,*t1->m_CellGraph,ttt::TrackedCellGraph){
 		ttt::TrackedCell cell1=boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,v1);
 
-		int trackID=cell1.m_ID;
+		int trackID=cell1.GetID();
 
 		ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(trackID,t0);
 
 		if(v0==-1){
 
-			int parentID=cell1.m_ParentID;
+			int parentID=cell1.GetParentID();
 
 			ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(parentID,t0);
 
 			if(v0==-1){
-				creations.push_back(cell1.m_ObservedCell);
+				creations.push_back(cell1.GetObservedCell());
 			}
 
 
@@ -153,8 +153,8 @@ void AssignTracks(const ttt::TrackedTissueDescriptor::Pointer & query,const ttt:
 
 	BGL_FORALL_VERTICES(q,*query->m_CellGraph,ttt::TrackedCellGraph){
 		BGL_FORALL_VERTICES(r,*reference->m_CellGraph,ttt::TrackedCellGraph){
-			itk::Point<double,3> pointQ=boost::get(ttt::TrackedCellPropertyTag(),*query->m_CellGraph,q).m_Centroid;
-			itk::Point<double,3> pointR=boost::get(ttt::TrackedCellPropertyTag(),*reference->m_CellGraph,r).m_Centroid;
+			itk::Point<double,3> pointQ=boost::get(ttt::TrackedCellPropertyTag(),*query->m_CellGraph,q).GetCentroid();
+			itk::Point<double,3> pointR=boost::get(ttt::TrackedCellPropertyTag(),*reference->m_CellGraph,r).GetCentroid();
 
 			distances(q,r)=sqrt( pow(pointQ[0]-pointR[0],2) + pow(pointQ[1]-pointR[1],2) + pow(pointQ[2]-pointR[2],2));
 		}

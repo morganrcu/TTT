@@ -50,7 +50,7 @@ void ttt::DomainStrainRatesDrawer::Draw(){
 
 		majorLength=majorLength*100;
 		minorLength=minorLength*100;
-		itk::Point<double,3> center=boost::get(TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,cell).m_Centroid;
+		itk::Point<double,3> center=boost::get(TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,cell).GetCentroid();
 
 		itk::Point<double,3> a,b,c,d;
 

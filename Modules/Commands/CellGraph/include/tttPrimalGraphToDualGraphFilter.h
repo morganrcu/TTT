@@ -73,7 +73,7 @@ public:
 					boost::graph_traits<OutputGraph>::null_vertex()) {
 		m_Total = -1;
 		m_CurrentVertex = -1;
-
+		m_CurrentCentroid.Fill(0);
 		m_EdgeToFace = new edge_to_face_map_t(m_EdgeToFaceVector.begin(), m_EM);
 
 	}
@@ -84,6 +84,7 @@ public:
 		std::cout << "Comenzando nueva cara ";
 
 		m_CurrentVertex = boost::add_vertex(CellProperty(), m_Dual);
+		m_CurrentCentroid.Fill(0);
 		std::cout << m_CurrentVertex << std::endl;
 		m_Total = 0;
 	}
@@ -92,13 +93,11 @@ public:
 	 * TODO
 	 */
 	void end_face() {
-		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[0] /=
-				m_Total;
-		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[1] /=
-				m_Total;
-		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[2] /=
-				m_Total;
-		std::cout << "Centroide en: " << boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid 	<< std::endl;
+		m_CurrentCentroid[0]/=m_Total;
+		m_CurrentCentroid[1]/=m_Total;
+		m_CurrentCentroid[2]/=m_Total;
+		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).SetCentroid(m_CurrentCentroid);
+		std::cout << "Centroide en: " << m_CurrentCentroid	<< std::endl;
 	}
 
 	/**
@@ -111,11 +110,12 @@ public:
 		if(boost::degree(v,m_Graph)>1){
 			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddSkeletonPoint(v);
 
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[0] +=
+
+			m_CurrentCentroid[0] +=
 					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[0];
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[1] +=
+			m_CurrentCentroid[1] +=
 					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[1];
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).m_Centroid[2] +=
+			m_CurrentCentroid[2] +=
 					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[2];
 
 			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddSkeletonPoint(
@@ -150,6 +150,11 @@ private:
 	 * TODO
 	 */
 	CellVertexType m_CurrentVertex;
+
+	/**
+	 *
+	 */
+	itk::Point<double,3> m_CurrentCentroid;
 	/**
 	 *
 	 */
@@ -542,7 +547,7 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 			ttt::Cell outerFace = boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,outFace);
 			m_TissueDescriptor->ClearPerimeter();
-			for(std::vector<SkeletonVertexType>::iterator it = outerFace.Begin();it!=outerFace.End();++it){
+			for(std::vector<SkeletonVertexType>::iterator it = outerFace.PerimeterBegin();it!=outerFace.PerimeterEnd();++it){
 				m_TissueDescriptor->AddVertexToPerimeter(*it);
 			}
 
@@ -574,7 +579,8 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 		BGL_FORALL_VERTICES_T(v,*m_TissueDescriptor->m_CellGraph,CellGraph){
 
 			assert(boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetNumSkeletonPoints()>0);
-			boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).m_Centroid=(*centroidCalculator)[v];
+			std::cout << "Replace: " << boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetCentroid() << " By " << (*centroidCalculator)[v] << std::endl;
+			boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).SetCentroid((*centroidCalculator)[v]);
 		}
 
 	}

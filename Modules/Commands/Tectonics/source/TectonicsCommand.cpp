@@ -34,7 +34,7 @@ void ttt::TectonicsCommand::Do(){
 		std::vector<EllipseMatrix> ellipses1;
 
 
-		int id=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentDescriptor->m_CellGraph),domainIt->GetNucleus()).m_ID;
+		int id=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentDescriptor->m_CellGraph),domainIt->GetNucleus()).GetID();
 
 
 
@@ -49,11 +49,11 @@ void ttt::TectonicsCommand::Do(){
 
 		if(ok){
 
-			Centroid centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,domainIt->GetNucleus()).m_Centroid;
+			Centroid centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,domainIt->GetNucleus()).GetCentroid();
 			for(std::set<ttt::TrackedCellVertexType>::iterator cellIt=domainIt->Begin();
 					cellIt!=domainIt->End();
 					cellIt++){
-				int idCell=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentDescriptor->m_CellGraph),*cellIt).m_ID;
+				int idCell=boost::get(ttt::TrackedCellPropertyTag(),(*m_CurrentDescriptor->m_CellGraph),*cellIt).GetID();
 
 				bool valid=true;
 
@@ -67,13 +67,13 @@ void ttt::TectonicsCommand::Do(){
 
 				if(valid){
 
-					Centroid orig=boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Centroid;
+					Centroid orig=boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).GetCentroid();
 					Centroid dst;
 
 					for(int i=0;i<3;i++) dst[i]=orig[i] -centroid[i];
 					points.push_back(dst);
 
-					velocities.push_back(boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).m_Velocity);
+					velocities.push_back(boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentDescriptor->m_CellGraph,*cellIt).GetVelocity());
 
 					if(m_PreviousEllipses && m_NextEllipses){
 						rate=2;
