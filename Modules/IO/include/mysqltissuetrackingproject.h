@@ -124,6 +124,8 @@ public:
 	void StoreConfig();
 	void Load(std::string & basePath);
 
+
+
 	virtual void LoadVertexLocations();
 	virtual void StoreVertexLocations();
 	virtual bool IsVertexLocationsReady();
@@ -133,10 +135,33 @@ public:
 	virtual void SetTissueDescriptorDirty();
 	virtual bool IsTissueDescriptorReady();
 
-
-	virtual bool IsTrackedTissueDescriptorReady();
 	virtual void LoadTrackedTissueDescriptor();
 	virtual void StoreTrackedTissueDescriptor();
+	virtual bool IsTrackedTissueDescriptorReady();
+
+	virtual void LoadTrackedCentroids();
+	virtual void StoreTrackedCentroids();
+	virtual bool IsTrackedCentroidsReady();
+
+	virtual void LoadTrackedAreas();
+	virtual void StoreTrackedAreas();
+	virtual bool IsTrackedAreasReady();
+
+	virtual void LoadTrackedPerimeter();
+	virtual void StoreTrackedPerimeter();
+	virtual bool IsTrackedPerimeterReady();
+
+	virtual void LoadTrackedWidth();
+	virtual void StoreTrackedWidth();
+	virtual bool IsTrackedWidthReady();
+
+	virtual void LoadTrackedHeight();
+	virtual void StoreTrackedHeight();
+	virtual bool IsTrackedHeightReady();
+
+	virtual void LoadTrackedRotation();
+	virtual void StoreTrackedRotation();
+	virtual bool IsTrackedRotationReady();
 
 	virtual void LoadTrackedEllipses();
 	virtual void StoreTrackedEllipses();
@@ -160,8 +185,8 @@ public:
 	virtual void SetScaleSteps(int nscales);
 	virtual double GetLowestScale();
 	virtual double GetHighestScale();
-	virtual int GetScaleSteps();
-	virtual int GetNumTracks();
+	virtual int	GetScaleSteps();
+	virtual int	GetNumTracks();
 private:
 	bool isImageInTable(const std::string & table, int frame) ;
 	template<class TImage> typename TImage::Pointer readImageFromTable(const std::string & table, int frame);

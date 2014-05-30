@@ -24,7 +24,7 @@
 
 #include "DefaultColorer.h"
 #include "FeatureColorer.h"
-#include "TrackedCellId.h"
+//#include "TrackedCellId.h"
 #include "CellPolygonDrawer.h"
 #include "DomainStrainRatesDrawer.h"
 
@@ -234,9 +234,15 @@ private slots:
 
 
 	void DoTracking();
+	void DoInitTracking();
+	void DoTrackingInteractive();
+	void DoDetectTrackingOutliers();
 	void DoEllipses();
 	void DoTectonics();
 
+	void PopulateFeatureTable();
+	void HighlightCellInFeatureTable();
+	void HighlightCellInRepresentation();
 
 
 	void DrawRangePlateness();
@@ -246,6 +252,9 @@ private slots:
 	//void DrawDual();
 
 	void DrawTracking();
+	void DrawTrackingInteractive();
+
+	void DrawInspection();
 
 	void DrawTectonics();
 
@@ -299,6 +308,10 @@ private:
     vtkSmartPointer<vtkRenderer> m_VertexLocationRenderer;
     vtkSmartPointer<vtkRenderer> m_CellSegmentationRenderer;
     vtkSmartPointer<vtkRenderer> m_TrackingRenderer;
+
+    vtkSmartPointer<vtkRenderer> m_PreviousTrackingRenderer;
+    vtkSmartPointer<vtkRenderer> m_CurrentTrackingRenderer;
+
     vtkSmartPointer<vtkRenderer> m_TectonicsRenderer;
     vtkSmartPointer<vtkRenderer> m_InspectionRenderer;
 
@@ -314,7 +327,12 @@ private:
     vtkSmartPointer<vtkRenderWindow> m_VertexLocationRenderWindow;
     vtkSmartPointer<vtkRenderWindow> m_CellSegmentationRendererWindow;
     vtkSmartPointer<vtkRenderWindow> m_TrackingRendererWindow;
+
+    vtkSmartPointer<vtkRenderWindow> m_PreviousTrackingRendererWindow;
+    vtkSmartPointer<vtkRenderWindow> m_CurrentTrackingRendererWindow;
+
     vtkSmartPointer<vtkRenderWindow> m_TectonicsRenderWindow;
+
     vtkSmartPointer<vtkRenderWindow> m_InspectionRenderWindow;
 
 
@@ -329,6 +347,10 @@ private:
     vtkSmartPointer<QVTKInteractor> m_VertexLocationRenderWindowInteractor;
     vtkSmartPointer<QVTKInteractor> m_CellSegmentationRenderWindowInteractor;
     vtkSmartPointer<QVTKInteractor> m_TrackingRenderWindowInteractor;
+
+    vtkSmartPointer<QVTKInteractor> m_PreviousTrackingRendererWindowInteractor;
+    vtkSmartPointer<QVTKInteractor> m_CurrentTrackingRendererWindowInteractor;
+
     vtkSmartPointer<QVTKInteractor> m_TectonicsRenderWindowInteractor;
     vtkSmartPointer<QVTKInteractor> m_InspectionRenderWindowInteractor;
 
@@ -365,7 +387,8 @@ private:
     ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_PrimalGraphTrackingDrawer;
     ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
 
-    ttt::FeatureColorer<TrackedCellId> m_TrackingVertexColorer;
+    ttt::FeatureColorer<ttt::TrackedCellVertexType,unsigned int > m_TrackingVertexColorer;
+
 
     DefaultColorer<ttt::TrackedCellEdgeType> m_TrackingEdgeColorer;
 

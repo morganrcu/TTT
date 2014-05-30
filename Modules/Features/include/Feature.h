@@ -8,7 +8,8 @@
 #ifndef FEATURE_H_
 #define FEATURE_H_
 
-#include <map>
+//#include <map>
+#if 0
 template<class ValueType> struct ValueTraits{
 	static const ValueType zero;
 };
@@ -44,24 +45,26 @@ public:
 	typedef boost::shared_ptr<Self> Pointer;
 private:
 	//MapType m_FeatureMap;
-	ValueType m_Max;
-	ValueType m_Min;
+	//ValueType m_Max;
+	//ValueType m_Min;
 
 public:
 	Feature(){
-		m_Max= std::numeric_limits<TValue>::min();
-		m_Min= std::numeric_limits<TValue>::max();
+		//m_Max= std::numeric_limits<TValue>::min();
+		//m_Min= std::numeric_limits<TValue>::max();
 	}
 	void Insert(const ObjectType & obj,const ValueType & value){
 		std::pair<ObjectType,ValueType> toInsert;
 		toInsert.first=obj;
 		toInsert.second=value;
+#if 0
 		if(value < m_Min){
 			m_Min=value;
 		}
 		if( m_Max < value){
 			m_Max=value;
 		}
+#endif
 		this->insert(toInsert);
 	}
 
@@ -71,6 +74,7 @@ public:
 	virtual Iterator End(){
 		return this->end();
 	}
+#if 0
 	ValueType GetMax(){
 		return m_Max;
 	}
@@ -78,7 +82,7 @@ public:
 	ValueType GetMin(){
 		return m_Min;
 	}
-
+#endif
 	ValueType GetMean(){;
 		ValueType sum = ValueTraits<ValueType>::zero;
 
@@ -108,5 +112,44 @@ public:
 };
 
 
+#endif
+
+template<class ValueType> class Feature{
+private:
+	ValueType m_Value;
+public:
+
+	typedef Feature<ValueType> Self;
+
+	Feature(){
+
+	}
+
+	Feature(const Self & other){
+		m_Value=other.GetValue();
+	}
+
+	Feature(const ValueType & value){
+		m_Value=value;
+	}
+
+	void SetValue(const ValueType & value){
+		m_Value=value;
+	}
+
+	ValueType  GetValue() const{
+		return m_Value;
+	}
+
+	Self operator+(const Self & other){
+		return Self(m_Value+other.GetValue());
+
+	}
+
+	Self operator-(const Self & other){
+		return Self(m_Value-other.GetValue());;
+
+	}
+};
 
 #endif /* FEATURE_H_ */

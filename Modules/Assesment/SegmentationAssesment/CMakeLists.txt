@@ -6,10 +6,10 @@ include_directories( ../../Drawers/include/)
 include_directories( ../AssesmentBase/include/)
 include_directories( ../../Core/include/)
 include_directories( ../../IO/include/)
-
+include_directories(../../Features/include/)
 
 
 add_executable(SegmentationAssesment source/SegmentationAssesment.cpp)
 
-target_link_libraries(SegmentationAssesment ${ITK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
+target_link_libraries(SegmentationAssesment ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
  

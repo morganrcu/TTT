@@ -65,7 +65,7 @@ TrackAnnotation::TrackAnnotation(QWidget *parent) :
 
 
     m_Project.openDB();
-    m_Project.OpenProject(2);
+    m_Project.OpenProject(26);
     m_Project.SetFrame(0);
 
     this->m_pUI->frameSlider->setMinimum(0);
@@ -281,7 +281,7 @@ void TrackAnnotation::DrawPolygons(CellVertexAndActorBiMap & storage, ttt::Track
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 		int npoints = 0;
 
-		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissue->m_CellGraph), v).PerimeterBegin();
+		for (ttt::Cell::PerimeterIterator it = boost::get(ttt::TrackedCellPropertyTag(), *(tissue->m_CellGraph), v).PerimeterBegin();
 				it!= boost::get(ttt::TrackedCellPropertyTag(),*(tissue->m_CellGraph), v).PerimeterEnd();
 				++it) {
 

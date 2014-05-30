@@ -3,104 +3,28 @@
 #include <coin/CoinPackedVector.hpp>
 #include <coin/CoinPackedVector.hpp>
 #include "tttMinCostMaxFlowCellTracker.h"
-#include "CellArea.h"
-#include "CellEllipse.h"
+#include "CellMomentCalculator.h"
+#include "CoinSolver.h"
+//#include "CellEllipse.h"
+//#include "CellPerimeter.h"
+#if 0
+static void parametricEllipseToMatrixEllipse(const double Rx, const double Ry, const double angle, vnl_matrix_fixed<double,2,2> & result) {
+	vnl_matrix_fixed<double,2,2> V,D;
 
-class CoinSolver{
+	V(0,0)=cos(angle);
+	V(1,0)=sin(angle);
+	V(0,1)=-sin(angle);
+	V(1,1)=cos(angle);
 
-private:
-	vnl_sparse_matrix<double> m_A;
-	vnl_vector<double> m_b;
-	vnl_vector<double> m_cost;
-	vnl_vector<double> m_capacity;
+	D(0,0)=Rx;
+	D(0,1)=0;
+	D(1,0)=0;
+	D(1,1)=Ry;
 
-	vnl_vector<double> m_x;
-public:
-	CoinSolver(const vnl_vector<double> & cost, const vnl_vector<double> & capacity, const vnl_sparse_matrix<double> & A,const vnl_vector<double> & b){
-		m_A=A;
-		m_b=b;
-		m_cost=cost;
-		m_capacity=capacity;
-	}
-	vnl_vector<double> GetSolution(){
-		return m_x;
-	}
-	void Solve() {
-		OsiClpSolverInterface solver;
+	result = V*D*V.transpose();
+}
+#endif
 
-		int n_cols=m_cost.size();
-
-		double * objective=m_cost.data_block();
-
-		double * col_lb = new double[n_cols];//the column lower bounds
-//		double * col_ub = new double[n_cols];//the column upper bounds
-		double * col_ub = m_capacity.data_block();//the column upper bounds
-
-
-		for(int i=0;i<n_cols;i++) {
-			col_lb[i] = 0.0;
-			//col_ub[i] = 1;
-		}
-
-		int n_rows=m_b.size();
-		CoinPackedMatrix * matrix = new CoinPackedMatrix(false,0,0);
-		matrix->setDimensions(0, n_cols);
-		//double * row_lb = new double[n_rows];//the row lower bounds
-		//double * row_ub = new double[n_rows];//the row upper bounds
-		double * row_lb= m_b.data_block();
-		double * row_ub= m_b.data_block();
-
-		for(int c=0;c<n_rows;c++){
-			//row_lb[c]=-COIN_DBL_MAX;
-			//row_lb[c]=
-		}
-		for(int r=0;r<n_rows;r++){
-			CoinPackedVector row;
-
-			 vnl_sparse_matrix< double >::row aRow=m_A.get_row(r);
-
-			 for(unsigned int i=0;i<aRow.size();i++){
-				 //std::cout << "I:" << i << " " << aRow[i].first << " " << aRow[i].second << std::endl;
-				 row.insert(aRow[i].first,aRow[i].second);
-			 }
-
-			matrix->appendRow(row);
-		}
-
-
-		solver.loadProblem(*matrix, col_lb, col_ub, objective, row_lb, row_ub);
-		solver.writeLp("problem","mps");
-
-		for(int i=0;i<n_cols;i++){
-			solver.setInteger(i);
-		}
-
-		// Pass the solver with the problem to be solved to CbcModel
-		CbcModel model(solver);
-
-		  // Do complete search
-		model.branchAndBound();
-
-
-		m_x.clear();
-		m_x.set_size(n_cols);
-		/* Print the solution.  CbcModel clones the solver so we
-		 need to get current copy from the CbcModel */
-		int numberColumns = model.solver()->getNumCols();
-
-
-		 const double * solution = model.bestSolution();
-		 memcpy(m_x.data_block(),solution,sizeof(double)*n_cols);
-	//	for (int iColumn=0;iColumn<numberColumns;iColumn++) {
-
-		//    double value=solution[iColumn];
-		    //if (fabs(value)>1.0e-7&&model.solver()->isInteger(iColumn))
-		      //printf("%d has value %g\n",iColumn,value);
-
-		 //}
-	}
-
-};
 namespace ttt {
 
 struct CompareSecond {
@@ -109,62 +33,73 @@ struct CompareSecond {
 		return left.second < right.second;
 	}
 };
-MinCostMaxFlowCellTracker::MinCostMaxFlowCellTracker(){
-	m_NextID=0;
+MinCostMaxFlowCellTracker::MinCostMaxFlowCellTracker() {
+	m_NextID = 0;
 	//m_AreaWeight=0.0625;
-	m_AreaWeight=0;
-	//m_DistanceWeight=0.9;
-	m_MitosisWeight=0.6;
-	m_CreationWeight=0;
-	m_TerminationWeight=0.6;
-	m_AssociationWeight=0.5;
+	m_AreaWeight = 0;
+	m_DistanceWeight = 1;
+	//m_AspectRatioWeight=0;
+	//m_OrientationWeight=0;
+	m_EllipseWeight = 0;
+	m_MitosisWeight = 0.6;
+	m_CreationWeight = 0;
+	m_TerminationWeight = 0.6;
+	m_AssociationWeight = 0.5;
+
 }
 
+static double PointToSegmentDistance(const itk::Point<double, 3> & x,
+		const itk::Point<double, 3> & a, const itk::Point<double, 3> & b) {
 
-static double PointToSegmentDistance(const itk::Point<double,3> & x,const itk::Point<double,3> & a,const itk::Point<double,3> & b){
+	itk::Vector<double, 3> ax = x - a;
+	double normAX = ax.GetNorm();
+	if (normAX == 0)
+		return 0;
+	itk::Vector<double, 3> ab = b - a;
+	double r = ab * ax;
 
-				itk::Vector<double,3> ax = x -a;
-				double normAX=ax.GetNorm();
-				if(normAX==0) return 0;
-				itk::Vector<double,3> ab = b-a;
-				double r= ab* ax;
+	r /= ax.GetNorm();
 
-
-				r/= ax.GetNorm();
-
-				double dist;
-				if(r<0){
-					dist = ax.GetNorm();
-				}else if(r>1){
-					itk::Vector<double,3> xb = b-x;
-					dist = xb.GetNorm();
-				}else{
-					dist = sqrt(fabs( pow(ax.GetNorm(),2)-r*pow(ab.GetNorm(),2)));
-				}
-				assert(dist==dist);
-				return dist;
+	double dist;
+	if (r < 0) {
+		dist = ax.GetNorm();
+	} else if (r > 1) {
+		itk::Vector<double, 3> xb = b - x;
+		dist = xb.GetNorm();
+	} else {
+		dist = sqrt(fabs(pow(ax.GetNorm(), 2) - r * pow(ab.GetNorm(), 2)));
+	}
+	assert(dist == dist);
+	return dist;
 }
 
-template<class TissueDescriptorType> double DistToPerimeter(const itk::Point<double,3> & x,const typename TissueDescriptorType::Pointer & descriptor ){
+template<class TissueDescriptorType> double DistToPerimeter(
+		const itk::Point<double, 3> & x,
+		const typename TissueDescriptorType::Pointer & descriptor) {
 	std::vector<double> dists;
-	std::vector<ttt::SkeletonVertexType>::iterator it=descriptor->BeginPerimeter();
-	std::vector<ttt::SkeletonVertexType>::iterator it2=it+1;
-	while(it2!=descriptor->EndPerimeter()){
-		itk::Point<double,3> a = boost::get(ttt::SkeletonPointPropertyTag(),*descriptor->m_SkeletonGraph,*it).position;
-		itk::Point<double,3> b = boost::get(ttt::SkeletonPointPropertyTag(),*descriptor->m_SkeletonGraph,*it2).position;
+	std::vector<ttt::SkeletonVertexType>::iterator it =
+			descriptor->BeginPerimeter();
+	std::vector<ttt::SkeletonVertexType>::iterator it2 = it + 1;
+	while (it2 != descriptor->EndPerimeter()) {
+		itk::Point<double, 3> a = boost::get(ttt::SkeletonPointPropertyTag(),
+				*descriptor->m_SkeletonGraph, *it).position;
+		itk::Point<double, 3> b = boost::get(ttt::SkeletonPointPropertyTag(),
+				*descriptor->m_SkeletonGraph, *it2).position;
 
-		dists.push_back(PointToSegmentDistance(x,a,b));
+		dists.push_back(PointToSegmentDistance(x, a, b));
 		++it;
 		++it2;
 	}
-	it2=descriptor->BeginPerimeter();
+	it2 = descriptor->BeginPerimeter();
 
-	itk::Point<double,3> a = boost::get(ttt::SkeletonPointPropertyTag(),*descriptor->m_SkeletonGraph,*it2).position;
-	itk::Point<double,3> b = boost::get(ttt::SkeletonPointPropertyTag(),*descriptor->m_SkeletonGraph,*it).position;
+	itk::Point<double, 3> a = boost::get(ttt::SkeletonPointPropertyTag(),
+			*descriptor->m_SkeletonGraph, *it2).position;
+	itk::Point<double, 3> b = boost::get(ttt::SkeletonPointPropertyTag(),
+			*descriptor->m_SkeletonGraph, *it).position;
 
-	dists.push_back(PointToSegmentDistance(x,a,b));
-	double dist =*(std::min_element(dists.begin(),dists.end()));
-	assert(dist==dist);
+	dists.push_back(PointToSegmentDistance(x, a, b));
+	double dist = *(std::min_element(dists.begin(), dists.end()));
+	assert(dist == dist);
 	return dist;
 
 }
@@ -183,555 +118,545 @@ void MinCostMaxFlowCellTracker::Track() {
 
 	std::map<CellVertexType, TrackedCellVertexType> obsToTrack;
 
-
 	BGL_FORALL_VERTICES(v,*m_Observations[0]->m_CellGraph,CellGraph){
 
-		TrackedCellVertexType n= boost::add_vertex(*m_Tracks[0]->m_CellGraph);
+	TrackedCellVertexType n= boost::add_vertex(*m_Tracks[0]->m_CellGraph);
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n)=
-				boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v);
+	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n)=
+	boost::get(ttt::CellPropertyTag(),*m_Observations[0]->m_CellGraph,v);
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetID(m_NextID++);
+	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetID(m_NextID++);
 
-		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetObservedCell(v);
+	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).SetObservedCell(v);
 
-		//std::cout << "Init track: " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID << " "
-		//	<< boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_Centroid << std::endl;
+	//std::cout << "Init track: " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_ID << " "
+	//	<< boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).m_Centroid << std::endl;
 
-		idsToSkeletonVertex[0][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).GetID()]=n;
+	idsToSkeletonVertex[0][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[0]->m_CellGraph,n).GetID()]=n;
 
-		obsToTrack[v]=n;
-	}
-
-
-
+	obsToTrack[v]=n;
+}
 
 	BGL_FORALL_EDGES(e,*m_Observations[0]->m_CellGraph,CellGraph){
-		CellVertexType source = boost::source(e,*m_Observations[0]->m_CellGraph);
-		CellVertexType target = boost::target(e,*m_Observations[0]->m_CellGraph);
-		boost::add_edge(obsToTrack[source],obsToTrack[target],*m_Tracks[0]->m_CellGraph);
-	}
+	CellVertexType source = boost::source(e,*m_Observations[0]->m_CellGraph);
+	CellVertexType target = boost::target(e,*m_Observations[0]->m_CellGraph);
+	boost::add_edge(obsToTrack[source],obsToTrack[target],*m_Tracks[0]->m_CellGraph);
+}
 
-	for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Observations[0]->BeginPerimeter();it!=m_Observations[0]->EndPerimeter();++it){
+	for (std::vector<ttt::SkeletonVertexType>::iterator it =
+			m_Observations[0]->BeginPerimeter();
+			it != m_Observations[0]->EndPerimeter(); ++it) {
 		m_Tracks[0]->AddVertexToPerimeter(*it);
 	}
 
 	int m_K = 10;
 
 	for (unsigned int t = 1; t < m_Observations.size(); t++) {
+		typedef CellMomentCalculator<ttt::TrackedTissueDescriptor> TrackMomentCalculator;
+		typedef CellMomentCalculator<ttt::TissueDescriptor> ObsMomentCalculator;
 
-
-		CellArea<ttt::TrackedTissueDescriptor> m_TrackAreas;
-		CellArea<ttt::TissueDescriptor> m_ObservationAreas;
+		TrackMomentCalculator m_TrackMoments;
+		ObsMomentCalculator m_ObservationMoments;
+		//CellArea<ttt::TrackedTissueDescriptor> m_TrackAreas;
+		//CellArea<ttt::TissueDescriptor> m_ObservationAreas;
 
 		typedef ttt::AssociationGraph<CellVertexType, TrackedCellVertexType> AssociationGraphType;
 		AssociationGraphType associationGraph;
 
 		std::map<ttt::TrackedCellVertexType, double> distances;
 
-		m_TrackAreas.SetTissueDescriptor(m_Tracks[t-1]);
-		m_ObservationAreas.SetTissueDescriptor(m_Observations[t]);
+		m_TrackMoments.SetTissueDescriptor(m_Tracks[t - 1]);
+		m_ObservationMoments.SetTissueDescriptor(m_Observations[t]);
 
-		m_TrackAreas.Compute();
-		m_ObservationAreas.Compute();
+		m_TrackMoments.Compute();
+		m_ObservationMoments.Compute();
+
+		typename TrackMomentCalculator::CentroidFeatureMapType trackCentroids =
+				m_TrackMoments.GetCentroid();
+		typename ObsMomentCalculator::CentroidFeatureMapType obsCentroids =
+				m_ObservationMoments.GetCentroid();
+
+		typename TrackMomentCalculator::AreaFeatureMapType trackAreas =
+				m_TrackMoments.GetAreas();
+		typename ObsMomentCalculator::AreaFeatureMapType obsAreas =
+				m_ObservationMoments.GetAreas();
+
+		typename TrackMomentCalculator::PerimeterFeatureMapType trackPerimeter =
+				m_TrackMoments.GetPerimeter();
+
+		typename ObsMomentCalculator::PerimeterFeatureMapType obsPerimeter =
+				m_ObservationMoments.GetPerimeter();
+
+		typename TrackMomentCalculator::XXFeatureMapType trackXX =
+				m_TrackMoments.GetXX();
+
+		typename ObsMomentCalculator::XXFeatureMapType obsXX =
+				m_ObservationMoments.GetXX();
+
+		typename TrackMomentCalculator::YYFeatureMapType trackYY =
+				m_TrackMoments.GetYY();
+
+		typename ObsMomentCalculator::YYFeatureMapType obsYY =
+				m_ObservationMoments.GetYY();
+
+
+		typename TrackMomentCalculator::XYFeatureMapType trackXY =
+				m_TrackMoments.GetXY();
+
+		typename ObsMomentCalculator::XYFeatureMapType obsXY =
+				m_ObservationMoments.GetXY();
 
 		obsToTrack.clear();
 
+		//double meanObsArea=m_ObservationAreas.GetMean();
+		//double stdObsArea=m_ObservationAreas.GetStd();
+		//if(stdObsArea==0) stdObsArea=1;
 
-		double meanObsArea=m_ObservationAreas.GetMean();
-		double stdObsArea=m_ObservationAreas.GetStd();
+		//double meanTrackArea=m_TrackAreas.GetMean();
+		//	double stdTrackArea=m_TrackAreas.GetStd();
+		//if(stdTrackArea==0) stdTrackArea=1;
 
+		//double sx=0,sy=0,sz=0,sx2=0,sy2=0,sz2=0,mux,muy,muz,stdx,stdy,stdz;
 
-		double meanTrackArea=m_TrackAreas.GetMean();
-		double stdTrackArea=m_TrackAreas.GetStd();
-
-		double sx=0,sy=0,sz=0,sx2=0,sy2=0,sz2=0,mux,muy,muz,stdx,stdy,stdz;
-		int total=0;
-		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
-			sx+=centroid[0];
-			sy+=centroid[1];
-			sz+=centroid[2];
-
-			sx2+=centroid[0]* centroid[0];
-			sy2+=centroid[1]* centroid[1];
-			sz2+=centroid[2]* centroid[2];
-
-			total++;
-		}
+		int total = 0;
 		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
-			sx += centroid[0];
-			sy += centroid[1];
-			sz += centroid[2];
-			sx2 += centroid[0]* centroid[0];
-			sy2 += centroid[1]* centroid[1];
-			sz2 += centroid[2]* centroid[2];
-			total++;
-		}
-		double ss = sx+sy+sz;
-		double mu=ss/(3*total);
-		//mux=sx/total;
-		//muy=sy/total;
-		//muz=sz/total;
+		associationGraph.AddTrack(v);
+		/*
+		 * Destruction HYPOTHESIS
+		 */
 
-		//mux=0;
-		//muy=0;
-		//muz=0;
+		//itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 
+		itk::Point<double,3> trackCentroid=trackCentroids[v].GetValue();
+		double costDistance = DistToPerimeter<ttt::TrackedTissueDescriptor>(trackCentroid,m_Tracks[t-1]);
+//			double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
+		//double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
 
-		//mux=mu;
-		//muy=mu;
-		//muz=mu;
+		//std::cout << "Termination " << v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
 
-		double ss2= sx2 + sy2 + sz2;
+		double terminationCost= this->m_TerminationWeight*this->m_DistanceWeight*costDistance;
 
-		//stdx= sqrt(sx2/total - mux*mux);
+		associationGraph.AddTerminationHypothesis(v,terminationCost);
 
-		//stdy= sqrt(sy2/total - muy*muy);
-
-		//stdz= sqrt(sz2/total - muz*muz);
-
-		stdx= sqrt(ss2/(3*total) - mu*mu);
-
-		stdy= sqrt(ss2/(3*total) - mu*mu);
-
-		stdz= sqrt(ss2/(3*total) - mu*mu);
-
-		//stdx=1;
-		//stdy=1;
-		//stdz=1;
+	}
 
 		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
 
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
-			centroid[0] -= mux;
-			centroid[0] /= stdx;
+		associationGraph.AddObservation(v);
 
-			centroid[1] -= muy;
-			centroid[1] /= stdy;
+		itk::Point<double,3> observationCentroid = obsCentroids[v].GetValue();
 
-			centroid[2] -= muz;
-			centroid[2] /= stdz;
+		double costDistance = DistToPerimeter<ttt::TissueDescriptor>(observationCentroid,m_Observations[t]);
+		//double costArea = fabs((m_ObservationAreas[v]-meanObsArea)/stdObsArea);
+		//std::cout << "Creation " <<  v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
 
-			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).SetCentroid(centroid);
-		}
-
-		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Observations[t]->BeginPerimeter();it!=m_Observations[t]->EndPerimeter();++it){
-			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position;
-			position[0] -= mux;
-			position[0] /= stdx;
-
-			position[1] -= muy;
-			position[1] /= stdy;
-
-			position[2] -= muz;
-			position[2] /= stdz;
-
-			boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position=position;
-		}
-
-		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
-			centroid[0] -= mux;
-			centroid[0] /= stdx;
-
-			centroid[1] -= muy;
-			centroid[1] /= stdy;
-
-			centroid[2] -= muz;
-			centroid[2] /= stdz;
-
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).SetCentroid(centroid);
-
-		}
-
-		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Tracks[t-1]->BeginPerimeter();it!=m_Tracks[t-1]->EndPerimeter();++it){
-			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position;
-			position[0] -= mux;
-			position[0] /= stdx;
-
-			position[1] -= muy;
-			position[1] /= stdy;
-
-			position[2] -= muz;
-			position[2] /= stdz;
-
-			boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position=position;
-		}
-
-
-		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			associationGraph.AddTrack(v);
-			/*
-			 * Destruction HYPOTHESIS
-			 */
-
-			itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
-
-			double costDistance = DistToPerimeter<ttt::TrackedTissueDescriptor>(trackCentroid,m_Tracks[t-1]);
-			double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
-
-
-
-			//std::cout << "Termination " << v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
-
-			double terminationCost= this->m_TerminationWeight*costDistance;
-
-			associationGraph.AddTerminationHypothesis(v,terminationCost);
-
-		}
-
-
-
-
-		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
-			associationGraph.AddObservation(v);
-
-			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
-
-			double costDistance = DistToPerimeter<ttt::TissueDescriptor>(observationCentroid,m_Observations[t]);
-			double costArea = fabs((m_ObservationAreas[v]-meanObsArea)/stdObsArea);
-			//std::cout << "Creation " <<  v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
-
-
-			double creationCost= this->m_CreationWeight*costDistance;
-			associationGraph.AddCreationHypothesis(v,(creationCost));
-		}
-
+		double creationCost= this->m_CreationWeight*this->m_DistanceWeight*costDistance;
+		associationGraph.AddCreationHypothesis(v,(creationCost));
+	}
 
 		BGL_FORALL_VERTICES(obs,*m_Observations[t]->m_CellGraph,CellGraph){
-			//std::cout << "ASSOCIATION " << obs << std::endl;
-			itk::Point<double,3> observationCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).GetCentroid();
+		//std::cout << "ASSOCIATION " << obs << std::endl;
 
+		ttt::Cell currentCell = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs);
 
-			/*
-			 * ASSOCIATION HYPOTHESIS
-			 */
+		itk::Point<double,3> observationCentroid = obsCentroids[obs].GetValue();
+		//std::cout << "Association" << std::endl;
+
+		/*
+		 * ASSOCIATION HYPOTHESIS
+		 */
+		BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
+			//itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
+			itk::Point<double,3> trackCentroid = trackCentroids[track].GetValue();
+
+			itk::Vector<double,3> diff = trackCentroid - observationCentroid;
+
+			double distance = diff.GetNorm();
+			//std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
+			distances[track] = distance;
+		}
+
+		for(int k=0;k<m_K;k++) {
+
+			TrackedCellVertexType min;
+			std::map<ttt::TrackedCellVertexType, double>::iterator minimum=std::min_element(distances.begin(),distances.end(),CompareSecond());
+			min=minimum->first;
+			double costDistance=minimum->second;
+
+			double costArea= fabs(obsAreas[min].GetValue() - trackAreas[min].GetValue() );
+
+			//double costArea=  fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]-meanObsArea)/stdObsArea);
+
+			//double costAspectRatio = fabs(m_TrackEllipses[min].GetAspectRatio()-m_ObservationEllipses[obs].GetAspectRatio());
+			//std::cout << m_TrackEllipses[min].m_Theta << " " << m_ObservationEllipses[obs].m_Theta << std::endl;
+			//double costOrientation = fabs(m_TrackEllipses[min].m_Theta - m_ObservationEllipses[obs].m_Theta);
+
+			//costOrientation= std::min(costOrientation,M_PI-costOrientation);
+			//costOrientation= std::min(costOrientation,M_PI-costOrientation);
+
+//			vnl_matrix_fixed<double,2,2> trackEllipseMatrix;
+			//			parametricEllipseToMatrixEllipse(m_TrackEllipses[min].m_Xrad,m_TrackEllipses[min].m_Yrad,m_TrackEllipses[min].m_Theta,trackEllipseMatrix);
+
+			//			vnl_matrix_fixed<double,2,2> observationEllipseMatrix;
+			//			parametricEllipseToMatrixEllipse(m_ObservationEllipses[obs].m_Xrad,m_ObservationEllipses[obs].m_Yrad,m_ObservationEllipses[obs].m_Theta,observationEllipseMatrix);
+
+			//double costEllipse = (trackEllipseMatrix - observationEllipseMatrix).frobenius_norm();
+			double costEllipse=0;
+			//double costPerimeter = fabs(m_TrackPerimeter[min] - m_ObservationPerimeter[obs]);
+			double costPerimeter = fabs(trackPerimeter[min].GetValue() - obsPerimeter[obs].GetValue());
+			//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<   std::endl;
+
+			double associationCost= this->m_AssociationWeight*(this->m_DistanceWeight*costDistance + this->m_AreaWeight*costArea + this->m_EllipseWeight*costEllipse +this->m_PerimeterWeight*costPerimeter);
+
+			associationGraph.AddAssociationHypothesis(min,obs,associationCost);
+
+			minimum->second=DBL_MAX;
+		}
+		distances.clear();
+
+		/*
+		 * MYTHOSIS HYPOTHESIS
+		 */
+		//std::cout << "MITOSIS" << std::endl;
+		typedef boost::graph_traits <ttt::CellGraph>::adjacency_iterator adjacency_iterator;
+
+		std::pair<adjacency_iterator, adjacency_iterator> neighbors = boost::adjacent_vertices(obs, *m_Observations[t]->m_CellGraph);
+
+		for(; neighbors.first != neighbors.second; ++neighbors.first) {
+
+			ttt::Cell neighborCell =boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*neighbors.first);
+
+			itk::Point<double,3> neighborCentroid = neighborCell.GetCentroid();
+
+			ttt::Cell mitosisSuperCell;
+
+			ttt::CellUnion(currentCell,neighborCell,mitosisSuperCell);
+
+			Feature<double> mitosisArea, mitosisPerimeter, mitosisXX, mitosisXY, mitosisYY;
+			Feature<itk::Vector<double,3> > mitosisNormal;
+			Feature<itk::Point<double,3> > mitosisCentroid;
+
+			m_ObservationMoments.GetCellMoments(mitosisSuperCell,mitosisPerimeter,mitosisArea,mitosisCentroid,mitosisNormal,mitosisXX,mitosisYY,mitosisXY);
+
 			BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
 				itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
-				itk::Vector<double,3> diff = trackCentroid - observationCentroid;
 
-				double distance = sqrt(pow(diff[0],2)+pow(diff[1],2) + pow(diff[2],2));
-				//std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
+				itk::Vector<double,3> diff = trackCentroid - mitosisCentroid.GetValue();
+				double distance = diff.GetNorm();
 				distances[track] = distance;
 			}
-
-
 			for(int k=0;k<m_K;k++) {
 
 				TrackedCellVertexType min;
 				std::map<ttt::TrackedCellVertexType, double>::iterator minimum=std::min_element(distances.begin(),distances.end(),CompareSecond());
+
 				min=minimum->first;
-				double costDistance=minimum->second;
 
-				double costArea=  fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]-meanObsArea)/stdObsArea);
+//					double costArea= fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]-2*meanObsArea)/stdObsArea);
+				double costArea= fabs(trackAreas[min].GetValue() - mitosisArea.GetValue());
 
-				//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
+				double costDistance = distances[min];
 
-				double associationCost= this->m_AssociationWeight*(costDistance + this->m_AreaWeight*costArea);
+				//vnl_matrix_fixed<double,2,2> trackEllipseMatrix;
+				//parametricEllipseToMatrixEllipse(m_TrackEllipses[min].m_Xrad,m_TrackEllipses[min].m_Yrad,m_TrackEllipses[min].m_Theta,trackEllipseMatrix);
 
-				associationGraph.AddAssociationHypothesis(min,obs,associationCost);
+				//double costEllipse = (trackEllipseMatrix - mitosisEllipseMatrix).frobenius_norm();
 
+				double costPerimeter = (trackPerimeter[min] - mitosisPerimeter).GetValue();
+
+				//double costAspectRatio = fabs(m_TrackEllipses[min].GetAspectRatio()-mitosisEllipse.GetAspectRatio());
+				//double costOrientation = fabs(m_TrackEllipses[min].m_Theta - mitosisEllipse.m_Theta);
+
+				//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<  std::endl;
+				double costEllipse=0;
+				double mitosisCost= this->m_MitosisWeight*(this->m_DistanceWeight*costDistance + this->m_AreaWeight*costArea + this->m_EllipseWeight*costEllipse +this->m_PerimeterWeight*costPerimeter);
+				associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,mitosisCost);
+				//associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,0);
 				minimum->second=DBL_MAX;
 			}
 			distances.clear();
-
-			/*
-			 * MYTHOSIS HYPOTHESIS
-			 */
-			//std::cout << "MITOSIS" << std::endl;
-			typedef boost::graph_traits <ttt::CellGraph>::adjacency_iterator adjacency_iterator;
-
-			std::pair<adjacency_iterator, adjacency_iterator> neighbors = boost::adjacent_vertices(obs, *m_Observations[t]->m_CellGraph);
-
-			for(; neighbors.first != neighbors.second; ++neighbors.first){
-				itk::Point<double,3> neighborCentroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*neighbors.first).GetCentroid();
-
-				itk::Point<double,3> mythosisCentroid;
-				for(int i=0;i<3;i++){
-					mythosisCentroid[i]=observationCentroid[i]*m_ObservationAreas[obs]+neighborCentroid[i]*m_ObservationAreas[*neighbors.first];
-					mythosisCentroid[i]=mythosisCentroid[i]/(m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]);
-				}
-				BGL_FORALL_VERTICES(track,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
-					itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
-
-					itk::Vector<double,3> diff = trackCentroid - mythosisCentroid;
-					double distance = sqrt(pow(diff[0],2)+pow(diff[1],2) + pow(diff[2],2));
-					distances[track] = distance;
-				}
-				for(int k=0;k<m_K;k++) {
-
-					TrackedCellVertexType min;
-					std::map<ttt::TrackedCellVertexType, double>::iterator minimum=std::min_element(distances.begin(),distances.end(),CompareSecond());
-
-					min=minimum->first;
-
-					double costArea= fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]-2*meanObsArea)/stdObsArea);
-
-					double costDistance = distances[min];
-					//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
-					double mitosisCost= this->m_MitosisWeight*(this->m_DistanceWeight*costDistance + this->m_AreaWeight*costArea);
-					associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,mitosisCost);
-					minimum->second=DBL_MAX;
-				}
-				distances.clear();
-			}
-
 		}
 
-		BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
-			centroid[0] *= stdx;
-			centroid[0] += mux;
+	}
+#if 0
+	BGL_FORALL_VERTICES(v,*m_Observations[t]->m_CellGraph,CellGraph) {
+		itk::Point<double,3> centroid = boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).GetCentroid();
+		centroid[0] *= stdx;
+		centroid[0] += mux;
 
-			centroid[1] *= stdy;
-			centroid[1] += muy;
+		centroid[1] *= stdy;
+		centroid[1] += muy;
 
-			centroid[2] *= stdz;
-			centroid[2] += muz;
+		centroid[2] *= stdz;
+		centroid[2] += muz;
 
-			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).SetCentroid(centroid);
-		}
-		BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph){
-			itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
-			centroid[0] *= stdx;
-			centroid[0] += mux;
+		boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,v).SetCentroid(centroid);
+	}
+	BGL_FORALL_VERTICES(v,*m_Tracks[t-1]->m_CellGraph,TrackedCellGraph) {
+		itk::Point<double,3> centroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
+		centroid[0] *= stdx;
+		centroid[0] += mux;
 
-			centroid[1] *= stdy;
-			centroid[1] += muy;
+		centroid[1] *= stdy;
+		centroid[1] += muy;
 
-			centroid[2] *= stdz;
-			centroid[2] += muz;
+		centroid[2] *= stdz;
+		centroid[2] += muz;
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).SetCentroid(centroid);
+		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).SetCentroid(centroid);
 
-		}
+	}
 
-		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Observations[t]->BeginPerimeter();it!=m_Observations[t]->EndPerimeter();++it){
-			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position;
+	for(ttt::Cell::PerimeterIterator it=m_Observations[t]->BeginPerimeter();it!=m_Observations[t]->EndPerimeter();++it) {
+		itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position;
 
-			position[0] *= stdx;
-			position[0] += mux;
+		position[0] *= stdx;
+		position[0] += mux;
 
-			position[1] *= stdy;
-			position[1] += muy;
+		position[1] *= stdy;
+		position[1] += muy;
 
-			position[2] *= stdz;
-			position[2] += muz;
+		position[2] *= stdz;
+		position[2] += muz;
 
-			boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position=position;
-		}
+		boost::get(ttt::SkeletonPointPropertyTag(),*m_Observations[t]->m_SkeletonGraph,*it).position=position;
+	}
 
+	for(ttt::Cell::PerimeterIterator it=m_Tracks[t-1]->BeginPerimeter();it!=m_Tracks[t-1]->EndPerimeter();++it) {
+		itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position;
 
-		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Tracks[t-1]->BeginPerimeter();it!=m_Tracks[t-1]->EndPerimeter();++it){
-			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position;
+		position[0] *= stdx;
+		position[0] += mux;
 
-			position[0] *= stdx;
-			position[0] += mux;
+		position[1] *= stdy;
+		position[1] += muy;
 
-			position[1] *= stdy;
-			position[1] += muy;
+		position[2] *= stdz;
+		position[2] += muz;
 
-			position[2] *= stdz;
-			position[2] += muz;
-
-			boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position=position;
-		}
+		boost::get(ttt::SkeletonPointPropertyTag(),*m_Tracks[t-1]->m_SkeletonGraph,*it).position=position;
+	}
+#endif
 		associationGraph.Print();
 		vnl_sparse_matrix<double> flowMatrix;
-		vnl_vector<double> flowVector,costVector,capacityVector;
-		associationGraph.GetProblem(costVector,flowVector,capacityVector,flowMatrix);
+		vnl_vector<double> flowVector, costVector, capacityVector;
+		associationGraph.GetProblem(costVector, flowVector, capacityVector,
+				flowMatrix);
 
 		//std::cout << costVector<< std::endl;
 
-
 		//std::cout << flowMatrix<< std::endl;
-		for(unsigned int r=0;r<flowMatrix.rows();r++){
-			for(unsigned int c=0;c<flowMatrix.cols();c++){
-			//	std::cout << flowMatrix.get(r,c) << "\t";
+		for (unsigned int r = 0; r < flowMatrix.rows(); r++) {
+			for (unsigned int c = 0; c < flowMatrix.cols(); c++) {
+				//	std::cout << flowMatrix.get(r,c) << "\t";
 			}
 			//std::cout << "=" << flowVector.get(r) <<std::endl;
 		}
-		CoinSolver solver(costVector,capacityVector,flowMatrix,flowVector);
+		CoinSolver solver(costVector, capacityVector, flowMatrix, flowVector);
 		solver.Solve();
-
 
 		vnl_vector<double> solution = solver.GetSolution();
 
-		for(int i=0;i<flowMatrix.rows();i++){
-			double flow=0;
-			for(int c=0;c< flowMatrix.cols();c++){
-				flow+=flowMatrix.get(i,c)*solution(c);
+		for (int i = 0; i < flowMatrix.rows(); i++) {
+			double flow = 0;
+			for (int c = 0; c < flowMatrix.cols(); c++) {
+				flow += flowMatrix.get(i, c) * solution(c);
 			}
-			assert(flow==flowVector.get(i));
+			assert(flow == flowVector.get(i));
 		}
 
-		std::vector<std::pair<CellVertexType,TrackedCellVertexType> > associations;
-		std::vector<CellVertexType>  toCreate;
-		std::vector<TrackedCellVertexType>   toDelete;
-		std::vector<AssociationGraphType::MitosisType>   mitosis;
+		std::vector<std::pair<CellVertexType, TrackedCellVertexType> > associations;
+		std::vector<CellVertexType> toCreate;
+		std::vector<TrackedCellVertexType> toDelete;
+		std::vector<AssociationGraphType::MitosisType> mitosis;
 
-		associationGraph.DecodeSolution(solution,associations,toCreate,toDelete,mitosis);
+		associationGraph.DecodeSolution(solution, associations, toCreate,
+				toDelete, mitosis);
 
 		//std::cout << "Associations: " << associations.size() << std::endl;
-		//std::cout << "Mitosis: " << mitosis.size() << std::endl;
+		std::cout << "Mitosis: " << mitosis.size() << std::endl;
 		//std::cout << "ToCreate: " << toCreate.size() << std::endl;
 		//std::cout << "ToDelete: " << toDelete.size() << std::endl;
 		//std::cout << "Observations: " << boost::num_vertices(*m_Observations[t]->m_CellGraph) << std::endl;
-		assert(associations.size()+2*mitosis.size()+toCreate.size()==boost::num_vertices(*m_Observations[t]->m_CellGraph));
+		assert(
+				associations.size() + 2 * mitosis.size() + toCreate.size()
+						== boost::num_vertices(
+								*m_Observations[t]->m_CellGraph));
 
-		m_Tracks[t]=ttt::TrackedTissueDescriptor::New();
+		m_Tracks[t] = ttt::TrackedTissueDescriptor::New();
 
-		m_Tracks[t]->m_SkeletonGraph=m_Observations[t]->m_SkeletonGraph;
+		m_Tracks[t]->m_SkeletonGraph = m_Observations[t]->m_SkeletonGraph;
 
-		for(std::vector<ttt::SkeletonVertexType>::iterator it=m_Observations[t]->BeginPerimeter();it!=m_Observations[t]->EndPerimeter();++it){
-				m_Tracks[t]->AddVertexToPerimeter(*it);
+		for (std::vector<ttt::SkeletonVertexType>::iterator it =
+				m_Observations[t]->BeginPerimeter();
+				it != m_Observations[t]->EndPerimeter(); ++it) {
+			m_Tracks[t]->AddVertexToPerimeter(*it);
 		}
 
-		m_Tracks[t]->m_CellGraph = boost::shared_ptr<ttt::TrackedCellGraph>(new ttt::TrackedCellGraph);
+		m_Tracks[t]->m_CellGraph = boost::shared_ptr<ttt::TrackedCellGraph>(
+				new ttt::TrackedCellGraph);
 
-		for(std::vector<std::pair<CellVertexType,TrackedCellVertexType> >::iterator it= associations.begin();it!=associations.end();it++){
+		for (std::vector<std::pair<CellVertexType, TrackedCellVertexType> >::iterator it =
+				associations.begin(); it != associations.end(); it++) {
 
+			int trackID = boost::get(ttt::TrackedCellPropertyTag(),
+					*m_Tracks[t - 1]->m_CellGraph, it->second).GetID();
 
+			TrackedCellVertexType n = boost::add_vertex(
+					*m_Tracks[t]->m_CellGraph);
 
-			int trackID= boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->second).GetID();
+			boost::get(ttt::TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+					n) = boost::get(ttt::CellPropertyTag(),
+					*m_Observations[t]->m_CellGraph, it->first);
 
-			TrackedCellVertexType n= boost::add_vertex(*m_Tracks[t]->m_CellGraph);
+			boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph, n).SetID(
+					trackID);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=
-			           			boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->first);
+			boost::get(ttt::TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+					n).SetObservedCell(it->first);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetID(trackID);
+			idsToSkeletonVertex[t][trackID] = n;
 
+			//std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetObservedCell(it->first);
-
-           	idsToSkeletonVertex[t][ trackID]=n;
-
-
-           	//std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
-
-           	obsToTrack[it->first]=n;
+			obsToTrack[it->first] = n;
 		}
 
-		for(std::vector<CellVertexType>::iterator it= toCreate.begin();it!=toCreate.end();++it){
+		for (std::vector<CellVertexType>::iterator it = toCreate.begin();
+				it != toCreate.end(); ++it) {
 			//std::cout << "Create " << *it << std::endl;
 
-			TrackedCellVertexType n = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
+			TrackedCellVertexType n = boost::add_vertex(
+					*m_Tracks[t]->m_CellGraph);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n)=
-								boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,*it);
+			boost::get(ttt::TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+					n) = boost::get(ttt::CellPropertyTag(),
+					*m_Observations[t]->m_CellGraph, *it);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetID(m_NextID++);
+			boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph, n).SetID(
+					m_NextID++);
 
+			boost::get(ttt::TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+					n).SetObservedCell(*it);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).SetObservedCell(*it);
+			idsToSkeletonVertex[t][boost::get(ttt::TrackedCellPropertyTag(),
+					*m_Tracks[t]->m_CellGraph, n).GetID()] = n;
 
-			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).GetID()]=n;
-
-			obsToTrack[*it]=n;
+			obsToTrack[*it] = n;
 
 		}
-		for(std::vector<AssociationGraphType::MitosisType>::iterator it=mitosis.begin();it!=mitosis.end();++it){
+		for (std::vector<AssociationGraphType::MitosisType>::iterator it =
+				mitosis.begin(); it != mitosis.end(); ++it) {
 			//Create two new tracks
 			{
-			TrackedCellVertexType a = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
+				TrackedCellVertexType a = boost::add_vertex(
+						*m_Tracks[t]->m_CellGraph);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a)=
-								boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->A);
+				boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, a) = boost::get(
+						ttt::CellPropertyTag(), *m_Observations[t]->m_CellGraph,
+						it->A);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetID(m_NextID++);
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetParentID(
-					boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).GetParentID());
+				boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+						a).SetID(m_NextID++);
+				boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+						a).SetParentID(
+						boost::get(ttt::TrackedCellPropertyTag(),
+								*m_Tracks[t - 1]->m_CellGraph, it->track).GetID());
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).SetObservedCell(it->A);
-				idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,a).GetID()]=a;
+				boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, a).SetObservedCell(it->A);
+				idsToSkeletonVertex[t][boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, a).GetID()] = a;
 
-				obsToTrack[it->A]=a;
+				obsToTrack[it->A] = a;
 			}
 			{
-			TrackedCellVertexType b = boost::add_vertex(*m_Tracks[t]->m_CellGraph);
+				TrackedCellVertexType b = boost::add_vertex(
+						*m_Tracks[t]->m_CellGraph);
 
+				boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, b) = boost::get(
+						ttt::CellPropertyTag(), *m_Observations[t]->m_CellGraph,
+						it->B);
 
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b)=
-					boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,it->B);
+				boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+						b).SetID(m_NextID++);
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetID(m_NextID++);
+				boost::get(TrackedCellPropertyTag(), *m_Tracks[t]->m_CellGraph,
+						b).SetParentID(
+						boost::get(ttt::TrackedCellPropertyTag(),
+								*m_Tracks[t - 1]->m_CellGraph, it->track).GetID());
 
-			boost::get(TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetParentID(boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,it->track).GetParentID());
-
-
-
-			boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).SetObservedCell(it->B);
-			idsToSkeletonVertex[t][ boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,b).GetID()]=b;
-			obsToTrack[it->B]=b;
+				boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, b).SetObservedCell(it->B);
+				idsToSkeletonVertex[t][boost::get(ttt::TrackedCellPropertyTag(),
+						*m_Tracks[t]->m_CellGraph, b).GetID()] = b;
+				obsToTrack[it->B] = b;
 			}
 		}
 
 		BGL_FORALL_EDGES(e,*m_Observations[t]->m_CellGraph,CellGraph){
-			CellVertexType source = boost::source(e,*m_Observations[t]->m_CellGraph);
-			CellVertexType target = boost::target(e,*m_Observations[t]->m_CellGraph);
-			boost::add_edge(obsToTrack[source],obsToTrack[target],*m_Tracks[t]->m_CellGraph);
-		}
-#if 0
-		int sumInTracks=0;
-		BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph) {
-			sumInTracks+=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_SkeletonNodes.size();
-		}
-		int sumInObs=0;
-		BGL_FORALL_VERTICES(obs,*m_Observations[t]->m_CellGraph,CellGraph) {
-			sumInObs+=boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).m_SkeletonNodes.size();
-		}
-		assert(sumInTracks==sumInObs);
-#endif
+		CellVertexType source = boost::source(e,*m_Observations[t]->m_CellGraph);
+		CellVertexType target = boost::target(e,*m_Observations[t]->m_CellGraph);
+		boost::add_edge(obsToTrack[source],obsToTrack[target],*m_Tracks[t]->m_CellGraph);
 	}
+#if 0
+	int sumInTracks=0;
+	BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph) {
+		sumInTracks+=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).m_SkeletonNodes.size();
+	}
+	int sumInObs=0;
+	BGL_FORALL_VERTICES(obs,*m_Observations[t]->m_CellGraph,CellGraph) {
+		sumInObs+=boost::get(ttt::CellPropertyTag(),*m_Observations[t]->m_CellGraph,obs).m_SkeletonNodes.size();
+	}
+	assert(sumInTracks==sumInObs);
+#endif
+}
 
+	for (unsigned int t = 0; t < m_Tracks.size(); t++) {
 
-    for(unsigned int t=0;t<m_Tracks.size();t++){
+		BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph){
+		itk::Point<double,3> t_1,t0,t1;
+		int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetID();
 
-        BGL_FORALL_VERTICES(track,*m_Tracks[t]->m_CellGraph,TrackedCellGraph) {
-        	itk::Point<double,3> t_1,t0,t1;
-        	int id=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetID();
+		t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetCentroid();
+		bool previous=false;
+		bool next=false;
 
-        	t0=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).GetCentroid();
-        	bool previous=false;
-        	bool next=false;
+		if(t>0 && idsToSkeletonVertex[t-1].count(id)>0 ) {
+			previous=true;
+			t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).GetCentroid();
+		}
 
-        	if(t>0 && idsToSkeletonVertex[t-1].count(id)>0 ){
-        		previous=true;
-        		t_1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,idsToSkeletonVertex[t-1][id]).GetCentroid();
-        	}
+		if(t<m_Tracks.size()-1 && idsToSkeletonVertex[t+1].count(id)>0 ) {
+			next=true;
+			t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).GetCentroid();
+		}
 
-        	if(t<m_Tracks.size()-1 && idsToSkeletonVertex[t+1].count(id)>0 ){
-        		next=true;
-        	    t1=boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t+1]->m_CellGraph,idsToSkeletonVertex[t+1][id]).GetCentroid();
-        	}
+		itk::Vector<double,3> vel;
+		if(previous && next) {
+			itk::Vector<double,3> vl=t0 - t_1;
+			itk::Vector<double,3> vr=t1 - t0;
+			//vel=(vl +vr)/2;
+			vel=(t1-t_1)/2;
 
-        	itk::Vector<double,3> vel;
-        	if(previous && next){
-        		itk::Vector<double,3> vl=t0 - t_1;
-        		itk::Vector<double,3> vr=t1 - t0;
-        		//vel=(vl +vr)/2;
-        		vel=(t1-t_1)/2;
+		} else if(previous && !next) {
 
-        	}else if(previous && !next){
+			itk::Vector<double,3> vl=t0 - t_1;
+			vel=vl;
 
-        		itk::Vector<double,3> vl=t0 - t_1;
-        		vel=vl;
+		} else if(!previous && next) {
+			itk::Vector<double,3> vr=t1 - t0;
+			vel=vr;
 
+		} else {
+			vel.Fill(0);
+		}
 
-        	}else if(!previous && next){
-        		itk::Vector<double,3> vr=t1 - t0;
-        		vel=vr;
-
-        	}else{
-        		vel.Fill(0);
-        	}
-
-        	boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).SetVelocity(vel);
-        }
-    }
+		boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,track).SetVelocity(vel);
+	}
+}
 
 }
 

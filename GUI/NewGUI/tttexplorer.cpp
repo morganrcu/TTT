@@ -1,7 +1,9 @@
 #include "tttexplorer.h"
 #include "ui_tttexplorer.h"
 
-
+#include <vtkImageCanvasSource2D.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkFFMPEGWriter.h>
 
 TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTExplorer){
 	m_pUI->setupUi(this);
@@ -46,6 +48,8 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
     connect(this->m_pUI->cellRegionsGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowCellRegions(bool)));
     connect(this->m_pUI->motionVectorsGroupBox,SIGNAL(toggled(bool)),this,SLOT(ShowCellMotionVectors(bool)));
     connect(this->m_pUI->frameSlider,SIGNAL(valueChanged(int)),this,SLOT(SetFrame(int)));
+
+    connect(this->m_pUI->exportMovieButton,SIGNAL(clicked()),this,SLOT(ExportMovie()));
 }
 
 void TTTExplorer::SetProject(ttt::TissueTrackingProject * project){
@@ -58,6 +62,38 @@ TTTExplorer::~TTTExplorer(){
 }
 
 void TTTExplorer::ExportMovie(){
+
+	vtkSmartPointer<vtkRenderer> fileRenderer = vtkSmartPointer<vtkRenderer>::New();
+	fileRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+	vtkSmartPointer<vtkRenderWindow> fileRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+	fileRenderWindow->SetOffScreenRendering(1);
+	fileRenderWindow->SetSize(1980,1024);
+	fileRenderWindow->AddRenderer(m_CentralRenderer);
+
+	vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =vtkSmartPointer<vtkWindowToImageFilter>::New();
+
+	windowToImageFilter->SetInput(fileRenderWindow);
+	windowToImageFilter->SetMagnification(1); //set the resolution of the output image (3 times the current resolution of vtk render window)
+	windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+
+	windowToImageFilter->Update();
+
+	vtkSmartPointer<vtkFFMPEGWriter> writer =
+	      vtkSmartPointer<vtkFFMPEGWriter>::New();
+
+	  writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+	  writer->SetFileName("test.avi");
+	  writer->Start();
+
+	  for(unsigned int i = 0; i < this->m_Project->GetNumFrames(); i++)    {
+		//RENDER EVERYTHING
+		  this->SetFrame(i);
+		  fileRenderWindow->Render();
+		  windowToImageFilter->Update();
+		  writer->Write();
+	  }
+	  writer->End();
 
 }
 void TTTExplorer::SetFrame(int frame){

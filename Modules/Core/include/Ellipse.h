@@ -68,6 +68,10 @@ public:
 	 * rotation
 	 */
 	T m_Theta;
+
+	T GetAspectRatio(){
+		return m_Yrad/m_Xrad;
+	}
 };
 }
 #endif

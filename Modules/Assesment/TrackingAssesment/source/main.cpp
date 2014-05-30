@@ -205,7 +205,7 @@ int main(int argc,char ** argv){
 	double aWeight =0.45; //
 
 	//double mWeight =0.65; //ok
-	double mWeight =0.85; //ok
+	double mWeight =0; //ok
 	double alpha=0.015625;
 	//double alpha=0.0125;
 
@@ -512,7 +512,7 @@ int main(int argc,char ** argv){
 						//}
 		cWeight = cWeight-0.05;
 		//alpha =alpha/2;
-		DrawTrackVolume(std::string(argv[3]),queryTissue);
+		//DrawTrackVolume(std::string(argv[3]),queryTissue);
 		//}
 
 	output.close();

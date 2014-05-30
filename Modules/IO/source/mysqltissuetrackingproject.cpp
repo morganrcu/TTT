@@ -477,7 +477,7 @@ inline bool TissueTrackingProject::IsVertexLocationsReady() {
 
 					while (resCellMembrane->next()) {
 						boost::get(ttt::CellPropertyTag(),
-								*m_TissueDescriptor->m_CellGraph, vertex).AddSkeletonPoint(
+								*m_TissueDescriptor->m_CellGraph, vertex).AddVertexToPerimeter(
 								resCellMembrane->getInt("idMembranePoint"));
 					}
 				}
@@ -752,7 +752,7 @@ inline bool TissueTrackingProject::IsVertexLocationsReady() {
 			BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,ttt::CellGraph){
 
 			int order=0;
-			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).PerimeterBegin();
+			for(ttt::Cell::PerimeterIterator it=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).PerimeterBegin();
 					it!=boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).PerimeterEnd();
 					it++) {
 				insertCellToMembranePointString_stmt->setInt(1,m_ProjectID);
@@ -994,7 +994,7 @@ void TissueTrackingProject::LoadTrackedTissueDescriptor() {
 
 					while (resTrackedCellMembrane->next()) {
 						boost::get(ttt::TrackedCellPropertyTag(),
-								*m_TrackedTissueDescriptor->m_CellGraph, vertex).AddSkeletonPoint(
+								*m_TrackedTissueDescriptor->m_CellGraph, vertex).AddVertexToPerimeter(
 								resTrackedCellMembrane->getInt(
 										"idTrackedMembranePoint"));
 					}
@@ -1291,7 +1291,7 @@ void TissueTrackingProject::StoreTrackedTissueDescriptor() {
 
 			BGL_FORALL_VERTICES(v,*m_TrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
 			int order=0;
-			for(std::vector<ttt::SkeletonVertexType>::iterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).PerimeterBegin();
+			for(ttt::Cell::PerimeterIterator it=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).PerimeterBegin();
 					it!=boost::get(ttt::TrackedCellPropertyTag(),*m_TrackedTissueDescriptor->m_CellGraph,v).PerimeterEnd();
 					it++) {
 
@@ -1328,7 +1328,63 @@ void TissueTrackingProject::StoreTrackedTissueDescriptor() {
 
 	}
 
+void TissueTrackingProject::StoreTrackedAreas(){
+	//TODO
+}
+void TissueTrackingProject::LoadTrackedAreas(){
+	//TODO
+}
+bool TissueTrackingProject::IsTrackedAreasReady(){
 
+}
+
+void TissueTrackingProject::StoreTrackedCentroids(){
+	//TODO
+}
+void TissueTrackingProject::LoadTrackedCentroids(){
+	//TODO
+}
+bool TissueTrackingProject::IsTrackedCentroidsReady(){
+	//TODO
+}
+void TissueTrackingProject::LoadTrackedPerimeter(){
+	//TODO
+}
+void TissueTrackingProject::StoreTrackedPerimeter(){
+	//TODO
+}
+bool TissueTrackingProject::IsTrackedPerimeterReady(){
+
+}
+
+void TissueTrackingProject::LoadTrackedHeight(){
+	//TODO
+}
+void TissueTrackingProject::StoreTrackedHeight(){
+
+}
+bool TissueTrackingProject::IsTrackedHeightReady(){
+
+}
+void TissueTrackingProject::LoadTrackedWidth(){
+	//TODO
+}
+void TissueTrackingProject::StoreTrackedWidth(){
+
+}
+bool TissueTrackingProject::IsTrackedWidthReady(){
+
+}
+void TissueTrackingProject::StoreTrackedRotation(){
+
+}
+void TissueTrackingProject::LoadTrackedRotation(){
+
+}
+
+bool TissueTrackingProject::IsTrackedRotationReady(){
+
+}
 void TissueTrackingProject::LoadTrackedEllipses() {
 		m_TrackedEllipses = boost::shared_ptr<EllipseMapType>(
 				new EllipseMapType);

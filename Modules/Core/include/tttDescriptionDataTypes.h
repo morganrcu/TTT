@@ -210,7 +210,7 @@ public:
 	 */
 	typedef itk::Point<double, 3> Point;
 
-	typedef std::vector<SkeletonVertexType>::iterator PerimeterIterator;
+	typedef std::vector<SkeletonVertexType>::const_iterator PerimeterIterator;
 
 	/**
 	 *  Default constructor. Sets m_Centroid to zero.
@@ -231,25 +231,25 @@ public:
 	/**
 	 * Returns the number of SkeletonPoints in the border of the cell
 	 */
-	int GetNumSkeletonPoints() {
+	int GetNumSkeletonPoints() const {
 		return m_SkeletonNodes.size();
 	}
 	/**
 	 * Adds a new SkeletonPoint to the border of the cell
 	 * @param vertex the descriptor of the point to add, represented by the vertex descriptor of the SkeletonGraph where it is stored
 	 */
-	inline void AddSkeletonPoint(const SkeletonVertexType & vertex) {
+	inline void AddVertexToPerimeter(const SkeletonVertexType & vertex) {
 		if(std::find(m_SkeletonNodes.begin(),m_SkeletonNodes.end(),vertex)==m_SkeletonNodes.end()){
 			m_SkeletonNodes.push_back(vertex);
 		}
 	}
-	inline PerimeterIterator PerimeterBegin() {
+	inline PerimeterIterator PerimeterBegin() const {
 		return m_SkeletonNodes.begin();
 	}
 	/**
 	 * Returns an iterator pointing to the last skeletonpoint
 	 */
-	inline PerimeterIterator PerimeterEnd() {
+	inline PerimeterIterator PerimeterEnd() const {
 		return m_SkeletonNodes.end();
 	}
 #ifdef BOOST_SERIALIZATION
@@ -265,7 +265,7 @@ public:
 	inline void SetCentroid(const Point & centroid){
 		m_Centroid=centroid;
 	}
-	inline Point GetCentroid(){
+	inline Point GetCentroid() const{
 		return m_Centroid;
 	}
 
@@ -612,29 +612,115 @@ TissueDescriptor::Pointer cloneTissueDescriptor(const TissueDescriptor::Pointer 
 
 
 template<class CellType> void CellUnion(const CellType & a, const CellType & b,CellType & result){
-#if 0
-	CellType::PerimeterIterator itA = a.PerimeterBegin();
-	CellType::PerimeterIterator itAEnd = a.PerimeterEnd();
 
-	CellType::PerimeterIterator itB = b.PerimeterBegin();
-	CellType::PerimeterIterator itBEnd = b.PerimeterEnd();
+	typedef typename CellType::PerimeterIterator PerimeterIterator;
+
+	PerimeterIterator itA = a.PerimeterBegin();
+
+	typename CellType::PerimeterIterator itAEnd = a.PerimeterEnd();
+
+	PerimeterIterator itB = b.PerimeterBegin();
+	PerimeterIterator itBEnd = b.PerimeterEnd();
 
 	std::vector<ttt::SkeletonVertexType> pointsInA;
 	pointsInA.insert(pointsInA.begin(),itA,itAEnd);
 	std::sort(pointsInA.begin(),pointsInA.end());
+
 	std::vector<ttt::SkeletonVertexType> pointsInB;
 	pointsInB.insert(pointsInB.begin(),itB,itBEnd);
 	std::sort(pointsInB.begin(),pointsInB.end());
 
-	std::vector<ttt::SkeletonVertexType> common;
-
-	std::set_intersection(itA,itAEnd,itB,itBEnd,common.begin());
+	std::vector<ttt::SkeletonVertexType> common(2);
+	std::set_intersection(pointsInA.begin(),pointsInA.end(),pointsInB.begin(),pointsInB.end(),common.begin());
 
 	assert(common.size()==2);
 
-	ttt::SkeletonVertexType a = common[0];
-	ttt::SkeletonVertexType b = common[1];
-#endif
+	ttt::SkeletonVertexType point1 = common[0];
+	ttt::SkeletonVertexType point2 = common[1];
+
+
+	PerimeterIterator loc1A = std::find(itA,itAEnd,point1);
+	PerimeterIterator loc2A	=std::find(itA,itAEnd,point2);
+
+	assert(loc1A!=itAEnd);
+	assert(loc2A!=itAEnd);
+
+	bool aClockwise;
+	PerimeterIterator startA, endA;
+
+	startA=loc2A;
+	endA=loc1A;
+
+	if(loc2A==loc1A+1){
+		aClockwise=1;
+	}else if(loc1A==loc2A+1){
+		aClockwise=0;
+	}else if(loc1A==itA && loc2A==itAEnd-1){
+		aClockwise=0;
+	}else if(loc1A==itAEnd-1 && loc2A==itA){
+		aClockwise=1;
+	}
+
+	PerimeterIterator loc1B = std::find(itB,itBEnd,point1);
+	PerimeterIterator loc2B	=std::find(itB,itBEnd,point2);
+	PerimeterIterator startB, endB;
+	assert(loc1B!=itBEnd);
+	assert(loc2B!=itBEnd);
+
+	bool bClockwise;
+	startB=loc1B;
+	endB=loc2B;
+	if(loc2B==loc1B+1){
+		bClockwise=0;
+	}else if(loc1B==loc2B+1){
+		bClockwise=1;
+	}else if(loc1B==itB && loc2B==itBEnd-1){
+		bClockwise=1;
+	}else if(loc1B==itBEnd-1 && loc2B==itB){
+		bClockwise=0;
+	}
+
+
+
+	PerimeterIterator perimIter=startA;
+	while(perimIter!=endA){
+
+		result.AddVertexToPerimeter(*perimIter);
+
+		if(aClockwise){
+			++perimIter;
+
+			if(perimIter==itAEnd){
+				perimIter=itA;
+			}
+		}else{
+			if(perimIter==itA){
+				perimIter=itAEnd;
+			}
+			--perimIter;
+		}
+	}
+	perimIter=startB;
+	while(perimIter!=endB){
+
+
+		result.AddVertexToPerimeter(*perimIter);
+
+		if(bClockwise){
+			++perimIter;
+
+			if(perimIter==itBEnd){
+				perimIter=itB;
+			}
+		}else{
+			if(perimIter==itB){
+				perimIter=itBEnd;
+			}
+			--perimIter;
+		}
+	}
+
+
 }
 
 /**

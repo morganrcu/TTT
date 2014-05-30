@@ -27,7 +27,7 @@
 #include "itkPolygonSpatialObject.h"
 
 #include "tttDescriptionDataTypes.h"
-#include "CellCentroid.h"
+//#include "CellCentroid.h"
 #include <queue>
 //#include <set>
 
@@ -108,9 +108,6 @@ public:
 	void next_vertex(Vertex v) {
 
 		if(boost::degree(v,m_Graph)>1){
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddSkeletonPoint(v);
-
-
 			m_CurrentCentroid[0] +=
 					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[0];
 			m_CurrentCentroid[1] +=
@@ -118,7 +115,7 @@ public:
 			m_CurrentCentroid[2] +=
 					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[2];
 
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddSkeletonPoint(
+			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddVertexToPerimeter(
 					v);
 			m_Total++;
 		}
@@ -547,7 +544,7 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 			ttt::Cell outerFace = boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,outFace);
 			m_TissueDescriptor->ClearPerimeter();
-			for(std::vector<SkeletonVertexType>::iterator it = outerFace.PerimeterBegin();it!=outerFace.PerimeterEnd();++it){
+			for(typename Cell::PerimeterIterator it = outerFace.PerimeterBegin();it!=outerFace.PerimeterEnd();++it){
 				m_TissueDescriptor->AddVertexToPerimeter(*it);
 			}
 
@@ -570,7 +567,7 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 			}
 		}
 #endif
-
+#if 0
 		CellCentroid<ttt::TissueDescriptor>::Pointer centroidCalculator= CellCentroid<ttt::TissueDescriptor>::New();
 
 		centroidCalculator->SetTissueDescriptor(m_TissueDescriptor);
@@ -582,7 +579,7 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 			std::cout << "Replace: " << boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).GetCentroid() << " By " << (*centroidCalculator)[v] << std::endl;
 			boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,v).SetCentroid((*centroidCalculator)[v]);
 		}
-
+#endif
 	}
 
 }

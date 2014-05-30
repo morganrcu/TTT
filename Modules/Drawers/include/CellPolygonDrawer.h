@@ -56,7 +56,7 @@ public:
 		BGL_FORALL_VERTICES_T(v,*(m_Descriptor->m_CellGraph),CellGraph){
 				vtkSmartPointer<vtkPoints> points =  vtkSmartPointer<vtkPoints>::New();
 				int npoints=0;
-				for( std::vector<SkeletonVertexType>::iterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterBegin();
+				for( ttt::Cell::PerimeterIterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterBegin();
 						it!= boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterEnd();
 						++it){
 

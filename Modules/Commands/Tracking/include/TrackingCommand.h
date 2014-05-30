@@ -74,6 +74,21 @@ public:
     inline void SetAreaWeight(double weight){
     	m_Tracker->SetAreaWeight(weight);
     }
+    inline void SetPerimeterWeight(double perimeter){
+    	m_Tracker->SetPerimeterWeight(perimeter);
+    }
+#if 0
+    inline void SetAspectRatioWeight(double weight){
+    	m_Tracker->SetAspectRatioWeight(weight);
+    }
+    inline void SetOrientationWeight(double weight){
+    	m_Tracker->SetOrientationWeight(weight);
+    }
+#endif
+    inline void SetEllipseWeight(double weight){
+    	m_Tracker->SetEllipseWeight(weight);
+    }
+
     inline void SetDistanceWeight(double weight){
     	m_Tracker->SetDistanceWeight(weight);
     }

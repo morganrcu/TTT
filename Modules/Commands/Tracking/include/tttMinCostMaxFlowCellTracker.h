@@ -1,12 +1,17 @@
 #ifndef tttMINCOSTMAXFLOWTRACKER_H_
 #define tttMINCOSTMAXFLOWTRACKER_H_
+#include <coin/CbcModel.hpp>
+#include <coin/OsiClpSolverInterface.hpp>
+#include <coin/CoinPackedVector.hpp>
+#include <coin/CoinPackedVector.hpp>
 
 #include <vnl/vnl_sparse_matrix.h>
 #include <itkProcessObject.h>
-#include "tttDescriptionDataTypes.h"
+
 #include <boost/bimap.hpp>
 #include <boost/bimap/set_of.hpp>
 
+#include "tttDescriptionDataTypes.h"
 namespace ttt {
 template <class ObservationType, class TrackType> class Mitosis{
 public:
@@ -579,7 +584,20 @@ public:
     inline void SetDistanceWeight(double distanceWeight){
     	m_DistanceWeight=distanceWeight;
     }
-
+    inline void SetPerimeterWeight(double perimeterWeight){
+    	m_PerimeterWeight=perimeterWeight;
+    }
+#if 0
+    inline void SetAspectRatioWeight(double aspectRatioWeight){
+    	m_AspectRatioWeight=aspectRatioWeight;
+    }
+    inline void SetOrientationWeight(double orientationWeight){
+    	m_OrientationWeight=orientationWeight;
+    }
+#endif
+    inline void SetEllipseWeight(double ellipseWeight){
+    	m_EllipseWeight=ellipseWeight;
+    }
 protected:
 
     std::vector<TrackedTissueDescriptor::Pointer> m_Tracks;
@@ -588,6 +606,10 @@ protected:
 
 	double m_AreaWeight;
 	double m_DistanceWeight;
+	double m_EllipseWeight;
+	double m_PerimeterWeight;
+	//double m_OrientationWeight;
+	//double m_AspectRatioWeight;
 	double m_MitosisWeight;
 	double m_CreationWeight;
 	double m_TerminationWeight;

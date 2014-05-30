@@ -9,12 +9,13 @@
 #define CELLTRACKID_H_
 
 #include <tttDescriptionDataTypes.h>
-#include "TissueDescriptorFeature.h"
-class TrackedCellId : public TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double>  {
+//#include "TissueDescriptorFeature.h"
+#include "Feature.h"
+class TrackedCellId : public Feature<unsigned int> /*: public TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double>  */{
 
 public:
 	typedef TrackedCellId Self;
-	typedef TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double> Superclass;
+//	typedef TissueDescriptorFeature<ttt::TrackedTissueDescriptor,ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor>::CellVertexType, double> Superclass;
 
 	typedef boost::shared_ptr<Self> Pointer;
 	TrackedCellId(){

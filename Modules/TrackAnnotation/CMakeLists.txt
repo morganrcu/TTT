@@ -41,6 +41,7 @@ include_directories( ../../Modules/IO/include/)
 
 include_directories( ../../Modules/Commands/Base/include/)
 
+include_directories( ../Features/include/)
 
 
 qt5_wrap_ui(UI_HDRS ttttrackannotation.ui)

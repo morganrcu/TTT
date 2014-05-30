@@ -11,5 +11,5 @@ include_directories( ../../Assesment/AssesmentBase/include/)
 
 add_executable(VertexLocationDrawing source/VertexLocationDrawing.cpp)
 
-target_link_libraries(VertexLocationDrawing ${ITK_LIBRARIES} TTTDrawers TTTInteractors)
+target_link_libraries(VertexLocationDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTDrawers TTTInteractors)
  

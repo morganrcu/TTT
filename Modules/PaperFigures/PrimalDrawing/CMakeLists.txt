@@ -7,10 +7,11 @@ include_directories( ../../Assesment/AssesmentBase/include/)
 
 include_directories( ../../Core/include/)
 include_directories( ../../IO/include/)
+include_directories( ../../Features/include/)
 
 
 
 add_executable(PrimalDrawing source/PrimalDrawing.cpp)
 
-target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
+target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
  

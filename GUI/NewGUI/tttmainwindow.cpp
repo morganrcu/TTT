@@ -21,11 +21,15 @@
 #include "AdherensJunctionSegmentationDijkstraCommand.h"
 #include "CellGraphCommand.h"
 #include "TrackingCommand.h"
+#include "TrackInitializationCommand.h"
+#include "MinCostMaxFlowTrackAssociationCommand.h"
 #include "EllipsesCommand.h"
 #include "ComputeDomainsCommand.h"
 #include "TectonicsCommand.h"
 #include <vtkAxesActor.h>
 #include <vtkCubeSource.h>
+
+#include "CellFeatureTableModel.h"
 
 TTTMainWindow::TTTMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -223,6 +227,44 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 	}
 
 	{
+		m_PreviousTrackingRenderer = vtkSmartPointer<vtkRenderer>::New();
+		m_PreviousTrackingRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+		m_PreviousTrackingRendererWindow = vtkSmartPointer<vtkRenderWindow>::New();
+		m_PreviousTrackingRendererWindow->AddRenderer(m_PreviousTrackingRenderer);
+		m_PreviousTrackingRendererWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+		m_PreviousTrackingRendererWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
+		m_PreviousTrackingRendererWindowInteractor->SetRenderWindow(m_PreviousTrackingRendererWindow);
+		m_PreviousTrackingRendererWindowInteractor->Initialize();
+
+		vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+
+    	m_PreviousTrackingRenderer->AddActor(axes);
+
+    	this->m_pUI->previousTrackingQVTKView->SetRenderWindow(m_PreviousTrackingRendererWindow);
+
+	}
+	{
+		m_CurrentTrackingRenderer = vtkSmartPointer<vtkRenderer>::New();
+		m_CurrentTrackingRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
+
+		m_CurrentTrackingRendererWindow = vtkSmartPointer<vtkRenderWindow>::New();
+		m_CurrentTrackingRendererWindow->AddRenderer(m_CurrentTrackingRenderer);
+		m_CurrentTrackingRendererWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+		m_CurrentTrackingRendererWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
+		m_CurrentTrackingRendererWindowInteractor->SetRenderWindow(m_CurrentTrackingRendererWindow);
+		m_CurrentTrackingRendererWindowInteractor->Initialize();
+
+		vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
+
+		m_CurrentTrackingRenderer->AddActor(axes);
+
+		this->m_pUI->currentTrackingQVTKView->SetRenderWindow(m_CurrentTrackingRendererWindow);
+
+	}
+	{
 	m_TectonicsRenderer = vtkSmartPointer<vtkRenderer>::New();
 	m_TectonicsRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
 
@@ -407,8 +449,14 @@ void TTTMainWindow::SetupCurrentTab(){
 		this->DrawTracking();
 		break;
 	case 7:
+		this->DrawTrackingInteractive();
+		break;
+	case 8:
 		this->DrawEllipses();
 		this->DrawTectonics();
+		break;
+	case 9:
+		this->DrawInspection();
 		break;
 	};
 }
@@ -1417,12 +1465,15 @@ void TTTMainWindow::DrawTracking(){
 	m_TrackingDrawer.SetRenderer(this->m_TrackingRenderer);
 	//m_TrackingDrawer.SetEdgeColorer(this->m_TrackingEdgeColorer);
 
-	TrackedCellId::Pointer idFeature=TrackedCellId::New();
-	idFeature->SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
-	idFeature->Compute();
-	//idFeature-(m_Project->GetTrackedTissueDescriptor());
-	//idFeature->Compute();
-	m_TrackingVertexColorer.SetFeature(idFeature);
+	//TrackedCellId::Pointer idFeature=TrackedCellId::New();
+
+	FeatureMap<CellVertexType,unsigned int> idFeature;
+
+	BGL_FORALL_VERTICES_T(v,*m_Project->GetTrackedTissueDescriptor()->m_CellGraph,ttt::TrackedCellGraph){
+		idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_Project->GetTrackedTissueDescriptor()->m_CellGraph,v).GetID();
+	}
+
+	m_TrackingVertexColorer.SetFeatureMap(idFeature);
 
 	//m_TrackingDrawer.SetVertexColorer(&m_TrackingVertexColorer);
 	//m_TrackingDrawer.SetEdgeColorer(&m_TrackingEdgeColorer);
@@ -1440,8 +1491,46 @@ void TTTMainWindow::DrawTracking(){
 	this->m_TrackingRendererWindow->Render();
 
 }
+void TTTMainWindow::DoInitTracking(){
+	TrackInitializationCommand initializationCommand;
 
+	initializationCommand.SetTissueDescriptor(m_Project->GetTissueDescriptor());
+	initializationCommand.Do();
+	m_Project->SetTrackedTissueDescriptor(initializationCommand.GetTrackedTissueDescriptor());
 
+}
+void TTTMainWindow::DoTrackingInteractive(){
+	int currentFrame = m_Project->GetFrame();
+	MinCostMaxFlowTrackAssociationCommand trackingCommand;
+	trackingCommand.SetPreviousTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor());
+	m_Project->SetFrame(currentFrame+1);
+	trackingCommand.SetObservedTissueDescriptor(m_Project->GetTissueDescriptor());
+	trackingCommand.Do();
+	m_Project->SetTrackedTissueDescriptor(trackingCommand.GetCurrentTrackedTissueDescriptor());
+	m_Project->SetFrame(currentFrame);
+}
+void TTTMainWindow::DrawTrackingInteractive(){
+
+}
+
+void TTTMainWindow::PopulateFeatureTable(){
+	CellFeatureTableModel * featureTableModel = new CellFeatureTableModel(this->m_Project,this);
+
+	this->m_pUI->featureInspectionTableView->setModel(featureTableModel);
+
+}
+
+void TTTMainWindow::HighlightCellInFeatureTable(){
+
+}
+
+void TTTMainWindow::HighlightCellInRepresentation(){
+
+}
+
+void TTTMainWindow::DoDetectTrackingOutliers(){
+
+}
 
 void TTTMainWindow::DoEllipses(){
 	EllipsesCommand<TrackedTissueDescriptor> command;
@@ -1555,6 +1644,9 @@ void TTTMainWindow::DoTectonics(){
 	this->DrawTectonics();
 
 }
+void TTTMainWindow::DrawInspection(){
+	PopulateFeatureTable();
+}
 void TTTMainWindow::DrawTectonics(){
 	if(this->m_Project->IsDomainStrainRatesReady()){
 		m_DomainStrainRatesDrawer.SetRenderer(this->m_TectonicsRenderer);
@@ -1566,8 +1658,6 @@ void TTTMainWindow::DrawTectonics(){
 		m_DomainStrainRatesDrawer.Reset();
 	}
 	this->m_TectonicsRenderWindow->Render();
-
-
 
 }
 void TTTMainWindow::LaunchProjectExplorer(){

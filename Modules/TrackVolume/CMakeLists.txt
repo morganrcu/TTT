@@ -6,10 +6,11 @@ include_directories( ../../Drawers/include/)
 include_directories( ../AssesmentBase/include/)
 include_directories( ../Core/include/)
 include_directories( ../IO/include/)
+include_directories( ../Features/include/)
 
 
 
 add_executable(TTTTrackVolume main.cpp)
 
-target_link_libraries(TTTTrackVolume ${ITK_LIBRARIES} TTTDrawers TTTCore TTTIO mysqlcppconn)
+target_link_libraries(TTTTrackVolume ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTDrawers TTTCore TTTIO mysqlcppconn)
  

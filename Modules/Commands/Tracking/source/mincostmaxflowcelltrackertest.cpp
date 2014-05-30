@@ -1,5 +1,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include "tttDescriptionDataTypes.h"
+#include "CellGraphCommand.h"
 #include "tttMinCostMaxFlowCellTracker.h"
 
 int main(){
@@ -85,6 +86,56 @@ int main(){
 #endif
 	ttt::MinCostMaxFlowCellTracker::Pointer tracker = ttt::MinCostMaxFlowCellTracker::New();
 
+	ttt::SkeletonPoint p0;
+	p0.position[0]=0;
+	p0.position[1]=0;
+	p0.position[2]=0;
+
+
+	ttt::SkeletonPoint p1;
+	p1.position[0]=0;
+	p1.position[1]=1;
+	p1.position[2]=0;
+
+	ttt::SkeletonPoint p2;
+	p2.position[0]=1;
+	p2.position[1]=0;
+	p2.position[2]=0;
+
+	ttt::SkeletonPoint p3;
+	p3.position[0]=1;
+	p3.position[1]=1;
+	p3.position[2]=0;
+
+
+
+	ttt::SkeletonPoint p4;
+	p4.position[0]=2;
+	p4.position[1]=0;
+	p4.position[2]=0;
+
+
+	ttt::TissueDescriptor::Pointer obs0 = ttt::TissueDescriptor::New();
+
+	ttt::CellVertexType va0 = boost::add_vertex(p0,*obs0->m_SkeletonGraph);
+	ttt::CellVertexType va1 = boost::add_vertex(p1,*obs0->m_SkeletonGraph);
+	ttt::CellVertexType va2 = boost::add_vertex(p2,*obs0->m_SkeletonGraph);
+	ttt::CellVertexType va3 = boost::add_vertex(p3,*obs0->m_SkeletonGraph);
+	ttt::CellVertexType va4 = boost::add_vertex(p4,*obs0->m_SkeletonGraph);
+
+	boost::add_edge(va0,va1,*obs0->m_SkeletonGraph);
+	boost::add_edge(va0,va2,*obs0->m_SkeletonGraph);
+	boost::add_edge(va1,va2,*obs0->m_SkeletonGraph);
+	boost::add_edge(va1,va3,*obs0->m_SkeletonGraph);
+	boost::add_edge(va2,va3,*obs0->m_SkeletonGraph);
+	boost::add_edge(va2,va4,*obs0->m_SkeletonGraph);
+	boost::add_edge(va3,va4,*obs0->m_SkeletonGraph);
+
+	ttt::CellGraphCommand cellGraphCommand;
+	cellGraphCommand.SetPrimalGraph(obs0);
+	cellGraphCommand.Do();
+
+#if 0
 	ttt::TissueDescriptor::Pointer obs0 = ttt::TissueDescriptor::New();
 
 	ttt::Cell cellA0;
@@ -156,10 +207,10 @@ int main(){
 	boost::add_edge(vb1,vc1,*obs1->m_CellGraph);
 
 
-
+#endif
 	std::vector<ttt::TissueDescriptor::Pointer > observations;
-	observations.push_back(obs0);
-	observations.push_back(obs1);
+	observations.push_back(cellGraphCommand.GetGraphs());
+	observations.push_back(cellGraphCommand.GetGraphs());
 	tracker->SetObservations(observations);
 	tracker->Track();
 
@@ -168,7 +219,7 @@ int main(){
 	for(int t=0;t<tracks.size();t++){
 		std::cout << "T: "<< t << std::endl;
 		BGL_FORALL_VERTICES_T(v,*tracks[t]->m_CellGraph,ttt::TrackedCellGraph){
-			std::cout <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetID() << " "  <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetCentroid() << " " << boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetParentID() <<  std::endl;
+			std::cout <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetID() << " "  <<boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetCentroid() << " " << boost::get(ttt::TrackedCellPropertyTag(),*tracks[t]->m_CellGraph,v).GetID() <<  std::endl;
 		}
 	}
 }

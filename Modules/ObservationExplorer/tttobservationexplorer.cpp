@@ -115,7 +115,7 @@ void ObservationExplorer::DrawPolygons(){
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 		int npoints = 0;
 
-		for (std::vector<ttt::SkeletonVertexType>::iterator it = boost::get(ttt::CellPropertyTag(), *(tissueDescriptor->m_CellGraph), v).PerimeterBegin();
+		for (ttt::Cell::PerimeterIterator it = boost::get(ttt::CellPropertyTag(), *(tissueDescriptor->m_CellGraph), v).PerimeterBegin();
 				it!= boost::get(ttt::CellPropertyTag(),*(tissueDescriptor->m_CellGraph), v).PerimeterEnd();
 				++it) {
 

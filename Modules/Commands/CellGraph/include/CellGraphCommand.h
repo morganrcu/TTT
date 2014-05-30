@@ -75,7 +75,7 @@ public:
 		return m_Graphs;
 	}
 };
-
-#endif /* DUALGRAPHCOMMAND_H_ */
 }
+#endif /* DUALGRAPHCOMMAND_H_ */
+
 /** @}*/

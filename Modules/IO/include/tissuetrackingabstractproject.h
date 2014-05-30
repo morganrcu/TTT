@@ -8,7 +8,7 @@
 #ifndef TISSUETRACKINGABSTRACTPROJECT_H_
 #define TISSUETRACKINGABSTRACTPROJECT_H_
 
-
+#include "FeatureMap.h"
 namespace ttt{
 class TissueTrackingAbstractProject{
 public:
@@ -298,6 +298,58 @@ public:
 			m_TrackedTissueDescriptorLoaded = true;
 	}
 
+	//////////////TRACKED CENTROIDS
+protected:
+
+	FeatureMap<ttt::TrackedCellVertexType,itk::Point<double,3> > m_TrackedCentroids;
+	bool m_TrackedCentroidsDirty=false;
+	bool m_TrackedCentroidsLoaded=false;
+
+	virtual void StoreTrackedCentroids()=0;
+	virtual void LoadTrackedCentroids()=0;
+	virtual bool IsTrackedCentroidsReady()=0;
+
+public:
+	inline FeatureMap<ttt::TrackedCellVertexType,itk::Point<double,3> > GetTrackedCentroids(){
+		if(!m_TrackedTissueDescriptorLoaded) LoadTrackedCentroids();
+			return m_TrackedCentroids;
+	}
+
+	virtual void SetTrackedCentroids(
+				TrackedTissueDescriptorType::Pointer trackedTissueDescriptor) {
+			m_TrackedTissueDescriptor = trackedTissueDescriptor;
+			m_TrackedTissueDescriptorDirty = true;
+			m_TrackedTissueDescriptorLoaded = true;
+	}
+
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,double> m_TrackedAreas;
+	bool m_TrackedAreasDirty=false;
+	bool m_TrackedAreasLoaded=false;
+
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,double> m_TrackedPerimeters;
+	bool m_TrackedPerimetersDirty=false;
+	bool m_TrackedPerimetersLoaded=false;
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,double> m_TrackedWidths;
+	bool m_TrackedWidthsDity=false;
+	bool m_TrackedWidthsLoaded=false;
+
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,double> m_TrackedHeights;
+	bool m_TrackedHeightsDirty=false;
+	bool m_TrackedHeightsLoaded=false;
+
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,double> m_TrackedRotations;
+	bool m_TrackedRotationsDirty=false;
+	bool m_TrackedRotationsLoaded=false;
+
+protected:
+	FeatureMap<ttt::TrackedCellVertexType,itk::Vector<double,3> > m_TrackedVelocities;
+	bool m_TrackedVelocitiesDirty=false;
+	bool m_TrackedVelocitiesLoaded=false;
 	////////////////////////////TRACKED ELLIPSES/////////////////////////////////
 protected:
 	EllipseMapTypePointer m_TrackedEllipses;
