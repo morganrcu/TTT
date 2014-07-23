@@ -7,6 +7,7 @@
 
 #ifndef FEATUREMAP_H_
 #define FEATUREMAP_H_
+#include <map>
 #include "Feature.h"
 template<class TObject,class TValue >  class FeatureMap : public std::map<TObject,Feature<TValue> > {
 public:

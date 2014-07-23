@@ -9,7 +9,7 @@
 
 #include <QMainWindow>
 
-#include <mysqltissuetrackingproject.h>
+#include <tissuetrackingabstractproject.h>
 
 #include <vtkPropPicker.h>
 
@@ -170,6 +170,7 @@ private slots:
 	void New();
 	void Open();
 	void Close();
+	void Save();
 	void ShowPreferences();
 
 	void AddFrame();
@@ -288,7 +289,7 @@ private:
 
 private:
     Ui::TTTMainWindow *m_pUI;
-    ttt::TissueTrackingProject * m_Project;
+    ttt::TissueTrackingAbstractProject * m_Project;
 
     QString m_SettingsFile;
 	QString m_Host;

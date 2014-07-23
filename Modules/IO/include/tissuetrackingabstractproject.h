@@ -9,12 +9,16 @@
 #define TISSUETRACKINGABSTRACTPROJECT_H_
 
 #include "FeatureMap.h"
+#include "itkImage.h"
+#include "tttDescriptionDataTypes.h"
+#include "Ellipse.h"
+#include "tttDomainStrainRates.h"
 namespace ttt{
 class TissueTrackingAbstractProject{
 public:
 
-	typedef itk::Image<unsigned char, 3> RawImageType;
-	typedef itk::Image<unsigned char, 3> SurfaceSegmentedImageType;
+	typedef itk::Image<float, 3> RawImageType;
+	//typedef itk::Image<unsigned char, 3> SurfaceSegmentedImageType;
 	typedef itk::Image<float, 3> DiffusedImageType;
 	typedef itk::Image<float, 3> PlatenessImageType;
 	typedef itk::Image<itk::Vector<float, 3>, 3> OrientationImageType;
@@ -45,18 +49,65 @@ public:
 	std::string m_WorkingDirectory;
 	std::string m_ProjectName;
 
+
+	double m_LowerPlatenessScale;
+	double m_HigherPlatenessScale;
+	double m_PlatenessSteps;
+
+	double m_LowerVertexnessScale;
+	double m_HigherVertexnessScale;
+	double m_VertexnessSteps;
+
+
 	unsigned int m_Frame;
 public:
 	inline SpacingType GetSpacing() {
-			return m_Spacing;
-		}
-		inline double GetTemporalScale() {
-			return m_TimeDelta;
-		}
+		return m_Spacing;
+	}
+	inline void SetSpacingX(double spacingX){
+		m_Spacing[0]=spacingX;
+	}
+	inline void SetSpacingY(double spacingY){
+		m_Spacing[1]=spacingY;
+	}
+	inline void SetSpacingZ(double spacingZ){
+		m_Spacing[2]=spacingZ;
+	}
+	inline void SetSamplingRate(double samplingRate){
+		m_TimeDelta=samplingRate;
+	}
 
-		inline std::string GetProjectName() {
-			return m_ProjectName;
-		}
+	inline void SetLowerPlatenessScale(double lowerPlatenessScale){
+		m_LowerPlatenessScale=lowerPlatenessScale;
+	}
+
+	inline void SetHigherPlatenessScale(double higherPlatenessScale){
+		m_HigherPlatenessScale=higherPlatenessScale;
+	}
+	inline double GetHigherPlatenessScale(){
+		return m_HigherPlatenessScale;
+	}
+	inline double GetLowerPlatenessScale(){
+		return m_LowerPlatenessScale;
+	}
+	inline int GetPlatenessSteps(){
+		return m_PlatenessSteps;
+	}
+	inline void SetPlatenessSteps(int platenessSteps){
+		m_PlatenessSteps=platenessSteps;
+	}
+
+	inline double GetTemporalScale() {
+		return m_TimeDelta;
+	}
+
+	inline void SetProjectName(const std::string & projectName){
+		m_ProjectName=projectName;
+	}
+
+	inline std::string GetProjectName() {
+		return m_ProjectName;
+	}
 	RegionType::SizeType GetSize(){
 		return m_Region.GetSize();
 	}
@@ -285,8 +336,9 @@ protected:
 
 	virtual void StoreTrackedTissueDescriptor()=0;
 	virtual void LoadTrackedTissueDescriptor()=0;
-	virtual bool IsTrackedTissueDescriptorReady()=0;
+
 public:
+	virtual bool IsTrackedTissueDescriptorReady()=0;
 	inline typename TrackedTissueDescriptorType::Pointer GetTrackedTissueDescriptor() {
 		if(!m_TrackedTissueDescriptorLoaded) LoadTrackedTissueDescriptor();
 		return m_TrackedTissueDescriptor;
@@ -359,8 +411,9 @@ protected:
 	virtual void LoadTrackedEllipses()=0;
 	virtual void StoreTrackedEllipses()=0;
 
-	virtual bool IsTrackedEllipsesReady()=0;
+
 public:
+	virtual bool IsTrackedEllipsesReady()=0;
 	EllipseMapTypePointer GetTrackedEllipses() {
 		if(!m_TrackedEllipsesDirty)this->LoadTrackedEllipses();
 		return m_TrackedEllipses;

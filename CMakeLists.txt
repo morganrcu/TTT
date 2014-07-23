@@ -63,3 +63,7 @@ add_subdirectory(Modules/ObservationExplorer)
 add_subdirectory(Modules/TrackVolume)
 add_subdirectory(Modules/TrackAnnotation)
 add_subdirectory(VertexRelabel)
+
+add_subdirectory(Modules/Registration)
+add_subdirectory(Modules/RemoveOverlap)
+add_subdirectory(Modules/Deconvolution)

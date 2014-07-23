@@ -48,7 +48,7 @@
 #endif
 #include "tissuetrackingabstractproject.h"
 namespace ttt {
-class TissueTrackingProject : public TissueTrackingAbstractProject{
+class MySQLTissueTrackingProject : public TissueTrackingAbstractProject{
 
 private:
 
@@ -103,7 +103,7 @@ public: \
 
 
 public:
-	TissueTrackingProject();
+	MySQLTissueTrackingProject();
 	void SetHost(const std::string & host);
 	void SetDBName(const std::string & dbname);
 	void SetUser(const std::string & user);

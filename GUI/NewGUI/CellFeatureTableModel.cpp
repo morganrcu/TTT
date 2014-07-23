@@ -7,7 +7,7 @@
 
 #include <CellFeatureTableModel.h>
 #include <QVector3D>
-CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingProject * project, QObject *parent) :QAbstractTableModel(parent) {
+CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingAbstractProject * project, QObject *parent) :QAbstractTableModel(parent) {
 	m_Project=project;
 }
 

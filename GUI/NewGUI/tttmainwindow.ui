@@ -28,7 +28,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>9</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="projectTab">
        <attribute name="title">
@@ -1441,6 +1441,7 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionPreferences"/>
+   <addaction name="actionSave"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
@@ -1522,6 +1523,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
    </property>
   </action>
  </widget>

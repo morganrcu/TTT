@@ -11,9 +11,9 @@
 #include "mysqltissuetrackingproject.h"
 class CellFeatureTableModel : public QAbstractTableModel{
 	Q_OBJECT
-	ttt::TissueTrackingProject * m_Project;
+	ttt::TissueTrackingAbstractProject * m_Project;
 public:
-	CellFeatureTableModel(ttt::TissueTrackingProject * project,QObject * parent);
+	CellFeatureTableModel(ttt::TissueTrackingAbstractProject * project,QObject * parent);
     int rowCount(const QModelIndex &parent = QModelIndex()) const ;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;

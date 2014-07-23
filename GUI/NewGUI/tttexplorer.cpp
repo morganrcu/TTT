@@ -52,7 +52,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
     connect(this->m_pUI->exportMovieButton,SIGNAL(clicked()),this,SLOT(ExportMovie()));
 }
 
-void TTTExplorer::SetProject(ttt::TissueTrackingProject * project){
+void TTTExplorer::SetProject(ttt::TissueTrackingAbstractProject * project){
 			this->m_Project=project;
 			this->m_pUI->frameSlider->setMinimum(0);
 			this->m_pUI->frameSlider->setMaximum(this->m_Project->GetNumFrames()-1);

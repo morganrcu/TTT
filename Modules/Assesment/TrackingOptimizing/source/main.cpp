@@ -482,7 +482,7 @@ public:
 
 void readDataset(int projectNum,std::vector<ttt::TrackedTissueDescriptor::Pointer> & referenceTissue,std::vector<ttt::TissueDescriptor::Pointer> observedTissue){
 
-	ttt::TissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject m_Project;
 
 	m_Project.openDB();
 	m_Project.OpenProject(projectNum);
@@ -518,7 +518,7 @@ int main(int argc,char ** argv){
 	//NOTUM
 
 	{
-	ttt::TissueTrackingProject projectNotum;
+	ttt::MySQLTissueTrackingProject projectNotum;
 	projectNotum.openDB();
 	projectNotum.OpenProject(2);
 
@@ -540,7 +540,7 @@ int main(int argc,char ** argv){
 
 
 	{
-	ttt::TissueTrackingProject projectLeg;
+	ttt::MySQLTissueTrackingProject projectLeg;
 	projectLeg.openDB();
 	projectLeg.OpenProject(16);
 
@@ -561,7 +561,7 @@ int main(int argc,char ** argv){
 	}
 
 	{
-	ttt::TissueTrackingProject projectMitosis;
+	ttt::MySQLTissueTrackingProject projectMitosis;
 	projectMitosis.openDB();
 	projectMitosis.OpenProject(26);
 

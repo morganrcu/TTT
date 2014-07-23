@@ -381,6 +381,7 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 
     connect(this->m_pUI->computeStrainRates,SIGNAL(clicked()),this,SLOT(DoTectonics()));
 
+    connect(this->m_pUI->actionSave,SIGNAL(triggered()),this,SLOT(Save()));
 
     this->SetupVertexStandardInteractor();
     this->SetupVertexSelectionInteractor();
@@ -396,6 +397,10 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     std::cout << m_SettingsFile.toStdString() << std::endl;
     this->LoadSettings();
     //m_SettingsFile("~/.ttttracker.rc");
+}
+
+void TTTMainWindow::Save(){
+	this->m_Project->Flush();
 }
 
 void TTTMainWindow::SamplingRateChanged(double rate){
@@ -414,13 +419,13 @@ void TTTMainWindow::SpacingZChanged(double value){
 	this->m_Project->SetSpacingZ(value);
 }
 void TTTMainWindow::LowestScaleChanged(double scale){
-	m_Project->SetLowestScale(scale);
+	m_Project->SetLowerPlatenessScale(scale);
 }
 void TTTMainWindow::HighestScaleChanged(double scale){
-	m_Project->SetHighestScale(scale);
+	m_Project->SetHigherPlatenessScale(scale);
 }
 void TTTMainWindow::ScaleStepsChanged(int steps){
-	m_Project->SetScaleSteps(steps);
+	m_Project->SetPlatenessSteps(steps);
 }
 
 void TTTMainWindow::SetupCurrentTab(){
@@ -548,11 +553,11 @@ void TTTMainWindow::Open(){
 
 	if(dialog.IsAccepted()){
 		this->m_Project=dialog.GetProject();
-		this->m_Project->SetHost(m_Host.toStdString());
-		this->m_Project->SetPort(m_Port);
-		this->m_Project->SetDBName(m_DBName.toStdString());
-		this->m_Project->SetUser(m_User.toStdString());
-		this->m_Project->SetPassword(m_Password.toStdString());
+		//this->m_Project->SetHost(m_Host.toStdString());
+		//this->m_Project->SetPort(m_Port);
+		//this->m_Project->SetDBName(m_DBName.toStdString());
+		//this->m_Project->SetUser(m_User.toStdString());
+		//this->m_Project->SetPassword(m_Password.toStdString());
 
 		//this->m_Project->Load(path);
 		//    m_BasePath = path;
@@ -622,7 +627,7 @@ void TTTMainWindow::SetupProjectTab(){
 
     assert(ok);
 
-    ttt::TissueTrackingProject::SpacingType spacing=m_Project->GetSpacing();
+    ttt::TissueTrackingAbstractProject::SpacingType spacing=m_Project->GetSpacing();
 
     this->m_pUI->xDoubleSpinBox->setValue(spacing[0]);
     this->m_pUI->yDoubleSpinBox->setValue(spacing[1]);
@@ -650,7 +655,7 @@ void TTTMainWindow::HighlightProjectFrame(int frame){
 
 	RawImageDrawer drawer;
 	m_Project->SetFrame(frame);
-	itk::Image<unsigned char,3>::Pointer rawImage = m_Project->GetRawImage();
+	itk::Image<float,3>::Pointer rawImage = m_Project->GetRawImage();
 	drawer.SetImage(rawImage);
 	drawer.SetRenderer(this->m_ProjectRenderer);
 	drawer.Draw();
@@ -770,14 +775,14 @@ void TTTMainWindow::DoRangeScale(){
 	rangePlatenessCommand.SetSigmaMax(highestScale);
 	rangePlatenessCommand.SetSigmaSteps(rangeScale);
 
-	if(this->m_Project->IsDiffusedImageReady()){
-		rangePlatenessCommand.SetInput(this->m_Project->GetDiffusedImage());
-	}else{
+	//if(this->m_Project->IsDiffusedImageReady()){
+	//rangePlatenessCommand.SetInput(this->m_Project->GetDiffusedImage());
+		//}else{
 		DataCastingCommand caster;
 		caster.SetInput(m_Project->GetRawImage());
 		caster.Do();
 		rangePlatenessCommand.SetInput(caster.GetOutput());
-	}
+		//}
 
 	rangePlatenessCommand.Do();
 
@@ -799,9 +804,9 @@ void TTTMainWindow::DoAllScale(){
 
 void TTTMainWindow::SetupMembranessFrame(int frame){
 	this->m_Project->SetFrame(this->m_pUI->membranessSlider->value());
-	this->m_pUI->lowestScaleDoubleSpinBox->setValue(m_Project->GetLowestScale());
-	this->m_pUI->highestScaleDoubleSpinBox->setValue(m_Project->GetHighestScale());
-	this->m_pUI->stepsSpinBox->setValue(m_Project->GetScaleSteps());
+	this->m_pUI->lowestScaleDoubleSpinBox->setValue(m_Project->GetLowerPlatenessScale());
+	this->m_pUI->highestScaleDoubleSpinBox->setValue(m_Project->GetHigherPlatenessScale());
+	this->m_pUI->stepsSpinBox->setValue(m_Project->GetPlatenessSteps());
 	this->DrawRangePlateness();
 
 }
@@ -845,10 +850,10 @@ void TTTMainWindow::EnhanceAndDraw(){
 }
 
 void TTTMainWindow::DoEnhance(){
-	this->m_Project->GetLowestScale();
-	double lowestScale = this->m_Project->GetLowestScale();
-	double highestScale = this->m_Project->GetHighestScale();
-	int rangeScale = this->m_Project->GetScaleSteps();
+
+	double lowestScale = this->m_Project->GetLowerPlatenessScale();
+	double highestScale = this->m_Project->GetHigherPlatenessScale();
+	int rangeScale = this->m_Project->GetPlatenessSteps();
 
 	int iterations = this->m_pUI->enhanceIterations->value();
 
@@ -940,6 +945,7 @@ void TTTMainWindow::DoVertexLocation(){
 	VertexLocationCommand vertexLocationCommand;
 	vertexLocationCommand.SetLocalMaxThreshold(threshold);
 	vertexLocationCommand.SetVertexnessImage(m_Project->GetVertexnessImage());
+	vertexLocationCommand.SetRadius(1);
 	vertexLocationCommand.Do();
 
 	m_Project->SetVertexLocations(vertexLocationCommand.GetLocalMaxima());
@@ -948,8 +954,8 @@ void TTTMainWindow::DoVertexLocation(){
 void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
 	std::cout << "->VertexSelected" << std::endl;
 	vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-	TissueTrackingProject::SpacingType spacing=m_Project->GetSpacing();
-	TissueTrackingProject::SizeType size =m_Project->GetSize();
+	TissueTrackingAbstractProject::SpacingType spacing=m_Project->GetSpacing();
+	TissueTrackingAbstractProject::SizeType size =m_Project->GetSize();
   	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
   	cube->Update();
 
@@ -1304,8 +1310,8 @@ void TTTMainWindow::EdgeSelected(vtkSmartPointer<vtkActor>& actor){
 	if(m_PrimalGraphDrawer.IsVertex(actor)){
 
 		vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-		TissueTrackingProject::SpacingType spacing=m_Project->GetSpacing();
-		TissueTrackingProject::SizeType size =m_Project->GetSize();
+		TissueTrackingAbstractProject::SpacingType spacing=m_Project->GetSpacing();
+		TissueTrackingAbstractProject::SizeType size =m_Project->GetSize();
 	  	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
 	  	cube->Update();
 

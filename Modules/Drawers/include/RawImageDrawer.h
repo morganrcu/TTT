@@ -21,10 +21,10 @@
 #include <itkImage.h>
 #include "ScalarVolumeDrawer.h"
 namespace ttt{
-class RawImageDrawer : public ScalarVolumeDrawer<itk::Image<unsigned char,3> > {
+class RawImageDrawer : public ScalarVolumeDrawer<itk::Image<float,3> > {
 
 private:
-	typedef itk::Image<unsigned char,3> OriginalImageType;
+	typedef itk::Image<float,3> OriginalImageType;
 	vtkSmartPointer<vtkVolumeProperty> m_VolumeProperty;
 public:
 	/**

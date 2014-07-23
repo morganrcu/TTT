@@ -5,7 +5,7 @@
 #include "TrackVolumeDrawer.hpp"
 int main(){
 
-	ttt::TissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject m_Project;
 
 	m_Project.openDB();
 	m_Project.OpenProject(26);//LEG

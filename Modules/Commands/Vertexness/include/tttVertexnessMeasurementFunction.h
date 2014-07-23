@@ -138,8 +138,8 @@ public:
 			}
 		}
 
-		assert(vnl_math_abs(Lambda3) > vnl_math_abs(Lambda2));
-		assert(vnl_math_abs(Lambda2) > vnl_math_abs(Lambda1));
+		assert(vnl_math_abs(Lambda3) >= vnl_math_abs(Lambda2));
+		assert(vnl_math_abs(Lambda2) >= vnl_math_abs(Lambda1));
 		if (Lambda3 > 0 || Lambda2 > 0 || Lambda1 > 0) {
 			return 0;
 		} else {

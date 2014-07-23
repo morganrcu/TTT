@@ -8,31 +8,31 @@ namespace ttt {
  *      Author: morgan
  */
 
-TissueTrackingProject::TissueTrackingProject() : TissueTrackingAbstractProject(),m_Host("localhost"), m_DBName("TuftsTissueTracker"),m_User("root"),m_Password("ttt1Tracker") {
+MySQLTissueTrackingProject::MySQLTissueTrackingProject() : TissueTrackingAbstractProject(),m_Host("localhost"), m_DBName("TuftsTissueTracker"),m_User("root"),m_Password("ttt1Tracker") {
 	m_ProjectID = 0;
 	m_TimeDelta = -1;
 	m_Frame = 0;
 	m_Driver = sql::mysql::get_driver_instance();
 }
 
-void TissueTrackingProject::SetHost(const std::string & host) {
+void MySQLTissueTrackingProject::SetHost(const std::string & host) {
 	m_Host = host;
 }
-void TissueTrackingProject::SetDBName(const std::string & dbname) {
+void MySQLTissueTrackingProject::SetDBName(const std::string & dbname) {
 	m_DBName = dbname;
 }
-void TissueTrackingProject::SetUser(const std::string & user) {
+void MySQLTissueTrackingProject::SetUser(const std::string & user) {
 	m_User = user;
 }
-void TissueTrackingProject::SetPassword(const std::string & password) {
+void MySQLTissueTrackingProject::SetPassword(const std::string & password) {
 	m_Password = password;
 }
-void TissueTrackingProject::SetPort(unsigned int port) {
+void MySQLTissueTrackingProject::SetPort(unsigned int port) {
 	m_Port = port;
 }
 
 
-bool TissueTrackingProject::openDB() {
+bool MySQLTissueTrackingProject::openDB() {
 
 	try {
 		m_DB = std::auto_ptr<sql::Connection>(
@@ -59,7 +59,7 @@ bool TissueTrackingProject::openDB() {
 
 }
 
-void TissueTrackingProject::OpenProject(int projectID) {
+void MySQLTissueTrackingProject::OpenProject(int projectID) {
 
 		try {
 			m_ProjectID = projectID;
@@ -110,7 +110,7 @@ void TissueTrackingProject::OpenProject(int projectID) {
 		}
 }
 
-void TissueTrackingProject::NewProject(const std::string & name,
+void MySQLTissueTrackingProject::NewProject(const std::string & name,
 			const std::string & workingDirectory, double spacingX,
 			double spacingY, double spacingZ, double timeDelta,
 			unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ) {
@@ -170,7 +170,7 @@ void TissueTrackingProject::NewProject(const std::string & name,
 		}
 	}
 
-void TissueTrackingProject::NewFrame(int numFrame) {
+void MySQLTissueTrackingProject::NewFrame(int numFrame) {
 		//Insert new Frame to Database
 		try {
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
@@ -199,7 +199,7 @@ void TissueTrackingProject::NewFrame(int numFrame) {
 		}
 
 	}
-unsigned int TissueTrackingProject::GetNumFrames() {
+unsigned int MySQLTissueTrackingProject::GetNumFrames() {
 
 		try {
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
@@ -232,18 +232,18 @@ unsigned int TissueTrackingProject::GetNumFrames() {
 		return 0;
 	}
 
-void TissueTrackingProject::SetProjectID(int ProjectID) {
+void MySQLTissueTrackingProject::SetProjectID(int ProjectID) {
 		m_ProjectID = ProjectID;
 }
 
-void TissueTrackingProject::StoreConfig() {
+void MySQLTissueTrackingProject::StoreConfig() {
 
 }
 
-void TissueTrackingProject::Load(std::string & basePath) {
+void MySQLTissueTrackingProject::Load(std::string & basePath) {
 
 }
-void TissueTrackingProject::LoadVertexLocations() {
+void MySQLTissueTrackingProject::LoadVertexLocations() {
 		m_VertexLocations = ttt::AdherensJunctionVertices::New();
 		try {
 			std::string selectQuery(
@@ -291,7 +291,7 @@ void TissueTrackingProject::LoadVertexLocations() {
 		m_VertexLocationsLoaded = true;
 	}
 
-void TissueTrackingProject::StoreVertexLocations() {
+void MySQLTissueTrackingProject::StoreVertexLocations() {
 
 		try {
 
@@ -346,12 +346,12 @@ void TissueTrackingProject::StoreVertexLocations() {
 		m_VertexLocationsDirty = false;
 	}
 
-inline bool TissueTrackingProject::IsVertexLocationsReady() {
+inline bool MySQLTissueTrackingProject::IsVertexLocationsReady() {
 	//TODO
 	return true;
 }
 
- void TissueTrackingProject::LoadTissueDescriptor() {
+ void MySQLTissueTrackingProject::LoadTissueDescriptor() {
 		m_TissueDescriptor = TissueDescriptorType::New();
 
 		{
@@ -512,7 +512,7 @@ inline bool TissueTrackingProject::IsVertexLocationsReady() {
 
 
 
- void TissueTrackingProject::StoreTissueDescriptor() {
+ void MySQLTissueTrackingProject::StoreTissueDescriptor() {
 
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
@@ -864,10 +864,10 @@ inline bool TissueTrackingProject::IsVertexLocationsReady() {
 		m_TissueDescriptorDirty = false;
 	}
 
-void TissueTrackingProject::SetTissueDescriptorDirty() {
+void MySQLTissueTrackingProject::SetTissueDescriptorDirty() {
 		m_TissueDescriptorDirty = true;
 }
-bool TissueTrackingProject::IsTissueDescriptorReady() {
+bool MySQLTissueTrackingProject::IsTissueDescriptorReady() {
 		return true;
 }
 
@@ -875,10 +875,10 @@ bool TissueTrackingProject::IsTissueDescriptorReady() {
 //////////////////////////////??TRACKED TISSUE DESCRIPTOR/////////////////////////////////////
 
 
-bool TissueTrackingProject::IsTrackedTissueDescriptorReady(){
+bool MySQLTissueTrackingProject::IsTrackedTissueDescriptorReady(){
 	return true;
 }
-void TissueTrackingProject::LoadTrackedTissueDescriptor() {
+void MySQLTissueTrackingProject::LoadTrackedTissueDescriptor() {
 	m_TrackedTissueDescriptor = TrackedTissueDescriptorType::New();
 	{
 		std::string queryMembranePointsString(
@@ -1028,7 +1028,7 @@ void TissueTrackingProject::LoadTrackedTissueDescriptor() {
 	}
 
 
-void TissueTrackingProject::StoreTrackedTissueDescriptor() {
+void MySQLTissueTrackingProject::StoreTrackedTissueDescriptor() {
 
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
@@ -1328,64 +1328,64 @@ void TissueTrackingProject::StoreTrackedTissueDescriptor() {
 
 	}
 
-void TissueTrackingProject::StoreTrackedAreas(){
+void MySQLTissueTrackingProject::StoreTrackedAreas(){
 	//TODO
 }
-void TissueTrackingProject::LoadTrackedAreas(){
+void MySQLTissueTrackingProject::LoadTrackedAreas(){
 	//TODO
 }
-bool TissueTrackingProject::IsTrackedAreasReady(){
+bool MySQLTissueTrackingProject::IsTrackedAreasReady(){
 
 }
 
-void TissueTrackingProject::StoreTrackedCentroids(){
+void MySQLTissueTrackingProject::StoreTrackedCentroids(){
 	//TODO
 }
-void TissueTrackingProject::LoadTrackedCentroids(){
+void MySQLTissueTrackingProject::LoadTrackedCentroids(){
 	//TODO
 }
-bool TissueTrackingProject::IsTrackedCentroidsReady(){
+bool MySQLTissueTrackingProject::IsTrackedCentroidsReady(){
 	//TODO
 }
-void TissueTrackingProject::LoadTrackedPerimeter(){
+void MySQLTissueTrackingProject::LoadTrackedPerimeter(){
 	//TODO
 }
-void TissueTrackingProject::StoreTrackedPerimeter(){
+void MySQLTissueTrackingProject::StoreTrackedPerimeter(){
 	//TODO
 }
-bool TissueTrackingProject::IsTrackedPerimeterReady(){
+bool MySQLTissueTrackingProject::IsTrackedPerimeterReady(){
 
 }
 
-void TissueTrackingProject::LoadTrackedHeight(){
+void MySQLTissueTrackingProject::LoadTrackedHeight(){
 	//TODO
 }
-void TissueTrackingProject::StoreTrackedHeight(){
+void MySQLTissueTrackingProject::StoreTrackedHeight(){
 
 }
-bool TissueTrackingProject::IsTrackedHeightReady(){
+bool MySQLTissueTrackingProject::IsTrackedHeightReady(){
 
 }
-void TissueTrackingProject::LoadTrackedWidth(){
+void MySQLTissueTrackingProject::LoadTrackedWidth(){
 	//TODO
 }
-void TissueTrackingProject::StoreTrackedWidth(){
+void MySQLTissueTrackingProject::StoreTrackedWidth(){
 
 }
-bool TissueTrackingProject::IsTrackedWidthReady(){
+bool MySQLTissueTrackingProject::IsTrackedWidthReady(){
 
 }
-void TissueTrackingProject::StoreTrackedRotation(){
+void MySQLTissueTrackingProject::StoreTrackedRotation(){
 
 }
-void TissueTrackingProject::LoadTrackedRotation(){
+void MySQLTissueTrackingProject::LoadTrackedRotation(){
 
 }
 
-bool TissueTrackingProject::IsTrackedRotationReady(){
+bool MySQLTissueTrackingProject::IsTrackedRotationReady(){
 
 }
-void TissueTrackingProject::LoadTrackedEllipses() {
+void MySQLTissueTrackingProject::LoadTrackedEllipses() {
 		m_TrackedEllipses = boost::shared_ptr<EllipseMapType>(
 				new EllipseMapType);
 
@@ -1417,7 +1417,7 @@ void TissueTrackingProject::LoadTrackedEllipses() {
 		m_TrackedEllipsesDirty=true;
 	}
 
-void TissueTrackingProject::StoreTrackedEllipses() {
+void MySQLTissueTrackingProject::StoreTrackedEllipses() {
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
 
@@ -1462,7 +1462,7 @@ void TissueTrackingProject::StoreTrackedEllipses() {
 		m_TrackedEllipsesDirty = false;
 	}
 
-bool TissueTrackingProject::IsTrackedEllipsesReady() {
+bool MySQLTissueTrackingProject::IsTrackedEllipsesReady() {
 		try {
 			std::string trackedEllipsesReadyQuery(
 					"SELECT COUNT(*) FROM  TrackedEllipse WHERE TrackedEllipse.idProject=? AND TrackedEllipse.t=?");
@@ -1495,7 +1495,7 @@ bool TissueTrackingProject::IsTrackedEllipsesReady() {
 		return false;
 	}
 
-void TissueTrackingProject::LoadTrackedDomains() {
+void MySQLTissueTrackingProject::LoadTrackedDomains() {
 		std::string selectTrackedDomainsString(
 				"SELECT idTrackedCell,`order` FROM TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=? AND TrackedDomain.idTissue=? ORDER BY TrackedDomain.idTrackedCell ASC");
 		std::auto_ptr<sql::PreparedStatement> selectTrackedDomains_stmt(
@@ -1544,7 +1544,7 @@ void TissueTrackingProject::LoadTrackedDomains() {
 		}
 	}
 
-void TissueTrackingProject::StoreTrackedDomains() {
+void MySQLTissueTrackingProject::StoreTrackedDomains() {
 		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
 		try {
@@ -1633,7 +1633,7 @@ void TissueTrackingProject::StoreTrackedDomains() {
 		transStatement->execute("COMMIT;");
 	}
 
-bool TissueTrackingProject::IsTrackedDomainsReady() {
+bool MySQLTissueTrackingProject::IsTrackedDomainsReady() {
 		try {
 			std::string trackedDomainsReadyQuery(
 					"SELECT COUNT(*) FROM  TrackedDomain WHERE TrackedDomain.idProject=? AND TrackedDomain.t=?");
@@ -1667,7 +1667,7 @@ bool TissueTrackingProject::IsTrackedDomainsReady() {
 	}
 
 
-void TissueTrackingProject::LoadDomainStrainRates() {
+void MySQLTissueTrackingProject::LoadDomainStrainRates() {
 		 m_DomainStrainRates =boost::shared_ptr<DomainStrainRatesMapType>(new DomainStrainRatesMapType);
 
 		try {
@@ -1796,7 +1796,7 @@ void TissueTrackingProject::LoadDomainStrainRates() {
 	m_DomainStrainRatesReady=true;
 	}
 
-void TissueTrackingProject::StoreDomainStrainRates() {
+void MySQLTissueTrackingProject::StoreDomainStrainRates() {
 		try {
 			{
 				std::string insertTissueStrainRatesString(
@@ -1896,7 +1896,7 @@ void TissueTrackingProject::StoreDomainStrainRates() {
 		bool m_DomainStrainRatesDirty=false;
 	}
 
-bool TissueTrackingProject::IsDomainStrainRatesReady() {
+bool MySQLTissueTrackingProject::IsDomainStrainRatesReady() {
 		try {
 			std::string strainRatesReadyQuery(
 					"SELECT COUNT(*) FROM  TissueStrainRates WHERE TissueStrainRates.idProject=? AND TissueStrainRates.t=?");
@@ -1929,7 +1929,7 @@ bool TissueTrackingProject::IsDomainStrainRatesReady() {
 		return false;
 	}
 
-void TissueTrackingProject::SetProjectName(const std::string & name) {
+void MySQLTissueTrackingProject::SetProjectName(const std::string & name) {
 		try {
 
 			std::string query(
@@ -1958,7 +1958,7 @@ void TissueTrackingProject::SetProjectName(const std::string & name) {
 		}
 	}
 
-void TissueTrackingProject::SetSpacingX(double spacingX) {
+void MySQLTissueTrackingProject::SetSpacingX(double spacingX) {
 		m_Spacing[0] = spacingX;
 		try {
 
@@ -1988,7 +1988,7 @@ void TissueTrackingProject::SetSpacingX(double spacingX) {
 		}
 	}
 
-void TissueTrackingProject::SetSpacingY(double spacingY) {
+void MySQLTissueTrackingProject::SetSpacingY(double spacingY) {
 		m_Spacing[1] = spacingY;
 		try {
 
@@ -2018,7 +2018,7 @@ void TissueTrackingProject::SetSpacingY(double spacingY) {
 		}
 	}
 
-void TissueTrackingProject::SetSpacingZ(double spacingZ) {
+void MySQLTissueTrackingProject::SetSpacingZ(double spacingZ) {
 		m_Spacing[2] = spacingZ;
 		try {
 
@@ -2048,7 +2048,7 @@ void TissueTrackingProject::SetSpacingZ(double spacingZ) {
 		}
 	}
 
-void TissueTrackingProject::SetSamplingRate(double rate) {
+void MySQLTissueTrackingProject::SetSamplingRate(double rate) {
 		try {
 
 			std::string query(
@@ -2077,7 +2077,7 @@ void TissueTrackingProject::SetSamplingRate(double rate) {
 		}
 	}
 
-void TissueTrackingProject::SetHighestScale(double scale) {
+void MySQLTissueTrackingProject::SetHighestScale(double scale) {
 		try {
 
 			std::string query(
@@ -2106,7 +2106,7 @@ void TissueTrackingProject::SetHighestScale(double scale) {
 		}
 	}
 
-void TissueTrackingProject::SetLowestScale(double scale) {
+void MySQLTissueTrackingProject::SetLowestScale(double scale) {
 		try {
 
 			std::string query(
@@ -2134,7 +2134,7 @@ void TissueTrackingProject::SetLowestScale(double scale) {
 			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		}
 	}
-void TissueTrackingProject::SetScaleSteps(int nscales) {
+void MySQLTissueTrackingProject::SetScaleSteps(int nscales) {
 		try {
 
 			std::string query(
@@ -2163,7 +2163,7 @@ void TissueTrackingProject::SetScaleSteps(int nscales) {
 		}
 	}
 
-double TissueTrackingProject::GetLowestScale() {
+double MySQLTissueTrackingProject::GetLowestScale() {
 		try {
 			std::string query(
 					"SELECT lowestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
@@ -2195,7 +2195,7 @@ double TissueTrackingProject::GetLowestScale() {
 		}
 		return -1;
 	}
-double TissueTrackingProject::GetHighestScale() {
+double MySQLTissueTrackingProject::GetHighestScale() {
 		try {
 			std::string query(
 					"SELECT highestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
@@ -2228,7 +2228,7 @@ double TissueTrackingProject::GetHighestScale() {
 		return -1;
 	}
 
-int TissueTrackingProject::GetScaleSteps() {
+int MySQLTissueTrackingProject::GetScaleSteps() {
 		try {
 			std::string query(
 					"SELECT steps FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
@@ -2260,7 +2260,7 @@ int TissueTrackingProject::GetScaleSteps() {
 		}
 		return -1;
 	}
-int TissueTrackingProject::GetNumTracks() {
+int MySQLTissueTrackingProject::GetNumTracks() {
 			try {
 				std::string query(
 						"SELECT Count(Distinct(trackId)) from TrackedCell WHERE TrackedCell.idProject=?");
@@ -2292,7 +2292,7 @@ int TissueTrackingProject::GetNumTracks() {
 			return -1;
 		}
 
-bool TissueTrackingProject::isImageInTable(const std::string & table, int frame) {
+bool MySQLTissueTrackingProject::isImageInTable(const std::string & table, int frame) {
 		std::stringstream ss;
 		try {
 			ss << "SELECT COUNT(*) FROM " << table << " WHERE " << table
@@ -2328,7 +2328,7 @@ bool TissueTrackingProject::isImageInTable(const std::string & table, int frame)
 
 	}
 
-template<class TImage> typename TImage::Pointer TissueTrackingProject::readImageFromTable(
+template<class TImage> typename TImage::Pointer MySQLTissueTrackingProject::readImageFromTable(
 			const std::string & table, int frame) {
 		typedef itk::ImageFileReader<TImage> ReaderType;
 		typename ReaderType::Pointer reader = ReaderType::New();
@@ -2379,7 +2379,7 @@ template<class TImage> typename TImage::Pointer TissueTrackingProject::readImage
 		return NULL;
 	}
 
-template<class TImage> void TissueTrackingProject::storeImageInTable(
+template<class TImage> void MySQLTissueTrackingProject::storeImageInTable(
 			const typename TImage::Pointer & image, const std::string & table,
 			unsigned int frame) {
 

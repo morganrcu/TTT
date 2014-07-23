@@ -174,7 +174,7 @@ int main(int argc,char ** argv){
 
 	//1. Read GT from DB
 
-	ttt::TissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject m_Project;
 
 	int projectNum=atoi(argv[1]);
 	m_Project.openDB();

@@ -79,7 +79,7 @@ private:
     vtkSmartPointer<QVTKInteractor> m_NextRenderWindowInteractor;
     vtkSmartPointer<MouseInteractorStyle> m_NextInteractionStyle;
 
-    ttt::TissueTrackingProject m_Project;
+    ttt::MySQLTissueTrackingProject m_Project;
 
     ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_NowPrimalDrawer;
     DefaultColorer<ttt::SkeletonVertexType> m_NowVertexColorer;

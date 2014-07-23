@@ -18,7 +18,7 @@
 #include "DefaultColorer.h"
 
 
-#include "mysqltissuetrackingproject.h"
+#include "tissuetrackingabstractproject.h"
 namespace Ui {
 class TTTExplorer;
 }
@@ -30,7 +30,7 @@ class TTTExplorer : public QDialog
 public:
     explicit TTTExplorer(QWidget *parent = 0);
     ~TTTExplorer();
-    void SetProject(ttt::TissueTrackingProject * project);
+    void SetProject(ttt::TissueTrackingAbstractProject * project);
 private slots:
 	void SetFrame(int frame);
 	void ExportMovie();
@@ -49,7 +49,7 @@ private slots:
 
 
 private:
-	ttt::TissueTrackingProject * m_Project;
+	ttt::TissueTrackingAbstractProject * m_Project;
 
 private:
     Ui::TTTExplorer *m_pUI;

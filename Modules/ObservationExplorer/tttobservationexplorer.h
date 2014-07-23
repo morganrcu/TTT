@@ -50,7 +50,7 @@ private:
 
     vtkSmartPointer<MouseInteractorStyle> m_InteractionStyle;
 
-    ttt::TissueTrackingProject m_Project;
+    ttt::MySQLTissueTrackingProject m_Project;
 
     ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalDrawer;
     DefaultColorer<ttt::SkeletonVertexType> m_VertexColorer;

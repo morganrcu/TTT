@@ -28,7 +28,7 @@ namespace ttt{
 class DataCastingCommand : public AppCommand{
 public:
 
-	typedef itk::Image<unsigned char,3> InputImageType;
+	typedef itk::Image<float,3> InputImageType;
 	typedef itk::Image<float,3> OutputImageType;
 private:
 

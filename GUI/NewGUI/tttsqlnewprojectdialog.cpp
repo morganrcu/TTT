@@ -20,11 +20,11 @@ SQLNewProjectDialog::~SQLNewProjectDialog()
 }
 void SQLNewProjectDialog::accept(){
 
-	typedef itk::Image<unsigned char,3> ImageType;
+	typedef typename MySQLTissueTrackingProject::RawImageType ImageType;
 	typedef itk::ImageFileReader<ImageType> ReaderType;
 	ReaderType::Pointer reader=ReaderType::New();
 
-    m_NewProject = new TissueTrackingProject;
+    m_NewProject = new MySQLTissueTrackingProject;
 
     std::string name = this->ui->projectNameLabel->text().toStdString();
     std::string projectPath = this->ui->wdLineEdit->text().toStdString();

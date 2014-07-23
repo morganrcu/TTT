@@ -46,6 +46,8 @@ private:
      */
     float m_LocalMaxThreshold;
 
+    float m_Radius;
+
 public:
     /**
      * TODO
@@ -81,6 +83,10 @@ public:
 	 */
 	virtual ~VertexLocationCommand(){
 
+	}
+
+	virtual void SetRadius(float radius){
+		m_Radius=radius;
 	}
 	/**
 	 * TODO

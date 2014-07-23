@@ -150,7 +150,7 @@ int main(int argc,char ** argv){
 
 	//2. Leer gt
 
-	ttt::TissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject m_Project;
 	m_Project.SetHost("localhost");
 	m_Project.SetDBName("TuftsTissueTracker");
 	m_Project.SetUser("root");

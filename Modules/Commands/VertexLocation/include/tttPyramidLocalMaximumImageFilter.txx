@@ -47,6 +47,35 @@ template<class TInputImage> void PyramidLocalMaximumImageFilter<TInputImage>::Ge
 					bool max = true;
 					typename InputImageType::OffsetType offset;
 
+					for (int checkLevel=0;checkLevel<numLevels;checkLevel++){
+						for (int i = -1; i <= 1 && max; i++) {
+							offset[0] = i;
+							for (int j = -1; j <= 1 && max; j++) {
+								offset[1] = j;
+								for (int k = -1; k <= 1 && max; k++) {
+									if (i == 0 && j == 0 && k == 0 && checkLevel==level)
+										continue;
+									offset[2] = k;
+
+									typename InputImageType::IndexType neigh = position
+											+ offset;
+
+									if (neigh[0] < 0 || neigh[1] < 0 || neigh[2] < 0
+											|| neigh[0] >= size[0]
+											|| neigh[1] >= size[1]
+											|| neigh[2] >= size[2])
+										continue;
+
+									if (m_Inputs[checkLevel]->GetPixel(neigh)
+											> centerValue) {
+										max = false;
+									}
+
+								}
+							}
+						}
+					}
+#if 0
 					for (int i = -1; i <= 1 && max; i++) {
 						offset[0] = i;
 						for (int j = -1; j <= 1 && max; j++) {
@@ -124,7 +153,7 @@ template<class TInputImage> void PyramidLocalMaximumImageFilter<TInputImage>::Ge
 							}
 						}
 					}
-
+#endif
 					if (max) {
 						ttt::AdherensJunctionVertex::Pointer maxIndex =
 								ttt::AdherensJunctionVertex::New();

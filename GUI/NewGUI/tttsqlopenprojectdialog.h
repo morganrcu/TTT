@@ -31,7 +31,7 @@ public:
      * TODO
      * @return
      */
-    inline TissueTrackingProject * GetProject(){
+    inline MySQLTissueTrackingProject * GetProject(){
     	return m_Project;
     }
     /**
@@ -56,7 +56,7 @@ private:
     /**
      *
      */
-    TissueTrackingProject * m_Project;
+    MySQLTissueTrackingProject * m_Project;
 
     /**
      *
