@@ -404,7 +404,7 @@ void TTTMainWindow::Save(){
 }
 
 void TTTMainWindow::SamplingRateChanged(double rate){
-	this->m_Project->SetSamplingRate(rate);
+	this->m_Project->SetSamplingPeriod(rate);
 }
 void TTTMainWindow::ProjectNameChanged(const QString & name){
 	this->m_Project->SetProjectName(name.toStdString());
@@ -418,15 +418,26 @@ void TTTMainWindow::SpacingYChanged(double value){
 void TTTMainWindow::SpacingZChanged(double value){
 	this->m_Project->SetSpacingZ(value);
 }
-void TTTMainWindow::LowestScaleChanged(double scale){
-	m_Project->SetLowerPlatenessScale(scale);
+void TTTMainWindow::PlatenessLowestScaleChanged(double scale){
+	m_Project->SetLowestPlatenessScale(scale);
 }
-void TTTMainWindow::HighestScaleChanged(double scale){
-	m_Project->SetHigherPlatenessScale(scale);
+void TTTMainWindow::PlatenessHighestScaleChanged(double scale){
+	m_Project->SetHighestPlatenessScale(scale);
 }
-void TTTMainWindow::ScaleStepsChanged(int steps){
+void TTTMainWindow::PlatenessScaleStepsChanged(int steps){
 	m_Project->SetPlatenessSteps(steps);
 }
+
+void TTTMainWindow::VertexnessLowestScaleChanged(double scale){
+	m_Project->SetLowestVertexnessScale(scale);
+}
+void TTTMainWindow::VertexnessHighestScaleChanged(double scale){
+	m_Project->SetHighestVertexnessScale(scale);
+}
+void TTTMainWindow::VertexnessScaleStepsChanged(int steps){
+	m_Project->SetVertexnessSteps(steps);
+}
+
 
 void TTTMainWindow::SetupCurrentTab(){
 	int selectedPage= this->m_pUI->stepsTabs->currentIndex();
@@ -633,7 +644,7 @@ void TTTMainWindow::SetupProjectTab(){
     this->m_pUI->yDoubleSpinBox->setValue(spacing[1]);
     this->m_pUI->zDoubleSpinBox->setValue(spacing[2]);
 
-    this->m_pUI->incrementDoubleSpinBox->setValue(this->m_Project->GetTemporalScale());
+    this->m_pUI->incrementDoubleSpinBox->setValue(this->m_Project->GetSamplingPeriod());
 
     this->m_pUI->nameLineEdit->setText(QString::fromStdString(this->m_Project->GetProjectName()));
 
@@ -804,8 +815,8 @@ void TTTMainWindow::DoAllScale(){
 
 void TTTMainWindow::SetupMembranessFrame(int frame){
 	this->m_Project->SetFrame(this->m_pUI->membranessSlider->value());
-	this->m_pUI->lowestScaleDoubleSpinBox->setValue(m_Project->GetLowerPlatenessScale());
-	this->m_pUI->highestScaleDoubleSpinBox->setValue(m_Project->GetHigherPlatenessScale());
+	this->m_pUI->lowestScaleDoubleSpinBox->setValue(m_Project->GetLowestPlatenessScale());
+	this->m_pUI->highestScaleDoubleSpinBox->setValue(m_Project->GetHighestPlatenessScale());
 	this->m_pUI->stepsSpinBox->setValue(m_Project->GetPlatenessSteps());
 	this->DrawRangePlateness();
 
@@ -851,8 +862,8 @@ void TTTMainWindow::EnhanceAndDraw(){
 
 void TTTMainWindow::DoEnhance(){
 
-	double lowestScale = this->m_Project->GetLowerPlatenessScale();
-	double highestScale = this->m_Project->GetHigherPlatenessScale();
+	double lowestScale = this->m_Project->GetLowestPlatenessScale();
+	double highestScale = this->m_Project->GetHighestPlatenessScale();
 	int rangeScale = this->m_Project->GetPlatenessSteps();
 
 	int iterations = this->m_pUI->enhanceIterations->value();

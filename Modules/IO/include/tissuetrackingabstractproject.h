@@ -17,8 +17,9 @@ namespace ttt{
 class TissueTrackingAbstractProject{
 public:
 
+	//TTT object types
+
 	typedef itk::Image<float, 3> RawImageType;
-	//typedef itk::Image<unsigned char, 3> SurfaceSegmentedImageType;
 	typedef itk::Image<float, 3> DiffusedImageType;
 	typedef itk::Image<float, 3> PlatenessImageType;
 	typedef itk::Image<itk::Vector<float, 3>, 3> OrientationImageType;
@@ -39,31 +40,57 @@ public:
 	typedef std::vector<ttt::TrackedDomain> TrackedDomainVectorType;
 	typedef boost::shared_ptr<TrackedDomainVectorType> TrackedDomainVectorTypePointer;
 
+
+
+
 	typedef RawImageType::RegionType RegionType;
 	typedef RawImageType::SizeType SizeType;
 
+
+protected:
+
+	//SpatioTemporal properties of the project
 	RegionType m_Region;
 	SpacingType m_Spacing;
-	double m_TimeDelta;
+	double m_SamplingPeriod;
 
-	std::string m_WorkingDirectory;
+	//Description
+
 	std::string m_ProjectName;
 
+	//ScaleSpace properties
 
-	double m_LowerPlatenessScale;
-	double m_HigherPlatenessScale;
+	double m_LowestPlatenessScale;
+	double m_HighestPlatenessScale;
 	double m_PlatenessSteps;
 
-	double m_LowerVertexnessScale;
-	double m_HigherVertexnessScale;
+	double m_LowestVertexnessScale;
+	double m_HighestVertexnessScale;
 	double m_VertexnessSteps;
 
 
 	unsigned int m_Frame;
 public:
+
+	//GETTERS AND SETTERS FOR SPATIOTEMPORAL PROPERTIES
+
 	inline SpacingType GetSpacing() {
 		return m_Spacing;
 	}
+	inline void SetSpacing(SpacingType & spacing){
+		m_Spacing=spacing;
+	}
+
+	inline double GetSpacingX(){
+		return m_Spacing[0];
+	}
+	inline double GetSpacingY(){
+		return m_Spacing[1];
+	}
+	inline double GetSpacingZ(){
+		return m_Spacing[2];
+	}
+
 	inline void SetSpacingX(double spacingX){
 		m_Spacing[0]=spacingX;
 	}
@@ -73,22 +100,21 @@ public:
 	inline void SetSpacingZ(double spacingZ){
 		m_Spacing[2]=spacingZ;
 	}
-	inline void SetSamplingRate(double samplingRate){
-		m_TimeDelta=samplingRate;
+	inline void SetSamplingPeriod(double samplingPeriod){
+		m_SamplingPeriod=samplingPeriod;
 	}
 
-	inline void SetLowerPlatenessScale(double lowerPlatenessScale){
-		m_LowerPlatenessScale=lowerPlatenessScale;
+	inline void SetLowestPlatenessScale(double lowerPlatenessScale){
+		m_LowestPlatenessScale=lowerPlatenessScale;
 	}
-
-	inline void SetHigherPlatenessScale(double higherPlatenessScale){
-		m_HigherPlatenessScale=higherPlatenessScale;
+	inline void SetHighestPlatenessScale(double higherPlatenessScale){
+		m_HighestPlatenessScale=higherPlatenessScale;
 	}
-	inline double GetHigherPlatenessScale(){
-		return m_HigherPlatenessScale;
+	inline double GetHighestPlatenessScale(){
+		return m_HighestPlatenessScale;
 	}
-	inline double GetLowerPlatenessScale(){
-		return m_LowerPlatenessScale;
+	inline double GetLowestPlatenessScale(){
+		return m_LowestPlatenessScale;
 	}
 	inline int GetPlatenessSteps(){
 		return m_PlatenessSteps;
@@ -97,8 +123,28 @@ public:
 		m_PlatenessSteps=platenessSteps;
 	}
 
-	inline double GetTemporalScale() {
-		return m_TimeDelta;
+	inline void SetLowestVertexnessScale(double lowestVertexnessScale){
+		m_LowestVertexnessScale=lowestVertexnessScale;
+	}
+	inline void SetHighestVertexnessScale(double higherVertexnessScale){
+		m_HighestVertexnessScale=higherVertexnessScale;
+	}
+	inline double GetHighestVertexnessScale(){
+		return m_HighestVertexnessScale;
+	}
+	inline double GetLowestVertexnessScale(){
+		return m_LowestVertexnessScale;
+	}
+	inline int GetVertexnessSteps(){
+		return m_VertexnessSteps;
+	}
+	inline void SetVertexnessSteps(int vertexnessSteps){
+		m_VertexnessSteps=vertexnessSteps;
+	}
+
+
+	inline double GetSamplingPeriod() {
+		return m_SamplingPeriod;
 	}
 
 	inline void SetProjectName(const std::string & projectName){
@@ -108,9 +154,16 @@ public:
 	inline std::string GetProjectName() {
 		return m_ProjectName;
 	}
+
+
 	RegionType::SizeType GetSize(){
 		return m_Region.GetSize();
 	}
+
+	virtual void LoadProjectInfo()=0;
+	virtual void StoreProjectInfo()=0;
+
+
 	int GetFrame() {
 		return m_Frame;
 	}
@@ -120,13 +173,19 @@ public:
 		this->Clear();
 	}
 
+
+
 	virtual void NewFrame(int numFrame)=0;
 	virtual unsigned int GetNumFrames()=0;
 
+	/**
+	 * Method to write into disk all the cached objects.
+	 */
 	void Flush() {
 		if (this->m_RawImageDirty) {
 			this->StoreRawImage();
 		}
+		/**
 		if (this->m_CLAHEDImageDirty) {
 			this->StoreCLAHEDImage();
 		}
@@ -136,6 +195,7 @@ public:
 		if (this->m_SurfaceSegmentedImageDirty) {
 			this->StoreSurfaceSegmentedImage();
 		}
+		*/
 		if (this->m_DiffusedImageDirty) {
 			this->StoreDiffusedImage();
 		}
@@ -161,12 +221,15 @@ public:
 			this->StoreDomainStrainRates();
 		}
 	}
+
 	void Clear() {
 
 		this->m_RawImage = 0;
+#if 0
 		this->m_CLAHEDImage = 0;
 		this->m_LateralImageVolumeSegmentedImage = 0;
 		this->m_SurfaceSegmentedImage = 0;
+#endif
 		this->m_DiffusedImage = 0;
 		this->m_PlatenessImage = 0;
 		this->m_VertexnessImage = 0;
@@ -175,9 +238,11 @@ public:
 		this->m_TrackedTissueDescriptor=0;
 
 		this->m_RawImageLoaded=false;
+#if 0
 		this->m_CLAHEDImageLoaded=false;
 		this->m_LateralImageVolumeSegmentedImageLoaded=false;
 		this->m_SurfaceSegmentedImageLoaded=false;
+#endif
 		this->m_DiffusedImageLoaded=false;
 		this->m_PlatenessImageLoaded=false;
 		this->m_VertexnessImageLoaded=false;
@@ -236,9 +301,9 @@ public: \
 
 
 	tttImageMacro(RawImage,RawImageType,"RawImages")
-	;tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages")
-	;tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages")
-	;tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages")
+	//;tttImageMacro(LateralImageVolumeSegmentedImage,RawImageType,"LateralImageVolumeSegmentedImages")
+	//;tttImageMacro(CLAHEDImage,RawImageType,"CLAHEDImages")
+	//;tttImageMacro(SurfaceSegmentedImage,RawImageType,"SurfaceSegmentedImages")
 	;tttImageMacro(DiffusedImage,DiffusedImageType,"DiffusedImages")
 	;tttImageMacro(PlatenessImage,PlatenessImageType,"PlatenessImages")
 	;tttImageMacro(VertexnessImage,VertexnessImageType,"VertexnessImages")

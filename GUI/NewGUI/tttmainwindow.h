@@ -264,9 +264,14 @@ private slots:
 	void LaunchProjectExplorer();
 	void LaunchPreferences();
 
-	void LowestScaleChanged(double scale);
-	void HighestScaleChanged(double scale);
-	void ScaleStepsChanged(int steps);
+	void PlatenessLowestScaleChanged(double scale);
+	void PlatenessHighestScaleChanged(double scale);
+	void PlatenessScaleStepsChanged(int steps);
+
+	void VertexnessLowestScaleChanged(double scale);
+	void VertexnessHighestScaleChanged(double scale);
+	void VertexnessScaleStepsChanged(int steps);
+
 	void ProjectNameChanged(const QString & name);
 	void SamplingRateChanged(double rate);
 	void SpacingXChanged(double value);

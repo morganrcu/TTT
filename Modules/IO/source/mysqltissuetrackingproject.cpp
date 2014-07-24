@@ -10,7 +10,7 @@ namespace ttt {
 
 MySQLTissueTrackingProject::MySQLTissueTrackingProject() : TissueTrackingAbstractProject(),m_Host("localhost"), m_DBName("TuftsTissueTracker"),m_User("root"),m_Password("ttt1Tracker") {
 	m_ProjectID = 0;
-	m_TimeDelta = -1;
+	m_SamplingPeriod = -1;
 	m_Frame = 0;
 	m_Driver = sql::mysql::get_driver_instance();
 }
@@ -60,59 +60,145 @@ bool MySQLTissueTrackingProject::openDB() {
 }
 
 void MySQLTissueTrackingProject::OpenProject(int projectID) {
-
-		try {
-			m_ProjectID = projectID;
-			std::auto_ptr<sql::PreparedStatement> prep_stmt(
-					m_DB->prepareStatement(
-							"SELECT spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,timeDelta,workingDirectory,name from Project WHERE Project.idProject=?"));
-
-			prep_stmt->setInt(1, m_ProjectID);
-
-			prep_stmt->execute();
-
-			std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
-
-
-			assert(res->next());
-			m_Spacing[0] = res->getDouble("spacingX");
-
-			m_Spacing[1] = res->getDouble("spacingX");
-
-			m_Spacing[2] = res->getDouble("spacingZ");
-			m_WorkingDirectory = res->getString("workingDirectory");
-			m_ProjectName = res->getString("name");
-			m_Region.SetIndex(0, 0);
-			m_Region.SetIndex(1, 0);
-			m_Region.SetIndex(2, 0);
-
-			m_Region.SetSize(0, res->getInt("sizeX"));
-			m_Region.SetSize(1, res->getInt("sizeY"));
-			m_Region.SetSize(2, res->getInt("sizeZ"));
-
-			m_TimeDelta = res->getDouble("timeDelta");
-		} catch (sql::SQLException &e) {
-			/*
-			 The MySQL Connector/C++ throws three different exceptions:
-
-			 - sql::MethodNotImplementedException (derived from sql::SQLException)
-			 - sql::InvalidArgumentException (derived from sql::SQLException)
-			 - sql::SQLException (derived from std::runtime_error)
-			 */
-			cout << "# ERR: SQLException in " << __FILE__ << ":" << __LINE__;
-			//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-			/* Use what() (derived from std::runtime_error) to fetch the error message */
-			cout << "# ERR: " << e.what();
-			cout << " (MySQL error code: " << e.getErrorCode();
-			cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-			exit(-1);
-
-		}
+	m_ProjectID = projectID;
 }
 
+void MySQLTissueTrackingProject::LoadProjectInfo(){
+	try {
+		std::auto_ptr<sql::PreparedStatement> prep_stmt(
+				m_DB->prepareStatement(
+						"SELECT spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,samplingPeriod,workingDirectory,name from Project WHERE Project.idProject=?"));
+
+		prep_stmt->setInt(1, m_ProjectID);
+		prep_stmt->execute();
+
+		std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+
+
+		assert(res->next());
+		m_Spacing[0] = res->getDouble("spacingX");
+
+		m_Spacing[1] = res->getDouble("spacingX");
+
+		m_Spacing[2] = res->getDouble("spacingZ");
+		m_WorkingDirectory = res->getString("workingDirectory");
+		m_ProjectName = res->getString("name");
+
+		m_Region.SetIndex(0, 0);
+		m_Region.SetIndex(1, 0);
+		m_Region.SetIndex(2, 0);
+
+		m_Region.SetSize(0, res->getInt("sizeX"));
+		m_Region.SetSize(1, res->getInt("sizeY"));
+		m_Region.SetSize(2, res->getInt("sizeZ"));
+
+		m_SamplingPeriod = res->getDouble("samplingPeriod");
+	} catch (sql::SQLException &e) {
+		/*
+		 The MySQL Connector/C++ throws three different exceptions:
+
+		 - sql::MethodNotImplementedException (derived from sql::SQLException)
+		 - sql::InvalidArgumentException (derived from sql::SQLException)
+		 - sql::SQLException (derived from std::runtime_error)
+		 */
+		cout << "# ERR: SQLException in " << __FILE__ << ":" << __LINE__;
+		//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+		/* Use what() (derived from std::runtime_error) to fetch the error message */
+		cout << "# ERR: " << e.what();
+		cout << " (MySQL error code: " << e.getErrorCode();
+		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		exit(-1);
+
+	}
+}
+
+
+void MySQLTissueTrackingProject::StoreProjectInfo(){
+
+	try {
+
+		std::string query(
+				"UPDATE Project SET Project.spacingX=?, Project.spacingY=?, Project.spacingZ=?,Project.samplingPeriod=?,Project.name=?,Project.sizeX=?,Project.sizeY=?,Project.sizeZ=? WHERE Project.idProject=?");
+		std::auto_ptr<sql::PreparedStatement> prep_stmt(
+				m_DB->prepareStatement(query));
+
+		prep_stmt->setDouble(1, m_Spacing[0]); //IDproject==2
+		prep_stmt->setDouble(2, m_Spacing[1]); //IDproject==2
+		prep_stmt->setDouble(3, m_Spacing[2]); //IDproject==2
+		prep_stmt->setDouble(4, m_SamplingPeriod); //IDproject==2
+		prep_stmt->setString(5, m_ProjectName); //IDproject==2
+		prep_stmt->setInt(6, m_Region.GetSize(0)); //IDproject==2
+		prep_stmt->setInt(7, m_Region.GetSize(1)); //IDproject==2
+		prep_stmt->setInt(8, m_Region.GetSize(2)); //IDproject==2
+
+
+		prep_stmt->setInt(9, m_ProjectID); //IDproject==2
+
+		prep_stmt->execute();
+	} catch (sql::SQLException &e) {
+		/*
+		 The MySQL Connector/C++ throws three different exceptions:
+
+		 - sql::MethodNotImplementedException (derived from sql::SQLException)
+		 - sql::InvalidArgumentException (derived from sql::SQLException)
+		 - sql::SQLException (derived from std::runtime_error)
+		 */
+		cout << "# ERR: SQLException in " << __FILE__;
+		//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+		/* Use what() (derived from std::runtime_error) to fetch the error message */
+		cout << "# ERR: " << e.what();
+		cout << " (MySQL error code: " << e.getErrorCode();
+		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	}
+
+
+}
+void MySQLTissueTrackingProject::LoadFrameInfo(){
+
+			try {
+				std::string query(
+						"SELECT platenessSteps,platenessHighestScale,platenessLowestScale,vertexnessSteps,vertexnessLowestScale,vertexnessHighestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
+				std::auto_ptr<sql::PreparedStatement> prep_stmt(
+						m_DB->prepareStatement(query));
+
+				prep_stmt->setInt(1, m_ProjectID); //IDproject==2
+				prep_stmt->setInt(2, m_Frame); //IDproject==2
+				prep_stmt->execute();
+
+				std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+				res->next();
+				this->m_PlatenessSteps=res->getInt("platenessSteps");
+				this->m_HighestPlatenessScale=res->getDouble("platenessHighestScale");
+				this->m_LowestPlatenessScale = res->getDouble("platenessLowestScale");
+
+				this->m_VertexnessSteps=res->getInt("vertexnessSteps");
+				this->m_LowestVertexnessScale=res->getDouble("vertexnessLowestScale");
+				this->m_HighestVertexnessScale=res->getDouble("vertexnessHighestScale");
+			} catch (sql::SQLException &e) {
+				/*
+				 The MySQL Connector/C++ throws three different exceptions:
+
+				 - sql::MethodNotImplementedException (derived from sql::SQLException)
+				 - sql::InvalidArgumentException (derived from sql::SQLException)
+				 - sql::SQLException (derived from std::runtime_error)
+				 */
+				cout << "# ERR: SQLException in " << __FILE__;
+				//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
+				/* Use what() (derived from std::runtime_error) to fetch the error message */
+				cout << "# ERR: " << e.what();
+				cout << " (MySQL error code: " << e.getErrorCode();
+				cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+			}
+
+
+}
+void MySQLTissueTrackingProject::StoreFrameInfo(){
+	//TODO
+}
 void MySQLTissueTrackingProject::NewProject(const std::string & name,
 			const std::string & workingDirectory, double spacingX,
-			double spacingY, double spacingZ, double timeDelta,
+			double spacingY, double spacingZ, double samplingPeriod,
 			unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ) {
 
 		m_Spacing[0] = spacingX;
@@ -131,7 +217,7 @@ void MySQLTissueTrackingProject::NewProject(const std::string & name,
 		try {
 			std::auto_ptr<sql::PreparedStatement> prep_stmt(
 					m_DB->prepareStatement(
-							"INSERT into Project (spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,timeDelta,name,workingDirectory) values (?, ?, ?, ?, ?, ?, ?, ?,?)"));
+							"INSERT into Project (spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,samplingPeriod,name,workingDirectory) values (?, ?, ?, ?, ?, ?, ?, ?,?)"));
 
 			prep_stmt->setDouble(1, spacingX);
 			prep_stmt->setDouble(2, spacingY);
@@ -139,7 +225,7 @@ void MySQLTissueTrackingProject::NewProject(const std::string & name,
 			prep_stmt->setInt(4, sizeX);
 			prep_stmt->setInt(5, sizeY);
 			prep_stmt->setInt(6, sizeZ);
-			prep_stmt->setInt(7, timeDelta);
+			prep_stmt->setInt(7, samplingPeriod);
 			prep_stmt->setString(8, name);
 			prep_stmt->setString(9, workingDirectory);
 			prep_stmt->execute();
@@ -1928,7 +2014,7 @@ bool MySQLTissueTrackingProject::IsDomainStrainRatesReady() {
 		}
 		return false;
 	}
-
+#if 0
 void MySQLTissueTrackingProject::SetProjectName(const std::string & name) {
 		try {
 
@@ -2260,6 +2346,10 @@ int MySQLTissueTrackingProject::GetScaleSteps() {
 		}
 		return -1;
 	}
+#endif
+
+
+
 int MySQLTissueTrackingProject::GetNumTracks() {
 			try {
 				std::string query(

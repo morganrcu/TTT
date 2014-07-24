@@ -101,7 +101,7 @@ MultiScaleHessianSmoothed3DToObjectnessMeasureImageFilter
 
   while ( sigma <= m_SigmaMax )
     {
-    std::cout << "Computing vesselness for scale with sigma= " 
+    std::cout << "Computing objectness for scale with sigma= "
               << sigma << std::endl;
 
     m_HessianFilter->SetSigma( sigma );
