@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.8)
 SET(CMAKE_BUILD_TYPE Debug)
 
 #SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall -O3" )
-SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall" )
+SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall -std=c++0x -fpermissive" )
 
 INCLUDE(CPack)
 

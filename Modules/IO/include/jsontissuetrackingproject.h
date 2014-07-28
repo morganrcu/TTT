@@ -77,6 +77,9 @@ public:
 	virtual void LoadDomainStrainRates();
 	virtual void StoreDomainStrainRates();
 	virtual bool IsDomainStrainRatesReady();
+
+	void readImage(const std::string & table, int frame);
+	void storeImage(const std::string & table, int frame);
 };
 }
 

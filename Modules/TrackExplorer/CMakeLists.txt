@@ -62,7 +62,7 @@ target_link_libraries(TTTTrackExplorer
 					TTTVertexLocation
 					TTTIO
 					mysqlcppconn
-					
+					jsoncpp
 					
 					)
 

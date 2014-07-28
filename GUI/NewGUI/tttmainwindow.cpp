@@ -624,7 +624,7 @@ void TTTMainWindow::SetupSliders(int length){
 void TTTMainWindow::SetupProjectTab(){
 
 	//1. Setup project view
-
+#if 0
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName(m_Host);
     db.setPort(m_Port);
@@ -634,21 +634,20 @@ void TTTMainWindow::SetupProjectTab(){
 
     bool ok=db.open();
 
+
     std::cout << db.lastError().databaseText().toStdString() << std::endl;
 
-    assert(ok);
 
+    assert(ok);
+#endif
     ttt::TissueTrackingAbstractProject::SpacingType spacing=m_Project->GetSpacing();
 
     this->m_pUI->xDoubleSpinBox->setValue(spacing[0]);
     this->m_pUI->yDoubleSpinBox->setValue(spacing[1]);
     this->m_pUI->zDoubleSpinBox->setValue(spacing[2]);
-
     this->m_pUI->incrementDoubleSpinBox->setValue(this->m_Project->GetSamplingPeriod());
-
     this->m_pUI->nameLineEdit->setText(QString::fromStdString(this->m_Project->GetProjectName()));
-
-
+#if 0
     if(ok){
     	QSqlRelationalTableModel *model = new QSqlRelationalTableModel(this,db);
     	model->setTable("Frame");
@@ -656,9 +655,13 @@ void TTTMainWindow::SetupProjectTab(){
     	model->setEditStrategy(QSqlTableModel::OnRowChange);
     	model->select();
     	this->m_pUI->framesTable->setModel(model);
-    	this->HighlightProjectFrame(0);
 
     }
+#endif
+    CellFeatureTableModel * projectModel = new CellFeatureTableModel(this->m_Project,this);
+    this->m_pUI->framesTable->setModel(projectModel);
+    this->HighlightProjectFrame(0);
+
 }
 
 void TTTMainWindow::HighlightProjectFrame(int frame){
