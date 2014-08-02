@@ -9,7 +9,7 @@
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkSmartPointer.h>
 
-#include <mysqltissuetrackingproject.h>
+#include "tissuetrackingabstractproject2.h"
 #include "PrimalGraphDrawer.h"
 #include "DefaultColorer.h"
 

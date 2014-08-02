@@ -5,7 +5,7 @@
 #define SQLOPENPROJECTDIALOG_H
 
 #include <QDialog>
-#include <mysqltissuetrackingproject.h>
+#include "mysqltissuetrackingproject2.h"
 namespace Ui {
 
 class SQLOpenProjectDialog;
@@ -31,7 +31,7 @@ public:
      * TODO
      * @return
      */
-    inline MySQLTissueTrackingProject * GetProject(){
+    inline TissueTrackingAbstractProject2 * GetProject(){
     	return m_Project;
     }
     /**
@@ -56,7 +56,7 @@ private:
     /**
      *
      */
-    MySQLTissueTrackingProject * m_Project;
+    MySQLTissueTrackingProject2 * m_Project;
 
     /**
      *

@@ -6,7 +6,7 @@
 
 
 #include <QDialog>
-#include <mysqltissuetrackingproject.h>
+#include "tissuetrackingabstractproject2.h"
 
 namespace Ui {
     class SQLNewProjectDialog;
@@ -19,7 +19,7 @@ class SQLNewProjectDialog : public QDialog
 public:
     explicit SQLNewProjectDialog(QWidget *parent = 0);
     ~SQLNewProjectDialog();
-    MySQLTissueTrackingProject * GetNewProject(){
+    TissueTrackingAbstractProject2 * GetNewProject(){
     	return m_NewProject;
 
     }
@@ -37,7 +37,7 @@ private:
 
     bool m_Accepted;
 
-    MySQLTissueTrackingProject * m_NewProject;
+    TissueTrackingAbstractProject2 * m_NewProject;
 };
 
 

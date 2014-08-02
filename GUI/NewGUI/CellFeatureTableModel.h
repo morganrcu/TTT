@@ -8,12 +8,13 @@
 #ifndef CELLFEATURETABLEMODEL_H_
 #define CELLFEATURETABLEMODEL_H_
 #include <QAbstractTableModel>
-#include "mysqltissuetrackingproject.h"
+#include "tissuetrackingabstractproject2.h"
 class CellFeatureTableModel : public QAbstractTableModel{
 	Q_OBJECT
-	ttt::TissueTrackingAbstractProject * m_Project;
+	ttt::TissueTrackingAbstractProject2 * m_Project;
+	unsigned int m_Frame;
 public:
-	CellFeatureTableModel(ttt::TissueTrackingAbstractProject * project,QObject * parent);
+	CellFeatureTableModel(ttt::TissueTrackingAbstractProject2 * project,unsigned int frame,QObject * parent);
     int rowCount(const QModelIndex &parent = QModelIndex()) const ;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;

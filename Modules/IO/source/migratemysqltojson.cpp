@@ -1,13 +1,20 @@
 #include "jsontissuetrackingproject2.h"
-#include "mysqltissuetrackingproject.h"
+#include "mysqltissuetrackingproject2.h"
 int main(){
 
-	ttt::MySQLTissueTrackingProject mysql;
+	ttt::MySQLTissueTrackingProject2 mysql;
 
-	mysql.openDB();
-	mysql.OpenProject(2);
 
-	mysql.LoadProjectInfo();
+	mysql.SetProjectID(2);
+	mysql.SetUser("root");
+	mysql.SetHost("localhost");
+	mysql.SetDBName("TuftsTissueTracker");
+	mysql.SetPassword("ttt1Tracker");
+
+	mysql.SetProjectID(2);
+	mysql.Open();
+
+	//mysql.LoadProjectInfo();
 	ttt::JSONTissueTrackingProject2 json;
 
 	std::string jsonDir("./test/");
@@ -22,42 +29,30 @@ int main(){
 
 
 	for(unsigned int frame=0;frame<mysql.GetNumFrames();frame++){
-		mysql.SetFrame(frame);
-		mysql.LoadFrameInfo();
 
-		json.SetPlatenessSteps(frame,mysql.GetPlatenessSteps());
-		json.SetHighestPlatenessScale(frame,mysql.GetHighestPlatenessScale());
-		json.SetLowestPlatenessScale(frame,mysql.GetLowestPlatenessScale());
+		json.SetPlatenessSteps(frame,mysql.GetPlatenessSteps(frame));
+		json.SetHighestPlatenessScale(frame,mysql.GetHighestPlatenessScale(frame));
+		json.SetLowestPlatenessScale(frame,mysql.GetLowestPlatenessScale(frame));
 
-		json.SetVertexnessSteps(frame,mysql.GetVertexnessSteps());
-		json.SetHighestVertexnessScale(frame,mysql.GetHighestVertexnessScale());
-		json.SetLowestVertexnessScale(frame,mysql.GetLowestVertexnessScale());
+		json.SetVertexnessSteps(frame,mysql.GetVertexnessSteps(frame));
+		json.SetHighestVertexnessScale(frame,mysql.GetHighestVertexnessScale(frame));
+		json.SetLowestVertexnessScale(frame,mysql.GetLowestVertexnessScale(frame));
 
+		json.SetRawImage(frame,mysql.GetRawImage(frame));
+		json.SetDiffusedImage(frame,mysql.GetDiffusedImage(frame));
+		json.SetPlatenessImage(frame,mysql.GetPlatenessImage(frame));
+		json.SetVertexnessImage(frame,mysql.GetVertexnessImage(frame));
+		json.SetAdherensJunctionVertices(frame,mysql.GetAdherensJunctionVertices(frame));
+		json.SetTissueDescriptor(frame,mysql.GetTissueDescriptor(frame));
+		json.SetTrackedTissueDescriptor(frame,mysql.GetTrackedTissueDescriptor(frame));
 
-		json.SetObject<typename itk::Image<float,3> >(std::string("RawImage"),frame,mysql.GetRawImage());
-		itk::Image<float,3>::Pointer rawImage=json.GetObject<typename itk::Image<float,3> >(std::string("RawImage"),frame);
-
-		json.SetObject<typename itk::Image<float,3> >(std::string("DiffusedImage"),frame,mysql.GetDiffusedImage());
-		json.SetObject<typename itk::Image<float,3> >(std::string("PlatenessImage"),frame,mysql.GetPlatenessImage());
-		json.SetObject<typename itk::Image<float,3> >(std::string("VertexnessImage"),frame,mysql.GetVertexnessImage());
-
-		json.SetObject<typename ttt::AdherensJunctionVertices>(std::string("VertexLocations"),frame,mysql.GetVertexLocations());
-		json.SetObject<typename ttt::TissueDescriptor>(std::string("TissueDescriptor"),frame,mysql.GetTissueDescriptor());
-		json.SetObject<typename ttt::TrackedTissueDescriptor>(std::string("TrackedTissueDescriptor"),frame,mysql.GetTrackedTissueDescriptor());
-
-
-
-
-#if 0
-
-
-		json.SetVertexnessImage(mysql.GetVertexnessImage());
-		json.SetVertexLocations(mysql.GetVertexLocations());
-		json.SetTissueDescriptor(mysql.GetTissueDescriptor());
-		json.SetTrackedTissueDescriptor(mysql.GetTrackedTissueDescriptor());
+		json.SetVertexnessImage(frame,mysql.GetVertexnessImage(frame));
+		json.SetAdherensJunctionVertices(frame,mysql.GetAdherensJunctionVertices(frame));
+		json.SetTissueDescriptor(frame,mysql.GetTissueDescriptor(frame));
+		json.SetTrackedTissueDescriptor(frame,mysql.GetTrackedTissueDescriptor(frame));
 
 		json.Flush();
-#endif
+
 	}
 
 }

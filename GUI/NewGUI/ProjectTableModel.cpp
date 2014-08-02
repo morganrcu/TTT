@@ -17,9 +17,8 @@ ProjectTableModel::~ProjectTableModel() {
 
 }
 
-
 int ProjectTableModel::rowCount(const QModelIndex &parent)const{
-	return m_Project->GetNumFrame();
+	return m_Project->GetNumFrames();
 }
 int ProjectTableModel::columnCount(const QModelIndex &parent)const{
 	return NUM_COLS;

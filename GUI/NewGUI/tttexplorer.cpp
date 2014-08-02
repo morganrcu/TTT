@@ -52,7 +52,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
     connect(this->m_pUI->exportMovieButton,SIGNAL(clicked()),this,SLOT(ExportMovie()));
 }
 
-void TTTExplorer::SetProject(ttt::TissueTrackingAbstractProject * project){
+void TTTExplorer::SetProject(ttt::TissueTrackingAbstractProject2 * project){
 			this->m_Project=project;
 			this->m_pUI->frameSlider->setMinimum(0);
 			this->m_pUI->frameSlider->setMaximum(this->m_Project->GetNumFrames()-1);
@@ -97,40 +97,39 @@ void TTTExplorer::ExportMovie(){
 
 }
 void TTTExplorer::SetFrame(int frame){
-	this->m_Project->SetFrame(frame);
 
-	if(this->m_Project->IsRawImageReady()){
-		m_OriginalDrawer.SetImage(this->m_Project->GetRawImage());
+	if(this->m_Project->IsRawImageAvailable(frame)){
+		m_OriginalDrawer.SetImage(this->m_Project->GetRawImage(frame));
 		m_OriginalDrawer.Draw();
 		m_OriginalDrawer.SetVisibility(this->m_pUI->originalGroupBox->isChecked());
 
 	}else{
 		m_OriginalDrawer.Reset();
 	}
-	if(this->m_Project->IsDiffusedImageReady()){
-		m_EnhancedDrawer.SetImage(this->m_Project->GetDiffusedImage());
+	if(this->m_Project->IsDiffusedImageAvailable(frame)){
+		m_EnhancedDrawer.SetImage(this->m_Project->GetDiffusedImage(frame));
 		m_EnhancedDrawer.Draw();
 		m_EnhancedDrawer.SetVisibility(this->m_pUI->enhancedGroupBox->isChecked());
 
 	}else{
 		m_EnhancedDrawer.Reset();
 	}
-	if(this->m_Project->IsPlatenessImageReady()){
-		m_PlatenessDrawer.SetImage(this->m_Project->GetPlatenessImage());
+	if(this->m_Project->IsPlatenessImageAvailable(frame)){
+		m_PlatenessDrawer.SetImage(this->m_Project->GetPlatenessImage(frame));
 		m_PlatenessDrawer.Draw();
 		m_PlatenessDrawer.SetVisibility(this->m_pUI->platenessGroupBox->isChecked());
 	}else{
 		m_PlatenessDrawer.Reset();
 	}
-	if(this->m_Project->IsVertexnessImageReady()){
-		m_VertexnessDrawer.SetImage(this->m_Project->GetVertexnessImage());
+	if(this->m_Project->IsVertexnessImageAvailable(frame)){
+		m_VertexnessDrawer.SetImage(this->m_Project->GetVertexnessImage(frame));
 		m_VertexnessDrawer.Draw();
 		m_VertexnessDrawer.SetVisibility(this->m_pUI->vertexnessGroupBox->isChecked());
 	}else{
 		m_VertexnessDrawer.Reset();
 	}
-	if(this->m_Project->IsVertexLocationsReady()){
-		m_VertexLocationsDrawer.SetVertexLocations(this->m_Project->GetVertexLocations());
+	if(this->m_Project->IsAdherensJunctionVerticesAvailable(frame)){
+		m_VertexLocationsDrawer.SetVertexLocations(this->m_Project->GetAdherensJunctionVertices(frame));
 		m_VertexLocationsDrawer.SetSpacing(this->m_Project->GetSpacing());
 		m_VertexLocationsDrawer.Draw();
 		m_VertexLocationsDrawer.SetVisibility(this->m_pUI->vertexLocationsGroupBox->isChecked());
@@ -151,8 +150,8 @@ void TTTExplorer::SetFrame(int frame){
 			m_DualGraphDrawer.Reset();
 	}
 #endif
-	if(this->m_Project->IsTrackedTissueDescriptorReady()){
-		m_CellMotionVectorDrawer.SetTrackedDescriptor(this->m_Project->GetTrackedTissueDescriptor());
+	if(this->m_Project->IsTrackedTissueDescriptorAvailable(frame)){
+		m_CellMotionVectorDrawer.SetTrackedDescriptor(this->m_Project->GetTrackedTissueDescriptor(frame));
 		m_CellMotionVectorDrawer.Draw();
 		m_CellMotionVectorDrawer.SetVisibility(this->m_pUI->motionVectorsGroupBox->isChecked());
 	}else{

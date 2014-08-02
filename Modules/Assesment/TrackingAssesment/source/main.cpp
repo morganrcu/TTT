@@ -8,7 +8,7 @@
 
 
 #include "tttDescriptionDataTypes.h"
-#include "mysqltissuetrackingproject.h"
+#include "mysqltissuetrackingproject2.h"
 #include "TrackingCommand.h"
 #include <boost/graph/iteration_macros.hpp>
 #include <vnl/vnl_matrix.h>
@@ -174,12 +174,12 @@ int main(int argc,char ** argv){
 
 	//1. Read GT from DB
 
-	ttt::MySQLTissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject2 m_Project;
 
 	int projectNum=atoi(argv[1]);
-	m_Project.openDB();
-	//m_Project.OpenProject(16);
-	m_Project.OpenProject(projectNum);
+
+	m_Project.SetProjectID(projectNum);
+	m_Project.Open();
 
 	int numFrames=m_Project.GetNumFrames();
 
@@ -190,10 +190,10 @@ int main(int argc,char ** argv){
 
 
 	for(int t=0;t<numFrames;t++){
-		m_Project.SetFrame(t);
 
-		observedTissue[t]=m_Project.GetTissueDescriptor();
-		referenceTissue[t]=m_Project.GetTrackedTissueDescriptor();
+
+		observedTissue[t]=m_Project.GetTissueDescriptor(t);
+		referenceTissue[t]=m_Project.GetTrackedTissueDescriptor(t);
 	}
 
 	std::ofstream output(argv[2],std::ifstream::out);

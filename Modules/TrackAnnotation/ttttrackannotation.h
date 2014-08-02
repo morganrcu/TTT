@@ -9,7 +9,7 @@
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkSmartPointer.h>
 
-#include <mysqltissuetrackingproject.h>
+#include "tissuetrackingabstractproject2.h"
 #include "PrimalGraphDrawer.h"
 #include "DefaultColorer.h"
 
@@ -79,7 +79,7 @@ private:
     vtkSmartPointer<QVTKInteractor> m_NextRenderWindowInteractor;
     vtkSmartPointer<MouseInteractorStyle> m_NextInteractionStyle;
 
-    ttt::MySQLTissueTrackingProject m_Project;
+    ttt::TissueTrackingAbstractProject2 * m_Project;
 
     ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_NowPrimalDrawer;
     DefaultColorer<ttt::SkeletonVertexType> m_NowVertexColorer;

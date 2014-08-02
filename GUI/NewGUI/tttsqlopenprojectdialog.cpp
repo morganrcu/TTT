@@ -4,7 +4,7 @@
 #include <QtSql/qsqlerror.h>
 #include "tttsqlopenprojectdialog.h"
 #include "ui_tttsqlopenprojectdialog.h"
-
+#include "mysqltissuetrackingproject2.h"
 SQLOpenProjectDialog::SQLOpenProjectDialog(const QString & host, unsigned int port, const QString & dbname, const QString & user, const QString & password,QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SQLOpenProjectDialog)
@@ -46,14 +46,15 @@ SQLOpenProjectDialog::SQLOpenProjectDialog(const QString & host, unsigned int po
 void SQLOpenProjectDialog::accept(){
 	int projectID=atoi(ui->existingProjectsTableView->model()->data(ui->existingProjectsTableView->currentIndex()).toString().toStdString().c_str());
 
-	m_Project=new MySQLTissueTrackingProject;
+	m_Project=new MySQLTissueTrackingProject2;
+
 	m_Project->SetHost(m_Host.toStdString());
 	m_Project->SetPort(m_Port);
 	m_Project->SetDBName(m_DBName.toStdString());
 	m_Project->SetUser(m_User.toStdString());
 	m_Project->SetPassword(m_Password.toStdString());
-	m_Project->openDB();
-	m_Project->OpenProject(projectID);
+	m_Project->SetProjectID(projectID);
+	m_Project->Open();
 	m_Accepted=true;
 
 	QDialog::accept();

@@ -3,7 +3,7 @@
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <qfiledialog.h>
-
+#include "jsontissuetrackingproject2.h"
 
 SQLNewProjectDialog::SQLNewProjectDialog(QWidget *parent) :
     QDialog(parent),
@@ -20,11 +20,17 @@ SQLNewProjectDialog::~SQLNewProjectDialog()
 }
 void SQLNewProjectDialog::accept(){
 
-	typedef typename MySQLTissueTrackingProject::RawImageType ImageType;
+	typedef typename TissueTrackingAbstractProject2::RawImageType ImageType;
 	typedef itk::ImageFileReader<ImageType> ReaderType;
 	ReaderType::Pointer reader=ReaderType::New();
 
-    m_NewProject = new MySQLTissueTrackingProject;
+	if(this->ui->projectTypeComboBox){
+
+		//m_NewProject = new MySQLTissueTrackingProject;
+		//m_NewProject->openDB();
+	}else{
+		m_NewProject = new ttt::JSONTissueTrackingProject2;
+	}
 
     std::string name = this->ui->projectNameLabel->text().toStdString();
     std::string projectPath = this->ui->wdLineEdit->text().toStdString();
@@ -39,18 +45,20 @@ void SQLNewProjectDialog::accept(){
     int sizeY= atoi(this->ui->selectedFilesTable->item(0,5)->text().toStdString().c_str());
     int sizeZ= atoi(this->ui->selectedFilesTable->item(0,6)->text().toStdString().c_str());
 
-	m_NewProject->openDB();
-	m_NewProject->NewProject(name,projectPath,spacingX,spacingY,spacingZ,timeDelta,sizeX,sizeY,sizeZ);
+    m_NewProject->SetProjectName(name);
+    m_NewProject->SetSamplingPeriod(timeDelta);
+    m_NewProject->SetNumFrames(this->ui->selectedFilesTable->rowCount());
+
+	//m_NewProject->NewProject(name,projectPath,spacingX,spacingY,spacingZ,timeDelta,sizeX,sizeY,sizeZ);
 	for(int row=0; row<this->ui->selectedFilesTable->rowCount();row++){
-		m_NewProject->NewFrame(row);
-		m_NewProject->SetFrame(row);
+
 		QString file= this->ui->selectedFilesTable->item(row,0)->text();
 
 		reader->SetFileName(file.toStdString());
 
 		reader->Update();
 
-		m_NewProject->SetRawImage(reader->GetOutput());
+		m_NewProject->SetRawImage(row,reader->GetOutput());
 
 	}
 	m_Accepted=true;

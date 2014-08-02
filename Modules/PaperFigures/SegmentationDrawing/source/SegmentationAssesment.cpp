@@ -18,7 +18,7 @@
 
 #include "itkIndex.h"
 
-#include "mysqltissuetrackingproject.h"
+#include "mysqltissuetrackingproject2.h"
 
 typedef itk::Image<float,3> PlatenessImageType;
 typedef itk::ImageFileReader<PlatenessImageType> PlatenessReaderType;
@@ -173,17 +173,17 @@ int main(int argc,char ** argv){
 
 	//2. Leer gt
 
-	ttt::MySQLTissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject2 m_Project;
 	m_Project.SetHost("localhost");
 	m_Project.SetDBName("TuftsTissueTracker");
 	m_Project.SetUser("root");
 	m_Project.SetPassword("ttt1Tracker");
-	assert(m_Project.openDB());
-	m_Project.OpenProject(2);
+	m_Project.SetProjectID(2);
+	m_Project.Open();
 
-	m_Project.SetFrame(0);
 
-	ttt::TissueDescriptor::Pointer gt = m_Project.GetTissueDescriptor();
+
+	ttt::TissueDescriptor::Pointer gt = m_Project.GetTissueDescriptor(0);
 
 	//2. Leer Plateness
 	PlatenessReaderType::Pointer platenessReader = PlatenessReaderType::New();

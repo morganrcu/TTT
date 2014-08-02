@@ -8,7 +8,7 @@
 
 
 #include "tttDescriptionDataTypes.h"
-#include "mysqltissuetrackingproject.h"
+#include "mysqltissuetrackingproject2.h"
 #include "TrackingCommand.h"
 #include <boost/graph/iteration_macros.hpp>
 #include <vnl/vnl_matrix.h>
@@ -482,10 +482,11 @@ public:
 
 void readDataset(int projectNum,std::vector<ttt::TrackedTissueDescriptor::Pointer> & referenceTissue,std::vector<ttt::TissueDescriptor::Pointer> observedTissue){
 
-	ttt::MySQLTissueTrackingProject m_Project;
+	ttt::MySQLTissueTrackingProject2 m_Project;
 
-	m_Project.openDB();
-	m_Project.OpenProject(projectNum);
+	m_Project.SetProjectID(projectNum);
+	m_Project.Open();
+
 
 	int numFrames=m_Project.GetNumFrames();
 
@@ -493,12 +494,10 @@ void readDataset(int projectNum,std::vector<ttt::TrackedTissueDescriptor::Pointe
 	observedTissue.resize(numFrames);
 
 	for(int t=0;t<numFrames;t++){
-		m_Project.SetFrame(t);
 
-		observedTissue[t]=m_Project.GetTissueDescriptor();
-		referenceTissue[t]=m_Project.GetTrackedTissueDescriptor();
+		observedTissue[t]=m_Project.GetTissueDescriptor(t);
+		referenceTissue[t]=m_Project.GetTrackedTissueDescriptor(t);
 	}
-
 
 }
 int main(int argc,char ** argv){
@@ -518,9 +517,9 @@ int main(int argc,char ** argv){
 	//NOTUM
 
 	{
-	ttt::MySQLTissueTrackingProject projectNotum;
-	projectNotum.openDB();
-	projectNotum.OpenProject(2);
+	ttt::MySQLTissueTrackingProject2 projectNotum;
+	projectNotum.SetProjectID(2);
+	projectNotum.Open();
 
 	int numFrames=projectNotum.GetNumFrames();
 
@@ -528,10 +527,9 @@ int main(int argc,char ** argv){
 	observationNotum.resize(numFrames);
 
 	for(int t=0;t<numFrames;t++){
-		projectNotum.SetFrame(t);
 
-		observationNotum[t]=projectNotum.GetTissueDescriptor();
-		referenceNotum[t]=projectNotum.GetTrackedTissueDescriptor();
+		observationNotum[t]=projectNotum.GetTissueDescriptor(t);
+		referenceNotum[t]=projectNotum.GetTrackedTissueDescriptor(t);
 	}
 
 
@@ -540,9 +538,9 @@ int main(int argc,char ** argv){
 
 
 	{
-	ttt::MySQLTissueTrackingProject projectLeg;
-	projectLeg.openDB();
-	projectLeg.OpenProject(16);
+	ttt::MySQLTissueTrackingProject2 projectLeg;
+	projectLeg.SetProjectID(16);
+	projectLeg.Open();
 
 	int numFrames=projectLeg.GetNumFrames();
 
@@ -550,10 +548,8 @@ int main(int argc,char ** argv){
 	observationLeg.resize(numFrames);
 
 	for(int t=0;t<numFrames;t++){
-		projectLeg.SetFrame(t);
-
-		observationLeg[t]=projectLeg.GetTissueDescriptor();
-		referenceLeg[t]=projectLeg.GetTrackedTissueDescriptor();
+		observationLeg[t]=projectLeg.GetTissueDescriptor(t);
+		referenceLeg[t]=projectLeg.GetTrackedTissueDescriptor(t);
 	}
 
 
@@ -561,9 +557,9 @@ int main(int argc,char ** argv){
 	}
 
 	{
-	ttt::MySQLTissueTrackingProject projectMitosis;
-	projectMitosis.openDB();
-	projectMitosis.OpenProject(26);
+	ttt::MySQLTissueTrackingProject2 projectMitosis;
+	projectMitosis.SetProjectID(26);
+	projectMitosis.Open();
 
 	int numFrames=projectMitosis.GetNumFrames();
 
@@ -571,10 +567,8 @@ int main(int argc,char ** argv){
 	observationMitosis.resize(numFrames);
 
 	for(int t=0;t<numFrames;t++){
-		projectMitosis.SetFrame(t);
-
-		observationMitosis[t]=projectMitosis.GetTissueDescriptor();
-		referenceMitosis[t]=projectMitosis.GetTrackedTissueDescriptor();
+		observationMitosis[t]=projectMitosis.GetTissueDescriptor(t);
+		referenceMitosis[t]=projectMitosis.GetTrackedTissueDescriptor(t);
 	}
 
 	}

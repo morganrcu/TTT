@@ -7,13 +7,14 @@
 
 #include <CellFeatureTableModel.h>
 #include <QVector3D>
-CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingAbstractProject * project, QObject *parent) :QAbstractTableModel(parent) {
+CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingAbstractProject2 * project, unsigned int frame,QObject *parent) :QAbstractTableModel(parent) {
 	m_Project=project;
+	m_Frame=frame;
 }
 
 int CellFeatureTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
-   return m_Project->GetTrackedTissueDescriptor()->GetNumCells();
+   return m_Project->GetTrackedTissueDescriptor(m_Frame)->GetNumCells();
 }
 
 CellFeatureTableModel::~CellFeatureTableModel() {
@@ -60,7 +61,7 @@ QVariant CellFeatureTableModel::headerData(int section, Qt::Orientation orientat
 
 QVariant CellFeatureTableModel::data(const QModelIndex &index, int role) const
 {
-	ttt::TrackedTissueDescriptor::Pointer descriptor = m_Project->GetTrackedTissueDescriptor();
+	ttt::TrackedTissueDescriptor::Pointer descriptor = m_Project->GetTrackedTissueDescriptor(m_Frame);
 	switch(role){
 	case Qt::DisplayRole:
 

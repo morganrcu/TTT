@@ -4,12 +4,12 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
-
+#include <memory>
 #include <QVTKInteractor.h>
 
 #include <QMainWindow>
 
-#include <tissuetrackingabstractproject.h>
+#include "tissuetrackingabstractproject2.h"
 
 #include <vtkPropPicker.h>
 
@@ -153,8 +153,7 @@ public:
 private:
     void SetupProjectTab();
 
-
-    void SetupSliders(int length);
+    void SetupSliders(unsigned int length);
 
     void SetupVertexStandardInteractor();
     void SetupVertexSelectionInteractor();
@@ -168,7 +167,8 @@ private:
 
 private slots:
 	void New();
-	void Open();
+	void OpenMySQL();
+	void OpenJSON();
 	void Close();
 	void Save();
 	void ShowPreferences();
@@ -293,8 +293,12 @@ private:
 
 
 private:
+
+//GLOBAL MEMBERS
+
+
     Ui::TTTMainWindow *m_pUI;
-    ttt::TissueTrackingAbstractProject * m_Project;
+    std::shared_ptr<ttt::TissueTrackingAbstractProject2>  m_Project;
 
     QString m_SettingsFile;
 	QString m_Host;
@@ -303,83 +307,71 @@ private:
 	QString m_User;
 	QString m_Password;
 
-	int m_CurrentFrame;
-    //RENDERERS
-    vtkSmartPointer<vtkRenderer> m_ProjectRenderer;
-    vtkSmartPointer<vtkRenderer> m_LowestScaleSelectionRenderer;
-    vtkSmartPointer<vtkRenderer> m_HighestScaleSelectionRenderer;
-    vtkSmartPointer<vtkRenderer> m_RangeScaleSelectionRenderer;
-    vtkSmartPointer<vtkRenderer> m_BeforeEnhancementRenderer;
-    vtkSmartPointer<vtkRenderer> m_AfterEnhancementRenderer;
-    vtkSmartPointer<vtkRenderer> m_VertexLocationRenderer;
-    vtkSmartPointer<vtkRenderer> m_CellSegmentationRenderer;
-    vtkSmartPointer<vtkRenderer> m_TrackingRenderer;
+	unsigned int m_CurrentFrame;
 
-    vtkSmartPointer<vtkRenderer> m_PreviousTrackingRenderer;
-    vtkSmartPointer<vtkRenderer> m_CurrentTrackingRenderer;
-
-    vtkSmartPointer<vtkRenderer> m_TectonicsRenderer;
-    vtkSmartPointer<vtkRenderer> m_InspectionRenderer;
+//PROJECT TAB
+	vtkSmartPointer<vtkRenderer> m_ProjectRenderer;
+	vtkSmartPointer<vtkRenderWindow> m_ProjectRenderWindow;
+	vtkSmartPointer<QVTKInteractor> m_ProjectRenderWindowInteractor;
 
 
-    //RENDER WINDOWS
+//SCALE SELECTION TAB
+	vtkSmartPointer<vtkRenderer> m_LowestScaleSelectionRenderer;
+	vtkSmartPointer<vtkRenderer> m_HighestScaleSelectionRenderer;
+	vtkSmartPointer<vtkRenderer> m_RangeScaleSelectionRenderer;
 
-    vtkSmartPointer<vtkRenderWindow> m_ProjectRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_LowestScaleSelectionRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_HighestScaleSelectionRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_RangeScaleSelectionRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_BeforeEnhancementRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_AfterEnhancementRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_VertexLocationRenderWindow;
-    vtkSmartPointer<vtkRenderWindow> m_CellSegmentationRendererWindow;
-    vtkSmartPointer<vtkRenderWindow> m_TrackingRendererWindow;
+	vtkSmartPointer<vtkRenderWindow> m_LowestScaleSelectionRenderWindow;
+	vtkSmartPointer<vtkRenderWindow> m_HighestScaleSelectionRenderWindow;
+	vtkSmartPointer<vtkRenderWindow> m_RangeScaleSelectionRenderWindow;
 
-    vtkSmartPointer<vtkRenderWindow> m_PreviousTrackingRendererWindow;
-    vtkSmartPointer<vtkRenderWindow> m_CurrentTrackingRendererWindow;
+	vtkSmartPointer<QVTKInteractor> m_LowestScaleSelectionRenderWindowInteractor;
+	vtkSmartPointer<QVTKInteractor> m_HighestScaleSelectionRenderWindowInteractor;
+	vtkSmartPointer<QVTKInteractor> m_RangeScaleSelectionRenderWindowInteractor;
 
-    vtkSmartPointer<vtkRenderWindow> m_TectonicsRenderWindow;
+	ttt::PlatenessImageDrawer m_LowestPlatenessDrawer;
+	ttt::PlatenessImageDrawer m_HighestPlatenessDrawer;
+	ttt::PlatenessImageDrawer m_RangePlatenessDrawer;
 
-    vtkSmartPointer<vtkRenderWindow> m_InspectionRenderWindow;
+	//ENHANCEMENT TAB
+	vtkSmartPointer<vtkRenderer> m_BeforeEnhancementRenderer;
+	vtkSmartPointer<vtkRenderer> m_AfterEnhancementRenderer;
 
+	vtkSmartPointer<vtkRenderWindow> m_BeforeEnhancementRenderWindow;
+	vtkSmartPointer<vtkRenderWindow> m_AfterEnhancementRenderWindow;
 
-    //RENDER WINDOW INTERACTORS
-
-    vtkSmartPointer<QVTKInteractor> m_ProjectRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_LowestScaleSelectionRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_HighestScaleSelectionRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_RangeScaleSelectionRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_BeforeEnhancementRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_AfterEnhancementRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_VertexLocationRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_CellSegmentationRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_TrackingRenderWindowInteractor;
-
-    vtkSmartPointer<QVTKInteractor> m_PreviousTrackingRendererWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_CurrentTrackingRendererWindowInteractor;
-
-    vtkSmartPointer<QVTKInteractor> m_TectonicsRenderWindowInteractor;
-    vtkSmartPointer<QVTKInteractor> m_InspectionRenderWindowInteractor;
-
-    //Drawers
-
-    ttt::PlatenessImageDrawer m_LowestPlatenessDrawer;
-    ttt::PlatenessImageDrawer m_HighestPlatenessDrawer;
-    ttt::PlatenessImageDrawer m_RangePlatenessDrawer;
+	vtkSmartPointer<QVTKInteractor> m_BeforeEnhancementRenderWindowInteractor;
+	vtkSmartPointer<QVTKInteractor> m_AfterEnhancementRenderWindowInteractor;
 
     ttt::RawImageDrawer m_BeforeEnhancementDrawer;
     ttt::DiffusedImageDrawer m_AfterEnhancementDrawer;
 
-    ttt::VertexnessImageDrawer m_VertexnessImageDrawer;
+	//VERTEX LOCATION TAB
+    vtkSmartPointer<vtkRenderer> m_VertexLocationRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_VertexLocationRenderWindow;
+    vtkSmartPointer<QVTKInteractor> m_VertexLocationRenderWindowInteractor;
 
+    ttt::VertexnessImageDrawer m_VertexnessImageDrawer;
     ttt::VertexLocationsDrawer m_VertexLocationsDrawer;
     ttt::PlatenessImageDrawer m_PlatenessDrawerOnVertexLocation;
+
+
+    vtkSmartPointer<VertexSelectionInteractor> m_VertexSelectionInteractor;
+    vtkSmartPointer<VertexAdditionInteractor> m_VertexAdditionInteractor;
+    vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_StandardInteractor;
+    vtkSmartPointer<vtkPointWidget> m_VertexLocationPointWidget;
+
+    ttt::AdherensJunctionVertices::Pointer m_DrawnAJVertices;
+
+
+    //CELL SEGMENTATION TAB
+
+    vtkSmartPointer<vtkRenderer> m_CellSegmentationRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_CellSegmentationRendererWindow;
+    vtkSmartPointer<QVTKInteractor> m_CellSegmentationRenderWindowInteractor;
 
     ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalGraphDrawer;
     ttt::PlatenessImageDrawer m_PlatenessDrawerOnSegmentation;
 
-    ttt::EllipseDrawer m_EllipseDrawer;
-
-    //TODO put in namespace ttt
 	DefaultColorer<ttt::SkeletonVertexType> m_PrimalGraphVertexColorer;
 	DefaultColorer<ttt::SkeletonEdgeType> m_PrimalGraphEdgeColorer;
 
@@ -388,8 +380,19 @@ private:
     DefaultColorer<ttt::CellVertexType> m_DualGraphVertexColorer;
     DefaultColorer<ttt::CellEdgeType> m_DualGraphEdgeColorer;
 
-    //ttt::DualGraphDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
+    vtkSmartPointer<EdgeSelectionInteractor> m_EdgeSelectionInteractor;
+    vtkSmartPointer<EdgeAdditionInteractor> m_EdgeAdditionInteractor;
+    vtkSmartPointer<VertexAdditionToPrimalInteractor> m_VertexAdditionToPrimalInteractor;
+    vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_EdgeStandardInteractorStyle;
 
+    vtkSmartPointer<vtkPointWidget> m_PrimalGraphVertexPointWidget;
+
+    ttt::TissueDescriptor::Pointer m_DrawnTissueDescriptor;
+
+    //TRACKING TAB
+    vtkSmartPointer<vtkRenderer> m_TrackingRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_TrackingRendererWindow;
+    vtkSmartPointer<QVTKInteractor> m_TrackingRenderWindowInteractor;
     ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_PrimalGraphTrackingDrawer;
     ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
 
@@ -398,27 +401,36 @@ private:
 
     DefaultColorer<ttt::TrackedCellEdgeType> m_TrackingEdgeColorer;
 
-    ttt::DomainStrainRatesDrawer m_DomainStrainRatesDrawer;
 
+    //INTERACTIVE TRACKING TAB
+    vtkSmartPointer<vtkRenderer> m_PreviousTrackingRenderer;
+    vtkSmartPointer<vtkRenderer> m_CurrentTrackingRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_PreviousTrackingRendererWindow;
+    vtkSmartPointer<vtkRenderWindow> m_CurrentTrackingRendererWindow;
+
+    vtkSmartPointer<QVTKInteractor> m_PreviousTrackingRendererWindowInteractor;
+    vtkSmartPointer<QVTKInteractor> m_CurrentTrackingRendererWindowInteractor;
+
+
+    //INSPECTION TAB
+    vtkSmartPointer<vtkRenderer> m_InspectionRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_InspectionRenderWindow;
+    vtkSmartPointer<QVTKInteractor> m_InspectionRenderWindowInteractor;
 
     ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_InspectionDrawer;
 
-    //Interactor Styles
+    //TECTONICS TAB
+    vtkSmartPointer<vtkRenderer> m_TectonicsRenderer;
+    vtkSmartPointer<vtkRenderWindow> m_TectonicsRenderWindow;
+    vtkSmartPointer<QVTKInteractor> m_TectonicsRenderWindowInteractor;
 
-    //VertexSelectedCallback * m_pVertexSelectedCallback;
-    //VertexUnselectedCallback *  m_pVertexUnselectedCallback;
-    //VertexAddedCallback  * m_pVertexAddedCallback;
+    ttt::EllipseDrawer m_EllipseDrawer;
 
-    vtkSmartPointer<VertexSelectionInteractor> m_VertexSelectionInteractor;
-    vtkSmartPointer<VertexAdditionInteractor> m_VertexAdditionInteractor;
-    vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_StandardInteractor;
+    ttt::DomainStrainRatesDrawer m_DomainStrainRatesDrawer;
 
-    vtkSmartPointer<EdgeSelectionInteractor> m_EdgeSelectionInteractor;
-    vtkSmartPointer<EdgeAdditionInteractor> m_EdgeAdditionInteractor;
-    vtkSmartPointer<VertexAdditionToPrimalInteractor> m_VertexAdditionToPrimalInteractor;
-    vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_EdgeStandardInteractorStyle;
 
-    vtkSmartPointer<vtkPointWidget> m_PointWidget;
+
+
 
 
 

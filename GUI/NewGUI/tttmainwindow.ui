@@ -228,11 +228,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="preprocessingTab">
-       <attribute name="title">
-        <string>Preprocessing</string>
-       </attribute>
-      </widget>
       <widget class="QWidget" name="scaleSelectionTab">
        <attribute name="title">
         <string>Scale Selection</string>
@@ -282,13 +277,13 @@
              <property name="currentIndex">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="rangeScaleTab">
+             <widget class="QWidget" name="platenessScaleStepsTab">
               <attribute name="title">
                <string>Range</string>
               </attribute>
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
-                <widget class="QWidget" name="rangeScaleControls" native="true">
+                <widget class="QWidget" name="platenessScaleStepsControls" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                    <horstretch>0</horstretch>
@@ -297,21 +292,21 @@
                  </property>
                  <layout class="QFormLayout" name="formLayout_6">
                   <item row="0" column="0">
-                   <widget class="QLabel" name="stepsLabel">
+                   <widget class="QLabel" name="platenessStepsLabel">
                     <property name="text">
                      <string>Steps:</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QSpinBox" name="stepsSpinBox">
+                   <widget class="QSpinBox" name="platenessStepsSpinBox">
                     <property name="value">
                      <number>4</number>
                     </property>
                    </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="rangeScalePreview">
+                   <widget class="QPushButton" name="platenessScaleStepsPreview">
                     <property name="text">
                      <string>Preview</string>
                     </property>
@@ -338,13 +333,13 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="lowestScaleTab">
+             <widget class="QWidget" name="platenessLowestScaleTab">
               <attribute name="title">
                <string>Lowest</string>
               </attribute>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
-                <widget class="QWidget" name="lowestScaleControls" native="true">
+                <widget class="QWidget" name="platenessLowestScaleControls" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -356,14 +351,14 @@
                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                   </property>
                   <item row="0" column="0">
-                   <widget class="QLabel" name="lowestScaleLabel">
+                   <widget class="QLabel" name="platenessLowestScaleLabel">
                     <property name="text">
                      <string>Scale:</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QDoubleSpinBox" name="lowestScaleDoubleSpinBox">
+                   <widget class="QDoubleSpinBox" name="platenessLowestScaleDoubleSpinBox">
                     <property name="minimum">
                      <double>0.000000000000000</double>
                     </property>
@@ -376,7 +371,7 @@
                    </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="lowestScalePreview">
+                   <widget class="QPushButton" name="platenessLowestScalePreview">
                     <property name="text">
                      <string>Preview</string>
                     </property>
@@ -409,9 +404,9 @@
                </item>
               </layout>
               <zorder>widget_7</zorder>
-              <zorder>lowestScaleControls</zorder>
+              <zorder>platenessLowestScaleControls</zorder>
              </widget>
-             <widget class="QWidget" name="highestScaleTab">
+             <widget class="QWidget" name="platenessHighestScaleTab">
               <attribute name="title">
                <string>Highest</string>
               </attribute>
@@ -426,14 +421,14 @@
                  </property>
                  <layout class="QFormLayout" name="formLayout_10">
                   <item row="0" column="0">
-                   <widget class="QLabel" name="highestScaleLabel">
+                   <widget class="QLabel" name="platenessHighestScaleLabel">
                     <property name="text">
                      <string>Scale:</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QDoubleSpinBox" name="highestScaleDoubleSpinBox">
+                   <widget class="QDoubleSpinBox" name="platenessHighestScaleDoubleSpinBox">
                     <property name="minimum">
                      <double>0.000000000000000</double>
                     </property>
@@ -449,7 +444,7 @@
                    </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="highestScalePreview">
+                   <widget class="QPushButton" name="platenessHighestScalePreview">
                     <property name="text">
                      <string>Preview</string>
                     </property>
@@ -1411,7 +1406,8 @@
      <string>File</string>
     </property>
     <addaction name="actionNew"/>
-    <addaction name="actionOpen"/>
+    <addaction name="actionOpenFromMYSQL"/>
+    <addaction name="actionOpenFromJSON"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
@@ -1439,7 +1435,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionNew"/>
-   <addaction name="actionOpen"/>
+   <addaction name="actionOpenFromJSON"/>
+   <addaction name="actionOpenFromMYSQL"/>
    <addaction name="actionPreferences"/>
    <addaction name="actionSave"/>
   </widget>
@@ -1455,12 +1452,12 @@
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionOpen">
+  <action name="actionOpenFromMYSQL">
    <property name="text">
-    <string>Open</string>
+    <string>Open MySQL</string>
    </property>
    <property name="toolTip">
-    <string>Open project</string>
+    <string>Open project from MySQL</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1528,6 +1525,14 @@
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
+   </property>
+  </action>
+  <action name="actionOpenFromJSON">
+   <property name="text">
+    <string>Open JSON</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Project from JSON</string>
    </property>
   </action>
  </widget>
