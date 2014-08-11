@@ -280,6 +280,10 @@ private slots:
 
 	void ShowPlatenessOnSegmentation(int show);
 	void ShowPlatenessOnVertexLocation(int show);
+	void ShowVertexLocationsOnVertexLocation(int show);
+	void ShowVertexnessOnVertexLocation(int show);
+
+	void ShowAJGraphOnCellSegmentation(int show);
 	void ShowDualGraphOnCellSegmentation(int show);
 	void ShowTrackedEllipsesAtTectonics(int show);
 
@@ -401,7 +405,7 @@ private:
 
     DefaultColorer<ttt::TrackedCellEdgeType> m_TrackingEdgeColorer;
 
-
+    ttt::TrackedTissueDescriptor::Pointer m_DrawnTrackedTissueDescriptor;
     //INTERACTIVE TRACKING TAB
     vtkSmartPointer<vtkRenderer> m_PreviousTrackingRenderer;
     vtkSmartPointer<vtkRenderer> m_CurrentTrackingRenderer;

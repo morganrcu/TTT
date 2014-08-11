@@ -44,7 +44,7 @@ void SurfaceCommand::Do() {
 	m_Thresholder->SetUpperThreshold(timeThreshold);
 
 
-	for(int i=0;i<5;i++){
+	for(int i=-5;i<5;i++){
 
 		const float sigma = pow(2,i);
 
@@ -67,7 +67,7 @@ void SurfaceCommand::Do() {
 		}
 	}
 	exit(-1);
-
+#if 0
 	//writer->SetInput( thresholder->GetOutput() );
 
 
@@ -163,7 +163,7 @@ void SurfaceCommand::Do() {
 	m_Thresholder->SetInput(m_FastMarching->GetOutput());
 
 	m_Thresholder->Update();
-
+#endif
 }
 
 } /* namespace ttt */

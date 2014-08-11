@@ -28,7 +28,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="projectTab">
        <attribute name="title">
@@ -779,6 +779,20 @@
                 </layout>
                </widget>
               </item>
+              <item row="10" column="0" colspan="2">
+               <widget class="QCheckBox" name="showVertexLocationsAtVertexLocationsCBox">
+                <property name="text">
+                 <string>Vertex locations</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0" colspan="2">
+               <widget class="QCheckBox" name="showVertexnessAtVertexLocationsCBox">
+                <property name="text">
+                 <string>Vertexness</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -908,7 +922,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0" colspan="2">
+              <item row="7" column="0" colspan="2">
                <widget class="QCheckBox" name="showCellGraphAtSegmentationCBox">
                 <property name="text">
                  <string>Cell Graph</string>
@@ -926,6 +940,13 @@
                <widget class="QDoubleSpinBox" name="horizonDoubleSpinBox">
                 <property name="maximum">
                  <double>1000000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QCheckBox" name="showAJGraphAtSegmentationCBox">
+                <property name="text">
+                 <string>AJ Graph</string>
                 </property>
                </widget>
               </item>

@@ -9,8 +9,8 @@ This investigation was supported in part by NSF ITR 0426558 and
 NIH grants R21 MH67054 and P41 RR13218.
 
 =========================================================================*/
-#ifndef __itkLocalMaximumImageFilter_h
-#define __itkLocalMaximumImageFilter_h
+#ifndef __itkPyramidLocalMaximumImageFilter_h
+#define __itkPyramidLocalMaximumImageFilter_h
 
 #include "itkImageToMeshFilter.h"
 #include "itkImage.h"

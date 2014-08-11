@@ -6,7 +6,7 @@ include_directories(../../Core/include/)
 
 include_directories( include)
 
-set(TTTVertexLocation_SRCS source/VertexLocationCommand.cpp)
+set(TTTVertexLocation_SRCS source/VertexLocationCommand.cpp source/PyramidVertexLocationCommand.cpp)
 
 add_library(TTTVertexLocation ${TTTVertexLocation_SRCS})
 

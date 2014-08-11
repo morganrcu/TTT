@@ -80,7 +80,7 @@ QVariant CellFeatureTableModel::data(const QModelIndex &index, int role) const
 			return QString("[%1,%2,%3]").arg(velocity[0]).arg(velocity[1]).arg(velocity[2]);
 		}
 		case 3:
-			return QString("area");
+
 		case 4:
 			return QString("perimeter");
 		case 5:

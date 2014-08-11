@@ -10,15 +10,17 @@
 #include "tttsqlopenprojectdialog.h"
 #include "tttsqlnewprojectdialog.h"
 #include <QFileDialog>
-
+#include "CellMomentCalculator.h"
 #include "tttexplorer.h"
 #include "tttpreferences.h"
 
 #include "VertexnessCommand.h"
+#include "PyramidVertexnessCommand.h"
 #include "PlatenessCommand.h"
 #include "DataCastingCommand.h"
 #include "AnisotropicDiffusionCommand.h"
 #include "VertexLocationCommand.h"
+#include "PyramidVertexLocationCommand.h"
 #include "AdherensJunctionSegmentationDijkstraCommand.h"
 #include "CellGraphCommand.h"
 #include "TrackingCommand.h"
@@ -371,8 +373,12 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
     connect(this->m_pUI->yDoubleSpinBox,SIGNAL(valueChanged(double)),this,SLOT(SpacingYChanged(double)));
     connect(this->m_pUI->zDoubleSpinBox,SIGNAL(valueChanged(double)),this,SLOT(SpacingZChanged(double)));
 
+
     connect(this->m_pUI->showAdherensJunctionsAtSegmentationCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowPlatenessOnSegmentation(int)));
     connect(this->m_pUI->showAdhrensJunctionsAtVertexLocationsCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowPlatenessOnVertexLocation(int)));
+    connect(this->m_pUI->showVertexLocationsAtVertexLocationsCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowVertexLocationsOnVertexLocation(int)));
+    connect(this->m_pUI->showAJGraphAtSegmentationCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowAJGraphOnCellSegmentation(int)));
+    connect(this->m_pUI->showVertexnessAtVertexLocationsCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowVertexnessOnVertexLocation(int)));
     connect(this->m_pUI->showCellGraphAtSegmentationCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowDualGraphOnCellSegmentation(int)));
     connect(this->m_pUI->showEllipsesCBox,SIGNAL(stateChanged(int)),this,SLOT(ShowTrackedEllipsesAtTectonics(int)));
 
@@ -521,7 +527,7 @@ void TTTMainWindow::DrawVertex(){
 		m_VertexnessImageDrawer.SetImage(this->m_Project->GetVertexnessImage(m_CurrentFrame));
 		m_VertexnessImageDrawer.SetRenderer(this->m_VertexLocationRenderer);
 		m_VertexnessImageDrawer.Draw();
-		m_VertexnessImageDrawer.SetVisibility(true);
+		m_VertexnessImageDrawer.SetVisibility(this->m_pUI->showVertexnessAtVertexLocationsCBox);
 
 	}else{
 		m_VertexnessImageDrawer.Reset();
@@ -533,7 +539,8 @@ void TTTMainWindow::DrawVertex(){
 		m_VertexLocationsDrawer.SetSpacing(m_Project->GetSpacing());
 		m_VertexLocationsDrawer.SetRenderer(this->m_VertexLocationRenderer);
 		m_VertexLocationsDrawer.Draw();
-		m_VertexLocationsDrawer.SetVisibility(true);
+		m_VertexLocationsDrawer.SetVisibility(this->m_pUI->showVertexLocationsAtVertexLocationsCBox->isChecked());
+
 
 	}else{
 		m_VertexLocationsDrawer.Reset();
@@ -588,9 +595,11 @@ void TTTMainWindow::OpenJSON(){
 	if(dialog.exec()){
 		QString dir=dialog.selectedFiles()[0];
 
-		ttt::JSONTissueTrackingProject2 * project =new ttt::JSONTissueTrackingProject2;
+		ttt::JSONTissueTrackingProject2 * project = new ttt::JSONTissueTrackingProject2;
+
 		project->SetDirectory(dir.toStdString());
-		project->Open();
+		this->m_Project=std::shared_ptr<ttt::TissueTrackingAbstractProject2> (project);
+		this->m_Project->Open();
 
 		this->m_pUI->stepsTabs->setEnabled(true);
  		this->SetupSliders(this->m_Project->GetNumFrames());
@@ -912,9 +921,10 @@ void TTTMainWindow::DoEnhance(){
 void TTTMainWindow::DoAllEnhance(){
 
 	for(unsigned int i=this->m_pUI->enhancementSlider->value();i<m_Project->GetNumFrames();i++){
-
+		m_CurrentFrame=i;
 		this->DoEnhance();
 	}
+	this->SetupEnhancementFrame(m_CurrentFrame);
 
 }
 void TTTMainWindow::VertexnessAndDraw(){
@@ -927,6 +937,27 @@ void TTTMainWindow::DoVertexness(){
 	double highestScale = this->m_pUI->upperVertexnessScaleSpinBox->value();
 	int rangeScale = this->m_pUI->stepsVertexnessSpinBox->value();
 
+	PyramidVertexnessCommand vertexnessCommand;
+
+	vertexnessCommand.SetSigmaMax(highestScale);
+	vertexnessCommand.SetSigmaMin(lowestScale);
+	vertexnessCommand.SetSigmaSteps(rangeScale);
+
+	if(this->m_Project->IsDiffusedImageAvailable(m_CurrentFrame)){
+		vertexnessCommand.SetInput(this->m_Project->GetDiffusedImage(m_CurrentFrame));
+	}else{
+		DataCastingCommand caster;
+		caster.SetInput(m_Project->GetRawImage(m_CurrentFrame));
+		caster.Do();
+		vertexnessCommand.SetInput(caster.GetOutput());
+	}
+
+	vertexnessCommand.Do();
+
+
+	m_Project->SetPyramidVertexnessImage(m_CurrentFrame,vertexnessCommand.GetVertexnessImages());
+
+	#if 0
 	DataCastingCommand caster;
 	caster.SetInput(m_Project->GetRawImage(m_CurrentFrame));
 	caster.Do();
@@ -952,7 +983,7 @@ void TTTMainWindow::DoVertexness(){
 
 	m_Project->SetVertexnessImage(m_CurrentFrame,vertexnessCommand.GetVertexnessImage());
 
-
+#endif
 }
 void TTTMainWindow::VertexLocationAndDraw(){
 	this->DoVertexLocation();
@@ -961,14 +992,23 @@ void TTTMainWindow::VertexLocationAndDraw(){
 void TTTMainWindow::DoVertexLocation(){
 
 	double threshold = this->m_pUI->vertexThresholdSpinBox->value();
-
-	VertexLocationCommand vertexLocationCommand;
+	PyramidVertexLocationCommand vertexLocationCommand;
 	vertexLocationCommand.SetLocalMaxThreshold(threshold);
-	vertexLocationCommand.SetVertexnessImage(m_Project->GetVertexnessImage(m_CurrentFrame));
-	vertexLocationCommand.SetRadius(1);
+	vertexLocationCommand.SetInputPyramid(m_Project->GetPyramidVertexnessImage(m_CurrentFrame));
+
 	vertexLocationCommand.Do();
 
 	m_Project->SetAdherensJunctionVertices(m_CurrentFrame,vertexLocationCommand.GetLocalMaxima());
+
+#if 0
+	VertexLocationCommand vertexLocationCommand;
+	vertexLocationCommand.SetLocalMaxThreshold(threshold);
+	vertexLocationCommand.SetVertexnessImage(m_Project->GetVertexnessImage(m_CurrentFrame));
+	vertexLocationCommand.SetRadius(0.4);
+	vertexLocationCommand.Do();
+
+	m_Project->SetAdherensJunctionVertices(m_CurrentFrame,vertexLocationCommand.GetLocalMaxima());
+#endif
 
 }
 void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
@@ -1215,6 +1255,19 @@ void TTTMainWindow::ShowPlatenessOnVertexLocation(int show){
 	m_PlatenessDrawerOnVertexLocation.SetVisibility(show!=0);
 	this->m_VertexLocationRenderWindow->Render();
 }
+void TTTMainWindow::ShowVertexLocationsOnVertexLocation(int show){
+	this->m_VertexLocationsDrawer.SetVisibility(show!=0);
+	this->m_VertexLocationRenderWindow->Render();
+}
+void TTTMainWindow::ShowVertexnessOnVertexLocation(int show){
+	this->m_VertexnessImageDrawer.SetVisibility(show!=0);
+	this->m_VertexLocationRenderWindow->Render();
+}
+
+void TTTMainWindow::ShowAJGraphOnCellSegmentation(int show){
+	m_PrimalGraphDrawer.SetVisibility(show!=0);
+	this->m_CellSegmentationRendererWindow->Render();
+}
 void TTTMainWindow::ShowDualGraphOnCellSegmentation(int show){
 	m_DualGraphDrawer.SetVisibility(show!=0);
 	this->m_CellSegmentationRendererWindow->Render();
@@ -1233,7 +1286,7 @@ void TTTMainWindow::DrawSegmentation(){
 		m_PrimalGraphDrawer.SetEdgeColorer(&m_PrimalGraphEdgeColorer);
 		m_PrimalGraphDrawer.SetTissueDescriptor(this->m_DrawnTissueDescriptor);
 		m_PrimalGraphDrawer.Draw();
-		m_PrimalGraphDrawer.SetVisibility(true);
+		m_PrimalGraphDrawer.SetVisibility(this->m_pUI->showAJGraphAtSegmentationCBox->isChecked());
 
 		m_PlatenessDrawerOnSegmentation.SetRenderer(this->m_CellSegmentationRenderer);
 		m_PlatenessDrawerOnSegmentation.SetImage(m_Project->GetPlatenessImage(m_CurrentFrame));
@@ -1243,7 +1296,6 @@ void TTTMainWindow::DrawSegmentation(){
 		m_PrimalGraphDrawer.Reset();
 		m_PlatenessDrawerOnSegmentation.Reset();
 	}
-
 
 
 	if(this->m_Project->IsTissueDescriptorAvailable(m_CurrentFrame)){
@@ -1433,8 +1485,21 @@ void TTTMainWindow::DoDual(){
 	cellGraphCommand.SetPrimalGraph(this->m_Project->GetTissueDescriptor(m_CurrentFrame));
 	cellGraphCommand.Do();
 
-	this->m_Project->SetTissueDescriptor(m_CurrentFrame,cellGraphCommand.GetGraphs());
+	ttt::TissueDescriptor::Pointer descriptor = cellGraphCommand.GetGraphs();
+	this->m_Project->SetTissueDescriptor(m_CurrentFrame,descriptor);
+
+
+	CellMomentCalculator<ttt::TissueDescriptor> calculator;
+	calculator.SetTissueDescriptor(descriptor);
+	calculator.Compute();
+	this->m_Project->SetCentroids(m_CurrentFrame,calculator.GetCentroid());
+	this->m_Project->SetPerimeter(m_CurrentFrame,calculator.GetPerimeter());
+	this->m_Project->SetAreas(m_CurrentFrame,calculator.GetAreas());
+	this->m_Project->SetXX(m_CurrentFrame,calculator.GetXX());
+	this->m_Project->SetXY(m_CurrentFrame,calculator.GetXY());
+	this->m_Project->SetYY(m_CurrentFrame,calculator.GetYY());
 }
+
 #if 0
 void TTTMainWindow::DrawDual(){
 
@@ -1489,8 +1554,8 @@ void TTTMainWindow::DoTracking(){
 
 
 void TTTMainWindow::DrawTracking(){
-
-	m_TrackingDrawer.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	m_DrawnTrackedTissueDescriptor=m_Project->GetTrackedTissueDescriptor(m_CurrentFrame);
+	m_TrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
 	m_TrackingDrawer.SetRenderer(this->m_TrackingRenderer);
 	//m_TrackingDrawer.SetEdgeColorer(this->m_TrackingEdgeColorer);
 
@@ -1498,8 +1563,8 @@ void TTTMainWindow::DrawTracking(){
 
 	FeatureMap<CellVertexType,unsigned int> idFeature;
 
-	BGL_FORALL_VERTICES_T(v,*m_Project->GetTrackedTissueDescriptor(m_CurrentFrame)->m_CellGraph,ttt::TrackedCellGraph){
-		idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_Project->GetTrackedTissueDescriptor(m_CurrentFrame)->m_CellGraph,v).GetID();
+	BGL_FORALL_VERTICES_T(v,*m_DrawnTrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
+		idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_DrawnTrackedTissueDescriptor->m_CellGraph,v).GetID();
 	}
 
 	m_TrackingVertexColorer.SetFeatureMap(idFeature);
@@ -1511,7 +1576,7 @@ void TTTMainWindow::DrawTracking(){
 	m_TrackingDrawer.SetVisibility(true);
 
 	m_PrimalGraphTrackingDrawer.SetRenderer(this->m_TrackingRenderer);
-	m_PrimalGraphTrackingDrawer.SetTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
+	m_PrimalGraphTrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
 	m_PrimalGraphTrackingDrawer.SetVertexColorer(&m_PrimalGraphVertexColorer);
 	m_PrimalGraphTrackingDrawer.SetEdgeColorer(&m_PrimalGraphEdgeColorer);
 	m_PrimalGraphTrackingDrawer.Draw();

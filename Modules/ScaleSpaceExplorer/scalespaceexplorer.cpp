@@ -90,14 +90,14 @@ ScaleSpaceExplorer::ScaleSpaceExplorer(QWidget *parent) :
 	//m_Spacing[1]=0.1569476;
 	//m_Spacing[2]=0.6209697;
 
-	m_Spacing[0]=0.0965251;
-	m_Spacing[1]=0.0965251;
-	m_Spacing[2]=0.3782843;
+	//m_Spacing[0]=0.0965251;
+	//m_Spacing[1]=0.0965251;
+	//m_Spacing[2]=0.3782843;
 
 
-	//m_Spacing[0]=0.3107403;
-	//m_Spacing[1]=0.3107403;
-	//m_Spacing[2]=0.739833;
+	m_Spacing[0]=0.3107403;
+	m_Spacing[1]=0.3107403;
+	m_Spacing[2]=0.739833;
 }
 
 void ScaleSpaceExplorer::Open(){
@@ -242,6 +242,10 @@ void ScaleSpaceExplorer::ComputePlateness(){
 		m_Plateness->SetSigmaMin(scale);
 		m_Plateness->SetSigmaMax(scale);
 		m_Plateness->SetNumberOfSigmaSteps(1);
+
+
+
+		m_ReescaledImage.Print(std::cout);
 		m_Plateness->SetInput(m_ReescaledImage);
 		m_Plateness->Update();
 

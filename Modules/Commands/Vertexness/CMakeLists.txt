@@ -6,7 +6,7 @@ include_directories(../ObjectnessMeasurementBase/include/)
 include_directories(../../Core/include/)
 
 
-set(TTTVertexness_SRCS source/VertexnessCommand.cpp)
+set(TTTVertexness_SRCS source/VertexnessCommand.cpp source/PyramidVertexnessCommand.cpp)
 
 add_library(TTTVertexness ${TTTVertexness_SRCS})
 

@@ -63,6 +63,25 @@ public:
 	virtual void SetTrackedTissueDescriptor(unsigned int frame,const typename ttt::TrackedTissueDescriptor::Pointer & descriptor);
 	virtual bool IsTrackedTissueDescriptorAvailable(unsigned int frame);
 
+	virtual void SetCentroids(unsigned int frame, const   FeatureMap<CellVertexType,itk::Point<double,3> > & centroids);
+	virtual FeatureMap<CellVertexType,itk::Point<double,3> >  GetCentroids(unsigned int frame);
+
+	virtual void SetAreas(unsigned int frame, const FeatureMap<CellVertexType,double> & areas);
+	virtual FeatureMap<CellVertexType,double> GetAreas(unsigned int frame);
+
+	virtual void SetPerimeter(unsigned int frame, const FeatureMap<CellVertexType,double> & perimeters);
+	virtual FeatureMap<CellVertexType,double> GetPerimeter(unsigned int frame);
+
+	virtual void SetXX(unsigned int frame, const FeatureMap<CellVertexType,double> & xx);
+	virtual FeatureMap<CellVertexType,double> GetXX(unsigned int frame);
+
+	virtual void SetXY(unsigned int frame, const FeatureMap<CellVertexType,double> & xy);
+	virtual FeatureMap<CellVertexType,double> GetXY(unsigned int frame);
+
+	virtual void SetYY(unsigned int frame, const FeatureMap<CellVertexType,double> & yy);
+	virtual FeatureMap<CellVertexType,double> GetYY(unsigned int frame);
+
+
 protected:
 	virtual void LoadProjectInfo();
 	virtual void StoreProjectInfo();

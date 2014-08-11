@@ -1206,8 +1206,11 @@ void MySQLTissueTrackingProject2::LoadFrameInfo(unsigned int frame) {
 		std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
 		res->next();
 		this->m_PlatenessSteps[frame]=res->getInt("platenessSteps");
+		std::cout<< "Steps " << frame << "--" << this->m_PlatenessSteps[frame] <<std::endl;
 		this->m_HighestPlatenessScale[frame]=res->getDouble("platenessHighestScale");
+		std::cout<< "HighestPlatenesss " << frame << "--" << this->m_HighestPlatenessScale[frame] <<std::endl;
 		this->m_LowestPlatenessScale[frame] = res->getDouble("platenessLowestScale");
+		std::cout<< "LowestPlatenesss " << frame << "--" << this->m_LowestPlatenessScale[frame] <<std::endl;
 
 		this->m_VertexnessSteps[frame]=res->getInt("vertexnessSteps");
 		this->m_LowestVertexnessScale[frame]=res->getDouble("vertexnessLowestScale");
@@ -1367,5 +1370,52 @@ void MySQLTissueTrackingProject2::StoreImage(const std::string & name,
 	}
 
 }
+
+FeatureMap<CellVertexType,itk::Point<double,3> > MySQLTissueTrackingProject2::GetCentroids(unsigned int frame){
+
+}
+
+void MySQLTissueTrackingProject2::SetCentroids(unsigned int frame,const FeatureMap<CellVertexType,itk::Point<double,3> >  & centroids){
+
+}
+
+FeatureMap<CellVertexType,double> MySQLTissueTrackingProject2::GetXX(unsigned int frame){
+
+}
+void MySQLTissueTrackingProject2::SetXX(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xx){
+
+}
+FeatureMap<CellVertexType,double> MySQLTissueTrackingProject2::GetXY(unsigned int frame){
+
+}
+
+void MySQLTissueTrackingProject2::SetXY(unsigned int frame,const FeatureMap<TrackedCellVertexType,double> &xy){
+
+}
+
+FeatureMap<CellVertexType,double> MySQLTissueTrackingProject2::GetYY(unsigned int frame){
+
+}
+
+void MySQLTissueTrackingProject2::SetYY(unsigned int frame, const FeatureMap<CellVertexType,double> & yy){
+
+}
+
+FeatureMap<CellVertexType,double> MySQLTissueTrackingProject2::GetPerimeter(unsigned int frame){
+
+}
+
+void MySQLTissueTrackingProject2::SetPerimeter(unsigned int frame, const FeatureMap<CellVertexType,double> & perimeters){
+
+}
+
+FeatureMap<CellVertexType,double> MySQLTissueTrackingProject2::GetAreas(unsigned int frame){
+
+}
+
+void MySQLTissueTrackingProject2::SetAreas(unsigned int frame, const FeatureMap<CellVertexType,double> & areas){
+
+}
+
 
 }

@@ -161,7 +161,9 @@ public:
 protected:
   PlatenessMeasurementFunction(){
   	  m_Alpha = 0.5;
+
   	  m_Beta  = 0.5;
+
   	  m_Gamma = 8;
   	  m_C = 10e-6;
   	  m_ScalePlatenessMeasure=false;

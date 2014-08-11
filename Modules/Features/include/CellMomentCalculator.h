@@ -243,6 +243,10 @@ public:
 			m_Perimeter[*it]=cellPerimeter;
 			m_Centroid[*it]=cellCentroid;
 			m_Normal[*it]=cellNormal;
+			m_XX[*it]=cellXX;
+			m_XY[*it]=cellXY;
+			m_YY[*it]=cellYY;
+
 
 			++it;
 

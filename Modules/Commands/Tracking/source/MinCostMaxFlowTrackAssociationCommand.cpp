@@ -104,41 +104,30 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 	m_TrackMoments.Compute();
 	m_ObservationMoments.Compute();
 
-	typename TrackMomentCalculator::CentroidFeatureMapType trackCentroids =
-			m_TrackMoments.GetCentroid();
-	typename ObsMomentCalculator::CentroidFeatureMapType obsCentroids =
-			m_ObservationMoments.GetCentroid();
+	typename TrackMomentCalculator::CentroidFeatureMapType trackCentroids = m_TrackMoments.GetCentroid();
+	typename ObsMomentCalculator::CentroidFeatureMapType obsCentroids = m_ObservationMoments.GetCentroid();
 
-	typename TrackMomentCalculator::AreaFeatureMapType trackAreas =
-			m_TrackMoments.GetAreas();
-	typename ObsMomentCalculator::AreaFeatureMapType obsAreas =
-			m_ObservationMoments.GetAreas();
+	typename TrackMomentCalculator::AreaFeatureMapType trackAreas = m_TrackMoments.GetAreas();
+	typename ObsMomentCalculator::AreaFeatureMapType obsAreas = m_ObservationMoments.GetAreas();
 
-	typename TrackMomentCalculator::PerimeterFeatureMapType trackPerimeter =
-			m_TrackMoments.GetPerimeter();
+	typename TrackMomentCalculator::PerimeterFeatureMapType trackPerimeter = m_TrackMoments.GetPerimeter();
 
-	typename ObsMomentCalculator::PerimeterFeatureMapType obsPerimeter =
-			m_ObservationMoments.GetPerimeter();
+	typename ObsMomentCalculator::PerimeterFeatureMapType obsPerimeter = m_ObservationMoments.GetPerimeter();
 
-	typename TrackMomentCalculator::XXFeatureMapType trackXX =
-			m_TrackMoments.GetXX();
+	typename TrackMomentCalculator::XXFeatureMapType trackXX = m_TrackMoments.GetXX();
 
-	typename ObsMomentCalculator::XXFeatureMapType obsXX =
-			m_ObservationMoments.GetXX();
+	typename ObsMomentCalculator::XXFeatureMapType obsXX = m_ObservationMoments.GetXX();
 
-	typename TrackMomentCalculator::YYFeatureMapType trackYY =
-			m_TrackMoments.GetYY();
+	typename TrackMomentCalculator::YYFeatureMapType trackYY = m_TrackMoments.GetYY();
 
-	typename ObsMomentCalculator::YYFeatureMapType obsYY =
-			m_ObservationMoments.GetYY();
+	typename ObsMomentCalculator::YYFeatureMapType obsYY = m_ObservationMoments.GetYY();
 
-	typename TrackMomentCalculator::XYFeatureMapType trackXY =
-			m_TrackMoments.GetXY();
+	typename TrackMomentCalculator::XYFeatureMapType trackXY =m_TrackMoments.GetXY();
 
-	typename ObsMomentCalculator::XYFeatureMapType obsXY =
-			m_ObservationMoments.GetXY();
+	typename ObsMomentCalculator::XYFeatureMapType obsXY = m_ObservationMoments.GetXY();
 
 	obsToTrack.clear();
+
 
 	//double meanObsArea=m_ObservationAreas.GetMean();
 	//double stdObsArea=m_ObservationAreas.GetStd();

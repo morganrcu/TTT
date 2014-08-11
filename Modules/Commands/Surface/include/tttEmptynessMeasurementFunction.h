@@ -142,23 +142,29 @@ public:
 		assert(vnl_math_abs(Lambda3) > vnl_math_abs(Lambda2));
 		assert(vnl_math_abs(Lambda2) > vnl_math_abs(Lambda1));
 
-		if(Lambda3<0 || Lambda2 < 0 || Lambda1 < 0){
+		if(Lambda3<0 || Lambda2<0 ){
 			return 0;
 		}
-		double S = vcl_sqrt(Lambda1 * Lambda1 + Lambda2 * Lambda2 * Lambda3 * Lambda3);
+		double S = vcl_sqrt(Lambda1 * Lambda1 + Lambda2 * Lambda2 + Lambda3 * Lambda3);
+
+		double A = vcl_abs(Lambda1)/vcl_sqrt(vcl_abs(Lambda3*Lambda2));
+
 
 		double Lambda3Sqr = vnl_math_sqr(Lambda3);
 
 		double GammaSqr = m_Gamma * m_Gamma;
 		double AlphaSqr = m_Alpha * m_Alpha;
 		double BetaSqr = m_Beta * m_Beta;
-		double term1 = (vcl_exp(-1.0 * ((vnl_math_sqr(S))) / (2.0 * GammaSqr)));
-		//double term4 = vcl_exp(-1.0 * (2.0 * vnl_math_sqr(m_C)) / (Lambda3Sqr));
+		double term1 = (1- (vcl_exp(-1.0 * ((vnl_math_sqr(S))) / (2.0 * GammaSqr))));
+
+		//std::cout<< term1 << std::endl;
+
+		double term4 = vcl_exp(-1.0 * (2.0 * vnl_math_sqr(m_C)) / (Lambda3Sqr));
 			//			double term1 =  ( 1 - vcl_exp( -1.0 * (S)));
-			//			double term2  = ( 1 - vcl_exp( -1.0 * (A)));
+		double term2  = vcl_exp( -1.0 * ((vnl_math_sqr(A))) / (2.0*AlphaSqr));
 			//			double term3  = ( 1 - vcl_exp( -1.0 * (B)));
 
-		double vertexnessMeasure = term1 ;
+		double vertexnessMeasure = term1*term2*term4 ;
 
 		if (m_ScaleVertexnessMeasure) {
 			double Lambda3Abs = vcl_abs(Lambda3);
@@ -177,6 +183,7 @@ protected:
 		m_Alpha = 0.5;
 		m_Beta = 0.5;
 		m_Gamma = 8;
+		m_Gamma=64;
 		m_C = 10e-6;
 		m_ScaleVertexnessMeasure = false;
 	}
