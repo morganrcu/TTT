@@ -20,14 +20,17 @@
 #ifndef TRACKINGCOMMAND_H_
 #define TRACKINGCOMMAND_H_
 #include <vector>
-//#include "giaaCellTracker.h"
-#include "tttMinCostMaxFlowCellTracker.h"
+
 #include "tttDescriptionDataTypes.h"
 #include "AppCommand.h"
+#include "TrackInitializationCommand.h"
+#include "MinCostMaxFlowTrackAssociationCommand.h"
 namespace ttt{
 class TrackingCommand: public AppCommand {
 private:
-	ttt::MinCostMaxFlowCellTracker::Pointer m_Tracker;
+
+	ttt::TrackInitializationCommand  m_Initializer;
+	ttt::MinCostMaxFlowTrackAssociationCommand m_Associator;
 
 	std::vector<TissueDescriptor::Pointer> m_Input;
 
@@ -35,29 +38,8 @@ private:
 
 public:
 	TrackingCommand();
+
 #if 0
-    inline void SetXMin(double xMin){
-    	m_Tracker->SetXMin(xMin);
-    }
-    inline void SetXMax(double xMax){
-    	m_Tracker->SetXMax(xMax);
-    }
-    inline void SetYMin(double yMin){
-    	m_Tracker->SetYMin(yMin);
-    }
-    inline void SetYMax(double yMax){
-    	m_Tracker->SetYMax(yMax);
-    }
-
-    inline void SetZMin(double zMin){
-    	m_Tracker->SetZMin(zMin);
-
-    }
-    inline void SetZMax(double zMax){
-    	m_Tracker->SetZMax(zMax);
-    }
-#endif
-
     inline void SetMitosisWeight(double weight){
     	m_Tracker->SetMitosisWeight(weight);
     }
@@ -77,14 +59,14 @@ public:
     inline void SetPerimeterWeight(double perimeter){
     	m_Tracker->SetPerimeterWeight(perimeter);
     }
-#if 0
+
     inline void SetAspectRatioWeight(double weight){
     	m_Tracker->SetAspectRatioWeight(weight);
     }
     inline void SetOrientationWeight(double weight){
     	m_Tracker->SetOrientationWeight(weight);
     }
-#endif
+
     inline void SetEllipseWeight(double weight){
     	m_Tracker->SetEllipseWeight(weight);
     }
@@ -92,7 +74,7 @@ public:
     inline void SetDistanceWeight(double weight){
     	m_Tracker->SetDistanceWeight(weight);
     }
-
+#endif
 	virtual ~TrackingCommand();
 
 	inline void SetObservedTissues(const std::vector<TissueDescriptor::Pointer> & input){

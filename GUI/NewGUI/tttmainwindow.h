@@ -86,6 +86,7 @@ public:
 		m_Vertex=vertex;
 	}
 
+
 private:
 	vtkSmartPointer<vtkActor> m_Actor;
 	vtkSmartPointer<vtkSphereSource> m_SphereSource;

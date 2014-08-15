@@ -83,7 +83,7 @@ MinCostMaxFlowTrackAssociationCommand::~MinCostMaxFlowTrackAssociationCommand() 
 	// TODO Auto-generated destructor stub
 }
 
-void MinCostMaxFlowTrackAssociationCommand::Do(){
+void MinCostMaxFlowTrackAssociationCommand::Do() {
 
 	std::map<CellVertexType, TrackedCellVertexType> obsToTrack;
 
@@ -111,213 +111,188 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 	typename ObsMomentCalculator::AreaFeatureMapType obsAreas = m_ObservationMoments.GetAreas();
 
 	typename TrackMomentCalculator::PerimeterFeatureMapType trackPerimeter = m_TrackMoments.GetPerimeter();
-
 	typename ObsMomentCalculator::PerimeterFeatureMapType obsPerimeter = m_ObservationMoments.GetPerimeter();
 
 	typename TrackMomentCalculator::XXFeatureMapType trackXX = m_TrackMoments.GetXX();
-
 	typename ObsMomentCalculator::XXFeatureMapType obsXX = m_ObservationMoments.GetXX();
 
 	typename TrackMomentCalculator::YYFeatureMapType trackYY = m_TrackMoments.GetYY();
-
 	typename ObsMomentCalculator::YYFeatureMapType obsYY = m_ObservationMoments.GetYY();
 
-	typename TrackMomentCalculator::XYFeatureMapType trackXY =m_TrackMoments.GetXY();
-
+	typename TrackMomentCalculator::XYFeatureMapType trackXY = m_TrackMoments.GetXY();
 	typename ObsMomentCalculator::XYFeatureMapType obsXY = m_ObservationMoments.GetXY();
 
 	obsToTrack.clear();
 
-
-	//double meanObsArea=m_ObservationAreas.GetMean();
-	//double stdObsArea=m_ObservationAreas.GetStd();
-	//if(stdObsArea==0) stdObsArea=1;
-
-	//double meanTrackArea=m_TrackAreas.GetMean();
-	//	double stdTrackArea=m_TrackAreas.GetStd();
-	//if(stdTrackArea==0) stdTrackArea=1;
-
-	//double sx=0,sy=0,sz=0,sx2=0,sy2=0,sz2=0,mux,muy,muz,stdx,stdy,stdz;
-
 	int total = 0;
-	BGL_FORALL_VERTICES(v, *m_PreviousTrackedTissueDescriptor->m_CellGraph, TrackedCellGraph)
-	{
+	BGL_FORALL_VERTICES(v, *m_PreviousTrackedTissueDescriptor->m_CellGraph, TrackedCellGraph){
 		associationGraph.AddTrack(v);
 		/*
-		 * Destruction HYPOTHESIS
+		 * Out of scene HYPOTHESIS
 		 */
 
-		//itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,v).GetCentroid();
 		itk::Point<double, 3> trackCentroid = trackCentroids[v].GetValue();
-		double costDistance = DistToPerimeter<ttt::TrackedTissueDescriptor>(
-				trackCentroid, m_PreviousTrackedTissueDescriptor);
-//			double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
-		//double costArea = fabs((m_TrackAreas[v]-meanTrackArea)/stdTrackArea);
-
-		//std::cout << "Termination " << v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
+		double costDistance = DistToPerimeter<ttt::TrackedTissueDescriptor>(trackCentroid, m_PreviousTrackedTissueDescriptor);
 
 		double terminationCost = this->m_TerminationWeight * this->m_DistanceWeight * costDistance;
 
-		associationGraph.AddTerminationHypothesis(v, terminationCost);
+		/*
+		 * Apoptosis HYPOTHESIS
+		 */
+		double costArea= trackAreas[v].GetValue();
+
+		double apoptosisCost = this->m_ApoptosisWeight * this->m_AreaWeight*costArea;
+
+		associationGraph.AddTerminationHypothesis(v, std::min(terminationCost,apoptosisCost));
+
+
 
 	}
 
-	BGL_FORALL_VERTICES(v, *m_ObservedTissueDescriptor->m_CellGraph, CellGraph)
-	{
+	BGL_FORALL_VERTICES(v, *m_ObservedTissueDescriptor->m_CellGraph, CellGraph){
 
 		associationGraph.AddObservation(v);
 
 		itk::Point<double, 3> observationCentroid = obsCentroids[v].GetValue();
 
-		double costDistance = DistToPerimeter<ttt::TissueDescriptor>(
-				observationCentroid, m_ObservedTissueDescriptor);
+		double costDistance = DistToPerimeter<ttt::TissueDescriptor>(observationCentroid, m_ObservedTissueDescriptor);
 		//double costArea = fabs((m_ObservationAreas[v]-meanObsArea)/stdObsArea);
-		//std::cout << "Creation " <<  v << " CostArea: " << " " << costArea<< " CostDistance: " << costDistance << std::endl;
+		std::cout << "Creation " <<  v << " CostDistance: " << costDistance << std::endl;
 
-		double creationCost = this->m_CreationWeight * this->m_DistanceWeight
-				* costDistance;
+		double creationCost = this->m_CreationWeight * this->m_DistanceWeight * costDistance;
 		associationGraph.AddCreationHypothesis(v, (creationCost));
 	}
 
-	BGL_FORALL_VERTICES(obs, *m_ObservedTissueDescriptor->m_CellGraph, CellGraph)
-	{
+	BGL_FORALL_VERTICES(obs, *m_ObservedTissueDescriptor->m_CellGraph, CellGraph){
 		//std::cout << "ASSOCIATION " << obs << std::endl;
 
-		ttt::Cell currentCell = boost::get(ttt::CellPropertyTag(),
-				*m_ObservedTissueDescriptor->m_CellGraph, obs);
+		ttt::Cell currentCell = boost::get(ttt::CellPropertyTag(),*m_ObservedTissueDescriptor->m_CellGraph, obs);
 
-		itk::Point<double, 3> observationCentroid =
-				obsCentroids[obs].GetValue();
-		//std::cout << "Association" << std::endl;
+		itk::Point<double, 3> observationCentroid =	obsCentroids[obs].GetValue();
+
 
 		/*
 		 * ASSOCIATION HYPOTHESIS
 		 */
-		BGL_FORALL_VERTICES(track, *m_PreviousTrackedTissueDescriptor->m_CellGraph,
-				TrackedCellGraph)
-		{
+		BGL_FORALL_VERTICES(track, *m_PreviousTrackedTissueDescriptor->m_CellGraph, TrackedCellGraph){
 			//itk::Point<double,3> trackCentroid = boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t-1]->m_CellGraph,track).GetCentroid();
-			itk::Point<double, 3> trackCentroid =
-					trackCentroids[track].GetValue();
+			itk::Point<double, 3> trackCentroid = trackCentroids[track].GetValue();
 
 			itk::Vector<double, 3> diff = trackCentroid - observationCentroid;
 
 			double distance = diff.GetNorm();
-			//std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
+			std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
 			distances[track] = distance;
 		}
 
+		m_K=10;
 		for (int k = 0; k < m_K; k++) {
 
 			TrackedCellVertexType min;
-			std::map<ttt::TrackedCellVertexType, double>::iterator minimum =
-					std::min_element(distances.begin(), distances.end(),
-							CompareSecond());
+			std::map<ttt::TrackedCellVertexType, double>::iterator minimum = std::min_element(distances.begin(), distances.end(), CompareSecond());
 			min = minimum->first;
 			double costDistance = minimum->second;
+			double costArea = fabs(obsAreas[obs].GetValue() - trackAreas[min].GetValue());
+			double costPerimeter = fabs(obsPerimeter[obs].GetValue() - trackPerimeter[min].GetValue());
+			double costXX = fabs(obsXX[obs].GetValue() - trackXX[min].GetValue());
+			double costXY = fabs(obsXY[obs].GetValue() - trackXY[min].GetValue());
+			double costYY = fabs(obsYY[obs].GetValue() - trackYY[min].GetValue());
 
-			double costArea = fabs(obsAreas[min].GetValue() - trackAreas[min].GetValue());
 
-			double costEllipse = 0;
+			double associationCost = this->m_AssociationWeight * (this->m_DistanceWeight * costDistance + this->m_AreaWeight * costArea + this->m_PerimeterWeight * costPerimeter + this->m_XXWeight * costXX + this->m_XYWeight*costXY + this->m_YYWeight*costYY);
 
-			double costPerimeter = fabs(trackPerimeter[min].GetValue()- obsPerimeter[obs].GetValue());
-			//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<   std::endl;
+			std::cout << obs << " to " << min <<  " CostDistance: " << costDistance <<  " CostArea: " << " " << costArea<<" CostPerimeter: " << " " << costPerimeter<< " CostXX: " << costXX << " CostXY: " << costXY << " CostYY: " << costYY <<  " --> " << associationCost << std::endl ;
 
-			double associationCost = this->m_AssociationWeight
-					* (this->m_DistanceWeight * costDistance
-							+ this->m_AreaWeight * costArea
-							+ this->m_EllipseWeight * costEllipse
-							+ this->m_PerimeterWeight * costPerimeter);
-
-			associationGraph.AddAssociationHypothesis(min, obs,	associationCost);
+			associationGraph.AddAssociationHypothesis(min, obs, associationCost);
 
 			minimum->second = std::numeric_limits<double>::max();
 		}
 		distances.clear();
+#if 0
+	/*
+	 * MYTHOSIS HYPOTHESIS
+	 */
+	//std::cout << "MITOSIS" << std::endl;
+	typedef boost::graph_traits<ttt::CellGraph>::adjacency_iterator adjacency_iterator;
 
-		/*
-		 * MYTHOSIS HYPOTHESIS
-		 */
-		//std::cout << "MITOSIS" << std::endl;
-		typedef boost::graph_traits<ttt::CellGraph>::adjacency_iterator adjacency_iterator;
+	std::pair<adjacency_iterator, adjacency_iterator> neighbors =
+	boost::adjacent_vertices(obs, *m_ObservedTissueDescriptor->m_CellGraph);
 
-		std::pair<adjacency_iterator, adjacency_iterator> neighbors =
-				boost::adjacent_vertices(obs, *m_ObservedTissueDescriptor->m_CellGraph);
+	for (; neighbors.first != neighbors.second; ++neighbors.first) {
 
-		for (; neighbors.first != neighbors.second; ++neighbors.first) {
+		ttt::Cell neighborCell = boost::get(ttt::CellPropertyTag(),
+				*m_ObservedTissueDescriptor->m_CellGraph, *neighbors.first);
 
-			ttt::Cell neighborCell = boost::get(ttt::CellPropertyTag(),
-					*m_ObservedTissueDescriptor->m_CellGraph, *neighbors.first);
+		itk::Point<double, 3> neighborCentroid = neighborCell.GetCentroid();
 
-			itk::Point<double, 3> neighborCentroid = neighborCell.GetCentroid();
+		ttt::Cell mitosisSuperCell;
 
-			ttt::Cell mitosisSuperCell;
+		ttt::CellUnion(currentCell, neighborCell, mitosisSuperCell);
 
-			ttt::CellUnion(currentCell, neighborCell, mitosisSuperCell);
+		Feature<double> mitosisArea, mitosisPerimeter, mitosisXX, mitosisXY,
+		mitosisYY;
+		Feature<itk::Vector<double, 3> > mitosisNormal;
+		Feature<itk::Point<double, 3> > mitosisCentroid;
 
-			Feature<double> mitosisArea, mitosisPerimeter, mitosisXX, mitosisXY,
-					mitosisYY;
-			Feature<itk::Vector<double, 3> > mitosisNormal;
-			Feature<itk::Point<double, 3> > mitosisCentroid;
+		m_ObservationMoments.GetCellMoments(mitosisSuperCell,
+				mitosisPerimeter, mitosisArea, mitosisCentroid,
+				mitosisNormal, mitosisXX, mitosisYY, mitosisXY);
 
-			m_ObservationMoments.GetCellMoments(mitosisSuperCell,
-					mitosisPerimeter, mitosisArea, mitosisCentroid,
-					mitosisNormal, mitosisXX, mitosisYY, mitosisXY);
+		BGL_FORALL_VERTICES(track, *m_PreviousTrackedTissueDescriptor->m_CellGraph,
+				TrackedCellGraph)
+		{
+			itk::Point<double, 3> trackCentroid = boost::get(
+					ttt::TrackedCellPropertyTag(),
+					*m_PreviousTrackedTissueDescriptor->m_CellGraph, track).GetCentroid();
 
-			BGL_FORALL_VERTICES(track, *m_PreviousTrackedTissueDescriptor->m_CellGraph,
-					TrackedCellGraph)
-			{
-				itk::Point<double, 3> trackCentroid = boost::get(
-						ttt::TrackedCellPropertyTag(),
-						*m_PreviousTrackedTissueDescriptor->m_CellGraph, track).GetCentroid();
+			itk::Vector<double, 3> diff = trackCentroid
+			- mitosisCentroid.GetValue();
+			double distance = diff.GetNorm();
+			distances[track] = distance;
+		}
+		for (int k = 0; k < m_K; k++) {
 
-				itk::Vector<double, 3> diff = trackCentroid
-						- mitosisCentroid.GetValue();
-				double distance = diff.GetNorm();
-				distances[track] = distance;
-			}
-			for (int k = 0; k < m_K; k++) {
+			TrackedCellVertexType min;
+			std::map<ttt::TrackedCellVertexType, double>::iterator minimum =
+			std::min_element(distances.begin(), distances.end(),
+					CompareSecond());
 
-				TrackedCellVertexType min;
-				std::map<ttt::TrackedCellVertexType, double>::iterator minimum =
-						std::min_element(distances.begin(), distances.end(),
-								CompareSecond());
-
-				min = minimum->first;
+			min = minimum->first;
 
 //					double costArea= fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]-2*meanObsArea)/stdObsArea);
-				double costArea = fabs(
-						trackAreas[min].GetValue() - mitosisArea.GetValue());
+			double costArea = fabs(
+					trackAreas[min].GetValue() - mitosisArea.GetValue());
 
-				double costDistance = distances[min];
+			double costDistance = distances[min];
 
-				//vnl_matrix_fixed<double,2,2> trackEllipseMatrix;
-				//parametricEllipseToMatrixEllipse(m_TrackEllipses[min].m_Xrad,m_TrackEllipses[min].m_Yrad,m_TrackEllipses[min].m_Theta,trackEllipseMatrix);
+			//vnl_matrix_fixed<double,2,2> trackEllipseMatrix;
+			//parametricEllipseToMatrixEllipse(m_TrackEllipses[min].m_Xrad,m_TrackEllipses[min].m_Yrad,m_TrackEllipses[min].m_Theta,trackEllipseMatrix);
 
-				//double costEllipse = (trackEllipseMatrix - mitosisEllipseMatrix).frobenius_norm();
+			//double costEllipse = (trackEllipseMatrix - mitosisEllipseMatrix).frobenius_norm();
 
-				double costPerimeter =
-						(trackPerimeter[min] - mitosisPerimeter).GetValue();
+			double costPerimeter =
+			(trackPerimeter[min] - mitosisPerimeter).GetValue();
 
-				//double costAspectRatio = fabs(m_TrackEllipses[min].GetAspectRatio()-mitosisEllipse.GetAspectRatio());
-				//double costOrientation = fabs(m_TrackEllipses[min].m_Theta - mitosisEllipse.m_Theta);
+			//double costAspectRatio = fabs(m_TrackEllipses[min].GetAspectRatio()-mitosisEllipse.GetAspectRatio());
+			//double costOrientation = fabs(m_TrackEllipses[min].m_Theta - mitosisEllipse.m_Theta);
 
-				//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<  std::endl;
-				double costEllipse = 0;
-				double mitosisCost = this->m_MitosisWeight
-						* (this->m_DistanceWeight * costDistance
-								+ this->m_AreaWeight * costArea
-								+ this->m_EllipseWeight * costEllipse
-								+ this->m_PerimeterWeight * costPerimeter);
-				associationGraph.AddMitosisHypothesis(min, obs,
-						*neighbors.first, mitosisCost);
-				//associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,0);
-				minimum->second = std::numeric_limits<double>::max();
-			}
-			distances.clear();
+			//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<  std::endl;
+			double costEllipse = 0;
+			double mitosisCost = this->m_MitosisWeight
+			* (this->m_DistanceWeight * costDistance
+					+ this->m_AreaWeight * costArea
+					+ this->m_EllipseWeight * costEllipse
+					+ this->m_PerimeterWeight * costPerimeter);
+			associationGraph.AddMitosisHypothesis(min, obs,
+					*neighbors.first, mitosisCost);
+			//associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,0);
+			minimum->second = std::numeric_limits<double>::max();
 		}
-
+		distances.clear();
 	}
+#endif
+}
+
 	associationGraph.Print();
 	vnl_sparse_matrix<double> flowMatrix;
 	vnl_vector<double> flowVector, costVector, capacityVector;
@@ -354,14 +329,17 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 	associationGraph.DecodeSolution(solution, associations, toCreate, toDelete,
 			mitosis);
 
-	//std::cout << "Associations: " << associations.size() << std::endl;
+	std::cout << "Associations: " << associations.size() << std::endl;
 	std::cout << "Mitosis: " << mitosis.size() << std::endl;
-	//std::cout << "ToCreate: " << toCreate.size() << std::endl;
-	//std::cout << "ToDelete: " << toDelete.size() << std::endl;
-	//std::cout << "Observations: " << boost::num_vertices(*m_Observations[t]->m_CellGraph) << std::endl;
+	std::cout << "ToCreate: " << toCreate.size() << std::endl;
+	std::cout << "ToDelete: " << toDelete.size() << std::endl;
+	std::cout << "Observations: "
+			<< boost::num_vertices(*m_ObservedTissueDescriptor->m_CellGraph)
+			<< std::endl;
 	assert(
 			associations.size() + 2 * mitosis.size() + toCreate.size()
-					== boost::num_vertices(*m_ObservedTissueDescriptor->m_CellGraph));
+					== boost::num_vertices(
+							*m_ObservedTissueDescriptor->m_CellGraph));
 
 	m_CurrentTrackedTissueDescriptor = ttt::TrackedTissueDescriptor::New();
 
@@ -369,34 +347,36 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 
 	for (std::vector<ttt::SkeletonVertexType>::iterator it =
 			m_ObservedTissueDescriptor->BeginPerimeter();
-			it !=m_ObservedTissueDescriptor->EndPerimeter(); ++it) {
+			it != m_ObservedTissueDescriptor->EndPerimeter(); ++it) {
 		m_CurrentTrackedTissueDescriptor->AddVertexToPerimeter(*it);
 	}
 
-	m_CurrentTrackedTissueDescriptor->m_CellGraph = boost::shared_ptr<ttt::TrackedCellGraph>(
-			new ttt::TrackedCellGraph);
+	m_CurrentTrackedTissueDescriptor->m_CellGraph = boost::shared_ptr<
+			ttt::TrackedCellGraph>(new ttt::TrackedCellGraph);
 
 	for (std::vector<std::pair<CellVertexType, TrackedCellVertexType> >::iterator it =
 			associations.begin(); it != associations.end(); it++) {
 
-		int trackID = boost::get(ttt::TrackedCellPropertyTag(),
-				*m_PreviousTrackedTissueDescriptor->m_CellGraph, it->second).GetID();
+		int trackID = boost::get(ttt::TrackedCellPropertyTag(), *m_PreviousTrackedTissueDescriptor->m_CellGraph,
+						it->second).GetID();
 
-		TrackedCellVertexType n = boost::add_vertex(*m_CurrentTrackedTissueDescriptor->m_CellGraph);
+		TrackedCellVertexType n = boost::add_vertex(
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph);
 
-		boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n) =
-				boost::get(ttt::CellPropertyTag(),
-						*m_ObservedTissueDescriptor->m_CellGraph, it->first);
+		boost::get(ttt::TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n) = boost::get(
+				ttt::CellPropertyTag(),
+				*m_ObservedTissueDescriptor->m_CellGraph, it->first);
 
-		boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetID(
+		boost::get(TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetID(
 				trackID);
 
-		boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetObservedCell(
+		boost::get(ttt::TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetObservedCell(
 				it->first);
 
-
-
-		//std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_Tracks[t]->m_CellGraph,n).m_ObservedCell << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
+		std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentTrackedTissueDescriptor->m_CellGraph,n).GetObservedCell() << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
 
 		obsToTrack[it->first] = n;
 	}
@@ -405,16 +385,20 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 			it != toCreate.end(); ++it) {
 		//std::cout << "Create " << *it << std::endl;
 
-		TrackedCellVertexType n = boost::add_vertex(*m_CurrentTrackedTissueDescriptor->m_CellGraph);
+		TrackedCellVertexType n = boost::add_vertex(
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph);
 
-		boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n) =
-				boost::get(ttt::CellPropertyTag(),
-						*m_ObservedTissueDescriptor->m_CellGraph, *it);
+		boost::get(ttt::TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n) = boost::get(
+				ttt::CellPropertyTag(),
+				*m_ObservedTissueDescriptor->m_CellGraph, *it);
 
-		boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetID(
+		boost::get(TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetID(
 				m_NextID++);
 
-		boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetObservedCell(
+		boost::get(ttt::TrackedCellPropertyTag(),
+				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetObservedCell(
 				*it);
 
 		obsToTrack[*it] = n;
@@ -427,49 +411,60 @@ void MinCostMaxFlowTrackAssociationCommand::Do(){
 			TrackedCellVertexType a = boost::add_vertex(
 					*m_CurrentTrackedTissueDescriptor->m_CellGraph);
 
-			boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph,
-					a) = boost::get(ttt::CellPropertyTag(),
-					*m_ObservedTissueDescriptor->m_CellGraph, it->A);
+			boost::get(ttt::TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, a) =
+					boost::get(ttt::CellPropertyTag(),
+							*m_ObservedTissueDescriptor->m_CellGraph, it->A);
 
-			boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, a).SetID(
+			boost::get(TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, a).SetID(
 					m_NextID++);
-			boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, a).SetParentID(
+			boost::get(TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, a).SetParentID(
 					boost::get(ttt::TrackedCellPropertyTag(),
-							*m_PreviousTrackedTissueDescriptor->m_CellGraph, it->track).GetID());
+							*m_PreviousTrackedTissueDescriptor->m_CellGraph,
+							it->track).GetID());
 
-			boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph,
-					a).SetObservedCell(it->A);
+			boost::get(ttt::TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, a).SetObservedCell(
+					it->A);
 			obsToTrack[it->A] = a;
 		}
 		{
 			TrackedCellVertexType b = boost::add_vertex(
 					*m_CurrentTrackedTissueDescriptor->m_CellGraph);
 
-			boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph,
-					b) = boost::get(ttt::CellPropertyTag(),
-					*m_ObservedTissueDescriptor->m_CellGraph, it->B);
+			boost::get(ttt::TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, b) =
+					boost::get(ttt::CellPropertyTag(),
+							*m_ObservedTissueDescriptor->m_CellGraph, it->B);
 
-			boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, b).SetID(
+			boost::get(TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, b).SetID(
 					m_NextID++);
 
-			boost::get(TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph, b).SetParentID(
+			boost::get(TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, b).SetParentID(
 					boost::get(ttt::TrackedCellPropertyTag(),
-							*m_PreviousTrackedTissueDescriptor->m_CellGraph, it->track).GetID());
+							*m_PreviousTrackedTissueDescriptor->m_CellGraph,
+							it->track).GetID());
 
-			boost::get(ttt::TrackedCellPropertyTag(), *m_CurrentTrackedTissueDescriptor->m_CellGraph,
-					b).SetObservedCell(it->B);
+			boost::get(ttt::TrackedCellPropertyTag(),
+					*m_CurrentTrackedTissueDescriptor->m_CellGraph, b).SetObservedCell(
+					it->B);
 			obsToTrack[it->B] = b;
 		}
 	}
 
 	BGL_FORALL_EDGES(e, *m_ObservedTissueDescriptor->m_CellGraph, CellGraph){
-		CellVertexType source = boost::source(e,
-				*m_ObservedTissueDescriptor->m_CellGraph);
-		CellVertexType target = boost::target(e,
-				*m_ObservedTissueDescriptor->m_CellGraph);
-		boost::add_edge(obsToTrack[source], obsToTrack[target],
-				*m_CurrentTrackedTissueDescriptor->m_CellGraph);
-	}
+	CellVertexType source = boost::source(e,
+			*m_ObservedTissueDescriptor->m_CellGraph);
+	CellVertexType target = boost::target(e,
+			*m_ObservedTissueDescriptor->m_CellGraph);
+	boost::add_edge(obsToTrack[source], obsToTrack[target],
+			*m_CurrentTrackedTissueDescriptor->m_CellGraph);
+}
 }
 
-} /* namespace ttt */
+}
+/* namespace ttt */

@@ -1,14 +1,16 @@
 
 #include "mysqltissuetrackingproject2.h"
+#include "jsontissuetrackingproject2.h"
 #include <boost/graph/iteration_macros.hpp>
 
 #include "TrackVolumeDrawer.hpp"
-int main(){
+int main(int argc, char ** argv){
 
-	ttt::MySQLTissueTrackingProject2 m_Project;
+	//ttt::MySQLTissueTrackingProject2 m_Project;
+	ttt::JSONTissueTrackingProject2 m_Project;
 
-
-	m_Project.SetProjectID(26);
+	m_Project.SetDirectory(argv[1]);
+	//m_Project.SetProjectID(26);
 	m_Project.Open();
 	//m_Project.OpenProject(2);//Notum
 
@@ -26,5 +28,5 @@ int main(){
 		tissues[t]=m_Project.GetTrackedTissueDescriptor(t);
 	}
 
-	DrawTrackVolume("notum-gt.tiff",tissues);
+	DrawTrackVolume("test-gt.tiff",tissues);
 }

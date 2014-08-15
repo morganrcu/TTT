@@ -31,6 +31,10 @@ public:
 		return m_TrackedTissueDescriptor;
 	}
 
+	inline unsigned int GetNextID(){
+		return m_NextID;
+	}
+
 	virtual void Do();
 
 };

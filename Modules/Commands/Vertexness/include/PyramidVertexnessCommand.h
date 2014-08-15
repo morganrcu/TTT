@@ -142,6 +142,10 @@ public:
 	 * TODO
 	 */
 	void Do();
+
+	VertexnessImageType::Pointer GetCollapsedPyramid();
+
+
 };
 }
 

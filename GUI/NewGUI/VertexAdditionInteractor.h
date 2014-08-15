@@ -53,6 +53,9 @@ public:
 	inline void SetAdherensJunctionVertices(const ttt::AdherensJunctionVertices::Pointer & vertices){
 		m_AdherensJunctionsVertices=vertices;
 	}
+	inline ttt::AdherensJunctionVertices::Pointer GetAdherensJunctionVertices(){
+		return m_AdherensJunctionsVertices;
+	}
 
 	inline void SetVertexLocationsDrawer(const vtkSmartPointer<ttt::VertexLocationsDrawer> & vertexLocationsDrawer){
 		m_VertexLocationsDrawer=vertexLocationsDrawer;

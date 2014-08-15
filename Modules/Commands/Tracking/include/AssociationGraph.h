@@ -49,30 +49,7 @@ template<class ObservationType,class TrackType> class AssociationGraph{
 public:
 	typedef Mitosis<ObservationType,TrackType> MitosisType;
 	typedef boost::adjacency_list_traits < boost::vecS, boost::vecS, boost::directedS > Traits;
-#if 0
-	typedef boost::adjacency_list <
-				boost::vecS,
-				boost::vecS,
-				boost::directedS,
-				boost::no_property,
-				boost::property <
-					boost::edge_capacity_t,
-					long,
-					boost::property <
-						boost::edge_residual_capacity_t,
-						long,
-						boost::property <
-							boost::edge_reverse_t,
-							Traits::edge_descriptor,
-							boost::property <
-								boost::edge_weight_t,
-								long
-							>
-						>
-					>
-				>
-		> FlowGraphType;
-#endif
+
 	typedef boost::property <
 			boost::edge_capacity_t,
 			double,
@@ -81,6 +58,7 @@ public:
 				double
 				>
 		> FlowGraphEdgePropertyType;
+
 	typedef boost::adjacency_list <
 					boost::vecS,
 					boost::vecS,
@@ -90,16 +68,10 @@ public:
 				> FlowGraphType;
 
 
-	//typedef boost::property_map < FlowGraphType, boost::edge_capacity_t >::type Capacity;
-	//typedef boost::property_map < FlowGraphType, boost::edge_residual_capacity_t >::type ResidualCapacity;
 	typedef boost::property_map < FlowGraphType, boost::edge_weight_t >::type Weight;
-	//typedef boost::property_map < FlowGraphType, boost::edge_reverse_t>::type Reversed;
 	typedef boost::graph_traits<FlowGraphType>::vertices_size_type size_type;
 	typedef boost::graph_traits<FlowGraphType>::vertex_descriptor FlowGraphVertexType;
 	typedef boost::graph_traits<FlowGraphType>::edge_descriptor FlowGraphEdgeType;
-
-
-
 
 
 
@@ -251,7 +223,7 @@ public:
 		m_NumTerminationHypothesis++;
 	}
 
-	void SetApoptosisHypothesis(const TrackType & track,double cost){
+	void AddApoptosisHypothesis(const TrackType & track,double cost){
 		//TODO
 
 

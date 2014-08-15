@@ -17,7 +17,8 @@ ttt::VertexLocationsDrawer::VertexSphereMapperAndActor ttt::VertexLocationsDrawe
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	sphereSource->SetCenter(vertex->GetPosition()[0] * m_Spacing[0],vertex->GetPosition()[1] * m_Spacing[1],vertex->GetPosition()[2] * m_Spacing[2]);
 
-	sphereSource->SetRadius(5 * m_Spacing[0]);
+	//sphereSource->SetRadius(2 * m_Spacing[0]);
+	sphereSource->SetRadius(0.1);
 
 	sphereSource->Update();
 

@@ -46,7 +46,7 @@ void SurfaceCommand::Do() {
 
 	for(int i=-5;i<5;i++){
 
-		const float sigma = pow(2,i);
+		const float sigma = pow(2,(double)i/2.0);
 
 		emptyFilter->SetSigmaMin(sigma);
 		emptyFilter->SetSigmaMax(sigma);

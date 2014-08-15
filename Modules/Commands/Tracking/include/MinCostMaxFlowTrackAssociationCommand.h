@@ -21,21 +21,31 @@ private:
 	typename ttt::TrackedTissueDescriptor::Pointer m_PreviousTrackedTissueDescriptor;
 	typename ttt::TrackedTissueDescriptor::Pointer m_CurrentTrackedTissueDescriptor;
 
-	double m_TerminationWeight;
-	double m_DistanceWeight;
-	double m_CreationWeight;
-	double m_AssociationWeight;
-	double m_AreaWeight;
-	double m_EllipseWeight;
-	double m_PerimeterWeight;
-	double m_MitosisWeight;
+	double m_TerminationWeight=1;
+	double m_CreationWeight=0.5;
+	double m_AssociationWeight=0.1;
+	double m_ApoptosisWeight=1;
+	double m_MitosisWeight=1;
+
+	double m_DistanceWeight=1;
+	double m_AreaWeight=0.01;
+	double m_PerimeterWeight=0;
+	double m_XXWeight=0;
+	double m_XYWeight=0;
+	double m_YYWeight=0;
+
+
 	int m_K;
-	int m_NextID;
+	unsigned int m_NextID;
+
 public:
 
 	MinCostMaxFlowTrackAssociationCommand();
 	virtual ~MinCostMaxFlowTrackAssociationCommand();
 
+	inline void SetNextID(unsigned int nextID){
+		m_NextID=nextID;
+	}
 	inline void SetPreviousTrackedTissueDescriptor(const typename ttt::TrackedTissueDescriptor::Pointer & previousTrackedTissueDescriptor){
 		m_PreviousTrackedTissueDescriptor=previousTrackedTissueDescriptor;
 	}

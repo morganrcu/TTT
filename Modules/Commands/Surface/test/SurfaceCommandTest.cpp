@@ -18,9 +18,13 @@ int main(int argc, char ** argv){
 
 	InputImageType::Pointer input =reader->GetOutput();
 	InputImageType::SpacingType spacing;
-	spacing[0]=0.1569476;
-	spacing[1]=0.1569476;
-	spacing[2]=0.6209697;
+	//spacing[0]=0.1569476;
+	//spacing[1]=0.1569476;
+	//spacing[2]=0.6209697;
+
+	spacing[0]=0.3107403;
+	spacing[1]=0.3107403;
+	spacing[2]=0.739833;
 
 	input->SetSpacing(spacing);
 	rescaler01->SetOutputMinimum(0);

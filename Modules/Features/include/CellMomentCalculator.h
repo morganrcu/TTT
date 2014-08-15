@@ -75,6 +75,12 @@ public:
 		PointType meanPoint;
 		meanPoint.Fill(0);
 
+
+		for(typename CellType::PerimeterIterator perimeterIt= cell.PerimeterBegin();perimeterIt!=cell.PerimeterEnd();++perimeterIt){
+					itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*(m_TissueDescriptor->m_SkeletonGraph),*perimeterIt).position;
+					std::cout << position << std::endl;
+		}
+
 		for(typename CellType::PerimeterIterator perimeterIt= cell.PerimeterBegin();perimeterIt!=cell.PerimeterEnd();++perimeterIt){
 			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*(m_TissueDescriptor->m_SkeletonGraph),*perimeterIt).position;
 			points.push_back(position);
@@ -87,7 +93,7 @@ public:
 		meanPoint[0]/=total;
 		meanPoint[1]/=total;
 		meanPoint[2]/=total;
-
+		std::cout << "MeanPoint " << meanPoint << std::endl;
 		vnl_matrix<double> A(total,3);
 
 		int row=0;
@@ -101,6 +107,8 @@ public:
 			row++;
 
 		}
+		std::cout << "A:" << std::endl;
+		std::cout << A << std::endl;
 
 		vnl_matrix_fixed<double,3,3> S= A.transpose()*A; //FEATURE: Scatter Matrix
 
@@ -113,6 +121,7 @@ public:
 		cellNormal.SetValue(normalVector);
 
 		std::vector<PointType> projectedPoints;
+		std::cout << "Projections" << std::endl;
 		for(std::vector<PointType>::iterator pointIt = centeredPoints.begin();pointIt!=centeredPoints.end();++pointIt){
 
 			PointType a = *pointIt;
@@ -123,15 +132,14 @@ public:
 			proj[1]=a[1]-dot*normalPlane[1];
 			proj[2]=a[2]-dot*normalPlane[2];
 			projectedPoints.push_back(proj);
-
+			std::cout << proj << std::endl;
 		}
-
-
-
 
 		std::vector<vnl_vector<double> > transformedPoints;
 
-				for(std::vector<PointType>::iterator pointIt = projectedPoints.begin();pointIt!=projectedPoints.end();++pointIt){
+		std::cout << "Transformed" << std::endl;
+
+		for(std::vector<PointType>::iterator pointIt = projectedPoints.begin();pointIt!=projectedPoints.end();++pointIt){
 
 			PointType a = *pointIt;
 			vnl_vector<double> vec(3);
@@ -142,14 +150,13 @@ public:
 			transformed(0)=ap[1];
 			transformed(1)=ap[2];
 			transformedPoints.push_back(transformed);
+			std::cout << transformed << std::endl;
 
 		}
 
 		transformedPoints.push_back(transformedPoints[0]);
 
 
-		//FEATURE MOMENTS
-		//FEATURE MOMENTS
 		vnl_vector<double> centroid2D(2);
 
 		centroid2D.fill(0);
@@ -180,6 +187,8 @@ public:
 
 		centroid2D(0)=centroid2D(0)/(6*area);
 		centroid2D(1)=centroid2D(1)/(6*area);
+		std::cout << "Centroid2D" << std::endl;
+		std::cout<< centroid2D << std::endl;
 
 		xx=xx/(12*area);
 		yy=yy/(12*area);
@@ -196,16 +205,19 @@ public:
 
 		vnl_vector<double> cu = eigensystem.V*cp;
 
+		std::cout << "CU" << std::endl;
+		std::cout << cu << std::endl;
 
 		PointType cg;
 		PointType centroid3D;
-		centroid3D=cu[0]+meanPoint[0];
-		centroid3D=cu[1]+meanPoint[1];
-		centroid3D=cu[2]+meanPoint[2];
+
+		centroid3D[0]=cu[0]+meanPoint[0];
+		centroid3D[1]=cu[1]+meanPoint[1];
+		centroid3D[2]=cu[2]+meanPoint[2];
+
+		std::cout << "Centroid3D" << centroid3D << std::endl;
 
 		cellCentroid.SetValue(centroid3D);
-
-
 
 
 
@@ -236,7 +248,6 @@ public:
 			Feature<double> cellYY;
 			Feature<double> cellXY;
 
-
 			this->GetCellMoments(cell,cellPerimeter,cellArea,cellCentroid,cellNormal,cellXX,cellYY,cellXY);
 
 			m_Area[*it]=cellArea;
@@ -246,7 +257,6 @@ public:
 			m_XX[*it]=cellXX;
 			m_XY[*it]=cellXY;
 			m_YY[*it]=cellYY;
-
 
 			++it;
 

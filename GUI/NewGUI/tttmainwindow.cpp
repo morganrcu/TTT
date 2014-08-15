@@ -392,6 +392,9 @@ TTTMainWindow::TTTMainWindow(QWidget *parent) :
 
     connect(this->m_pUI->actionSave,SIGNAL(triggered()),this,SLOT(Save()));
 
+    connect(this->m_pUI->initTracksButton,SIGNAL(clicked()),this,SLOT(DoInitTracking()));
+
+
     this->SetupVertexStandardInteractor();
     this->SetupVertexSelectionInteractor();
     this->SetupVertexAdditionInteractor();
@@ -860,8 +863,8 @@ void TTTMainWindow::SetupSegmentationFrame(int frame){
 	this->DrawSegmentation();
 }
 void TTTMainWindow::SetupTrackingFrame(int frame){
-	this->DrawTracking();
 	SetupSliderPositions(frame);
+	this->DrawTracking();
 }
 
 void TTTMainWindow::SetupTectonicsFrame(int frame){
@@ -954,6 +957,7 @@ void TTTMainWindow::DoVertexness(){
 
 	vertexnessCommand.Do();
 
+	m_Project->SetVertexnessImage(m_CurrentFrame,vertexnessCommand.GetCollapsedPyramid());
 
 	m_Project->SetPyramidVertexnessImage(m_CurrentFrame,vertexnessCommand.GetVertexnessImages());
 
@@ -1080,7 +1084,8 @@ void TTTMainWindow::VertexAdded(vtkSmartPointer<vtkActor> & actor){
 
     ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
 
-  	m_Project->SetAdherensJunctionVertices(m_CurrentFrame,m_DrawnAJVertices);
+  	m_Project->SetAdherensJunctionVertices(m_CurrentFrame,this->m_VertexAdditionInteractor->GetAdherensJunctionVertices());
+
   	this->m_VertexLocationRenderWindowInteractor->SetInteractorStyle(this->m_StandardInteractor);
   	//this->m_VertexLocationRenderWindowInteractor->ReInitialize();
   	std::cout << "->Vertex Added: Standard interactor style" << std::endl;
@@ -1138,7 +1143,9 @@ void TTTMainWindow::VertexAdditionCancelled(){
 
 void TTTMainWindow::AddVertex(){
 	m_VertexAdditionInteractor->SetSpacing(m_Project->GetSpacing());
-	m_VertexAdditionInteractor->SetAdherensJunctionVertices(m_Project->GetAdherensJunctionVertices(m_CurrentFrame));
+
+	m_VertexAdditionInteractor->SetAdherensJunctionVertices(this->m_DrawnAJVertices);
+
 	this->m_pUI->selectVertexButton->setEnabled(false);
 	this->m_pUI->addVertexButton->setEnabled(false);
 	this->m_pUI->deleteVertexButton->setEnabled(false);
@@ -1554,36 +1561,38 @@ void TTTMainWindow::DoTracking(){
 
 
 void TTTMainWindow::DrawTracking(){
-	m_DrawnTrackedTissueDescriptor=m_Project->GetTrackedTissueDescriptor(m_CurrentFrame);
-	m_TrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
-	m_TrackingDrawer.SetRenderer(this->m_TrackingRenderer);
-	//m_TrackingDrawer.SetEdgeColorer(this->m_TrackingEdgeColorer);
 
-	//TrackedCellId::Pointer idFeature=TrackedCellId::New();
+	if(m_Project->IsTrackedTissueDescriptorAvailable(m_CurrentFrame)){
+		m_DrawnTrackedTissueDescriptor=m_Project->GetTrackedTissueDescriptor(m_CurrentFrame);
+		m_TrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
+		m_TrackingDrawer.SetRenderer(this->m_TrackingRenderer);
+		//m_TrackingDrawer.SetEdgeColorer(this->m_TrackingEdgeColorer);
 
-	FeatureMap<CellVertexType,unsigned int> idFeature;
+		//TrackedCellId::Pointer idFeature=TrackedCellId::New();
 
-	BGL_FORALL_VERTICES_T(v,*m_DrawnTrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
-		idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_DrawnTrackedTissueDescriptor->m_CellGraph,v).GetID();
+		FeatureMap<CellVertexType,unsigned int> idFeature;
+
+		BGL_FORALL_VERTICES_T(v,*m_DrawnTrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
+			idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_DrawnTrackedTissueDescriptor->m_CellGraph,v).GetID();
+		}
+
+		m_TrackingVertexColorer.SetFeatureMap(idFeature);
+
+		//m_TrackingDrawer.SetVertexColorer(&m_TrackingVertexColorer);
+		//m_TrackingDrawer.SetEdgeColorer(&m_TrackingEdgeColorer);
+		m_TrackingDrawer.Draw();
+
+		m_TrackingDrawer.SetVisibility(true);
+
+		m_PrimalGraphTrackingDrawer.SetRenderer(this->m_TrackingRenderer);
+		m_PrimalGraphTrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
+		m_PrimalGraphTrackingDrawer.SetVertexColorer(&m_PrimalGraphVertexColorer);
+		m_PrimalGraphTrackingDrawer.SetEdgeColorer(&m_PrimalGraphEdgeColorer);
+		m_PrimalGraphTrackingDrawer.Draw();
+		m_PrimalGraphTrackingDrawer.SetVisibility(true);
+
+		this->m_TrackingRendererWindow->Render();
 	}
-
-	m_TrackingVertexColorer.SetFeatureMap(idFeature);
-
-	//m_TrackingDrawer.SetVertexColorer(&m_TrackingVertexColorer);
-	//m_TrackingDrawer.SetEdgeColorer(&m_TrackingEdgeColorer);
-	m_TrackingDrawer.Draw();
-
-	m_TrackingDrawer.SetVisibility(true);
-
-	m_PrimalGraphTrackingDrawer.SetRenderer(this->m_TrackingRenderer);
-	m_PrimalGraphTrackingDrawer.SetTissueDescriptor(m_DrawnTrackedTissueDescriptor);
-	m_PrimalGraphTrackingDrawer.SetVertexColorer(&m_PrimalGraphVertexColorer);
-	m_PrimalGraphTrackingDrawer.SetEdgeColorer(&m_PrimalGraphEdgeColorer);
-	m_PrimalGraphTrackingDrawer.Draw();
-	m_PrimalGraphTrackingDrawer.SetVisibility(true);
-
-	this->m_TrackingRendererWindow->Render();
-
 }
 void TTTMainWindow::DoInitTracking(){
 	TrackInitializationCommand initializationCommand;

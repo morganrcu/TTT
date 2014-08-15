@@ -11,6 +11,13 @@
 void ttt::TrackInitializationCommand::Do(){
 	std::map<CellVertexType, TrackedCellVertexType> obsToTrack;
 
+	m_TrackedTissueDescriptor=ttt::TrackedTissueDescriptor::New();
+
+	m_TrackedTissueDescriptor->m_SkeletonGraph = m_TissueDescriptor->m_SkeletonGraph;
+
+	m_TrackedTissueDescriptor->m_CellGraph = boost::shared_ptr<ttt::TrackedCellGraph>(
+				new ttt::TrackedCellGraph);
+
 	BGL_FORALL_VERTICES(v,*m_TissueDescriptor->m_CellGraph,CellGraph){
 
 		TrackedCellVertexType n= boost::add_vertex(*m_TrackedTissueDescriptor->m_CellGraph);

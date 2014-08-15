@@ -4,6 +4,7 @@
 #include <itkImageFileReader.h>
 #include <qfiledialog.h>
 #include "jsontissuetrackingproject2.h"
+#include "mysqltissuetrackingproject2.h"
 
 SQLNewProjectDialog::SQLNewProjectDialog(QWidget *parent) :
     QDialog(parent),
@@ -23,17 +24,36 @@ void SQLNewProjectDialog::accept(){
 	typedef typename TissueTrackingAbstractProject2::RawImageType ImageType;
 	typedef itk::ImageFileReader<ImageType> ReaderType;
 	ReaderType::Pointer reader=ReaderType::New();
-
+#if 0
 	if(this->ui->projectTypeComboBox){
 
-		//m_NewProject = new MySQLTissueTrackingProject;
+		ttt::MySQLTissueTrackingProject2 * mysqlProject = new MySQLTissueTrackingProject2;
+		mysqlProject->SetHost("localhost");
+		mysqlProject->SetDBName("TuftsTissueTracker");
+		mysqlProject->SetUser("root");
+		mysqlProject->SetPassword("ttt1Tracker");
+		mysqlProject->Open();
+
+		m_NewProject =mysqlProject;
+
 		//m_NewProject->openDB();
+		//mysqlProject->set
 	}else{
-		m_NewProject = new ttt::JSONTissueTrackingProject2;
+#endif
+		std::string projectPath = this->ui->wdLineEdit->text().toStdString();
+
+		ttt::JSONTissueTrackingProject2 * jsonProject= new ttt::JSONTissueTrackingProject2;
+		jsonProject->SetDirectory(projectPath);
+
+#if 0
 	}
+#endif
+
+	m_NewProject=jsonProject;
+	m_NewProject->Open();
 
     std::string name = this->ui->projectNameLabel->text().toStdString();
-    std::string projectPath = this->ui->wdLineEdit->text().toStdString();
+
 
     double spacingX = (double)atof(this->ui->xSpacingLineEdit->text().toStdString().c_str());
     double spacingY = (double)atof(this->ui->yLineEdit->text().toStdString().c_str());

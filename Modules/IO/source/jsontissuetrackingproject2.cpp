@@ -196,7 +196,7 @@ typename JSONTissueTrackingProject2::VertexnessImageType::Pointer ttt::JSONTissu
 	return this->LoadImage("VertexnessImage",frame);
 }
 bool ttt::JSONTissueTrackingProject2::IsVertexnessImageAvailable(unsigned int frame){
-	return this->IsImage("PlatenessImage",frame);
+	return this->IsImage("VertexnessImage",frame);
 }
 
 void ttt::JSONTissueTrackingProject2::SetAdherensJunctionVertices(unsigned int frame, const typename ttt::AdherensJunctionVertices::Pointer & vertices){
@@ -325,12 +325,17 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 
 	 }
 
-	 for(int i=0;i<numedgesprimal;i++){
+	 for(int i=0;i<numedgesdual;i++){
 		 ttt::SkeletonVertexType src = root["dual"]["edges"][i]["src"].asUInt64();
 		 ttt::SkeletonVertexType tgt = root["dual"]["edges"][i]["tgt"].asUInt64();
 		 boost::add_edge(src,tgt,*descriptor->m_CellGraph);
 	 }
 
+	 int perimeterLength=root["perimeter"].size();
+
+	 for(int i=0;i<perimeterLength;i++){
+		 descriptor->AddVertexToPerimeter(root["perimeter"][i].asUInt64());
+	 }
 
  	return descriptor;
 }
@@ -377,8 +382,10 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 	 		root["dual"]["edges"][k]["tgt"]=(Json::UInt64)boost::target(e,*descriptor->m_CellGraph);
 	 		k++;
 	 	}
-
-
+	 	k=0;
+	 	for(auto it = descriptor->BeginPerimeter(); it!=descriptor->EndPerimeter(); it++){
+	 		root["perimeter"][k++]=(Json::UInt64)*it;
+	 	}
 	 	std::string jsoncontent=writer.write(root);
 	 	std::ofstream file (vertexStorageFile, std::ofstream::out | std::ofstream::trunc);
 
@@ -447,7 +454,10 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 	 		newCell.SetCentroid(centroid);
 
 	 		int id = root["dual"]["vertices"][i]["trackID"].asInt();
+	 		int parentID = root["dual"]["vertices"][i]["parentID"].asInt();
+
 	 		newCell.SetID(id);
+	 		newCell.SetParentID(parentID);
 
 	 		itk::Vector<double,3> velocity;
 
@@ -468,12 +478,16 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 
 	 	 }
 
-	 	 for(int i=0;i<numedgesprimal;i++){
+	 	 for(int i=0;i<numedgesdual;i++){
 	 		 ttt::SkeletonVertexType src = root["dual"]["edges"][i]["src"].asUInt64();
 	 		 ttt::SkeletonVertexType tgt = root["dual"]["edges"][i]["tgt"].asUInt64();
 	 		 boost::add_edge(src,tgt,*descriptor->m_CellGraph);
 	 	 }
+		 int perimeterLength=root["perimeter"].size();
 
+		 for(int i=0;i<perimeterLength;i++){
+			 descriptor->AddVertexToPerimeter(root["perimeter"][i].asUInt64());
+		 }
 
 	  	return descriptor;
 }
@@ -508,6 +522,7 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 		root["dual"]["vertices"][k]["y"]=currentCell.GetCentroid()[1];
 		root["dual"]["vertices"][k]["z"]=currentCell.GetCentroid()[2];
 		root["dual"]["vertices"][k]["trackID"]=currentCell.GetID();
+		root["dual"]["vertices"][k]["parentID"]=currentCell.GetParentID();
 		root["dual"]["vertices"][k]["observed"]=currentCell.GetObservedCell();
 		root["dual"]["vertices"][k]["dx"]=currentCell.GetVelocity()[0];
 		root["dual"]["vertices"][k]["dy"]=currentCell.GetVelocity()[1];
@@ -525,7 +540,10 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(unsign
 		root["dual"]["edges"][k]["tgt"]=(Json::UInt64)boost::target(e,*descriptor->m_CellGraph);
 		k++;
 	}
-
+	k=0;
+	for(auto it = descriptor->BeginPerimeter(); it!=descriptor->EndPerimeter(); it++){
+		root["perimeter"][k++]=(Json::UInt64)*it;
+	}
 
 	std::string jsoncontent=writer.write(root);
 	std::ofstream file (vertexStorageFile, std::ofstream::out | std::ofstream::trunc);
