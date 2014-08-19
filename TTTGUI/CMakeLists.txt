@@ -1,57 +1,85 @@
-Project (TTTNewGUI)
+Project (TTTGUI)
 
 FIND_PACKAGE(Qt5Widgets REQUIRED)
 FIND_PACKAGE(Qt5Core REQUIRED)
 FIND_PACKAGE(Qt5Gui REQUIRED)
 
-set(CMAKE_AUTOMOC ON)
-
+#set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
 # some .ui files sqlnewprojectdialog.ui sqlopenprojectdialog.ui
-SET(TTTNewGUI_UIS tttmainwindow.ui 
-    )
+SET(TTTGUI_UIS    uis/tttmainwindow.ui
+                  uis/tttsqlopenprojectdialog.ui 
+                  uis/tttsqlnewprojectdialog.ui 
+                  uis/tttexplorer.ui 
+                  uis/tttpreferences.ui
+)
 
-# another list, this time it includes all header files that should be treated with moc
-SET( TTTNewGUI_MOC_HDRS
-  tttmainwindow.h
-  )
+SET(TTTGUI_MOCS   include/tttmainwindow.h
+                  include/tttpreferences.h
+                  include/tttsqlopenprojectdialog.h
+                  include/tttsqlnewprojectdialog.h
+                  include/tttexplorer.h
+                  include/VertexAdditionInteractor.h
+                  include/VertexAdditionToPrimalInteractor.h
+                  include/VertexSelectionInteractor.h
+                  include/EdgeSelectionInteractor.h
+                  include/EdgeAdditionInteractor.h
+                  include/CellFeatureTableModel.h   
+                  
+                  )
 
-SET(TTTGUI_SRCS
-  tttmainwindow.cpp
+
+
+SET(TTTGUI_SRCS    
+                    src/tttmainwindow.cpp 
+                    src/tttsqlnewprojectdialog.cpp 
+                    src/tttsqlopenprojectdialog.cpp 
+                    src/tttexplorer.cpp 
+                    src/tttpreferences.cpp 
+                    src/CellFeatureTableModel.cpp     
+                    src/ProjectTableModel.cpp
+                    src/VertexAdditionInteractor.cpp 
+                    src/VertexSelectionInteractor.cpp 
+                    src/VertexAdditionToPrimalInteractor.cpp 
+                    src/EdgeSelectionInteractor.cpp 
+                    src/EdgeAdditionInteractor.cpp
+                      src/main.cpp
    )
    
 
 # this will run uic on .ui files:
-include_directories( ../../Modules/IO/include/)
-include_directories( ../../Modules/Core/include/)
-include_directories( ../../Modules/Drawers/include/)
-include_directories( ../../Modules/Commands/DataCasting/include/)
-include_directories( ../../Modules/Commands/Plateness/include/)
-include_directories( ../../Modules/Commands/Vertexness/include/)
-include_directories( ../../Modules/Commands/ObjectnessMeasurementBase/include/)
-include_directories( ../../Modules/Commands/AnisotropicDiffusion/include/)
-include_directories( ../../Modules/Commands/VertexLocation/include/)
-include_directories( ../../Modules/Commands/AdherensJunctionSegmentationDijkstra/include/ )
-include_directories( ../../Modules/Commands/CellGraph/include/ )
-include_directories( ../../Modules/Commands/Base/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/IO/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Core/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Drawers/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/DataCasting/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Plateness/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Vertexness/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/ObjectnessMeasurementBase/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/AnisotropicDiffusion/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/VertexLocation/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/AdherensJunctionSegmentationDijkstra/include/ )
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/CellGraph/include/ )
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Base/include/)
 
-include_directories( ../../Modules/Commands/Tracking/include/)
-include_directories( ../../Modules/Commands/Ellipses/include/)
-include_directories( ../../Modules/Commands/ComputeDomains/include/ )
-include_directories( ../../Modules/Commands/Tectonics/include/ )
-include_directories( ../../Modules/Features/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Tracking/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Ellipses/include/)
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/ComputeDomains/include/ )
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Tectonics/include/ )
+include_directories( ${CMAKE_SOURCE_DIR}/Modules/Features/include/)
+include_directories(./include)
 
-qt5_wrap_ui(UI_HDRS tttmainwindow.ui tttsqlopenprojectdialog.ui tttsqlnewprojectdialog.ui tttexplorer.ui tttpreferences.ui)
+qt5_wrap_ui(UI_HDRS ${TTTGUI_UIS} )
+qt5_wrap_cpp(MOC_SRCS ${TTTGUI_MOCS})
+add_executable(TTTGui ${TTTGUI_SRCS} ${UI_HDRS} ${MOC_SRCS} )
+ 
+qt5_use_modules(TTTGui Widgets)
+qt5_use_modules(TTTGui Sql)
 
-add_executable(TTTNewGui main.cpp tttmainwindow.cpp CellFeatureTableModel.cpp ProjectTableModel.cpp tttsqlnewprojectdialog.cpp tttsqlopenprojectdialog.cpp tttexplorer.cpp tttpreferences.cpp ${UI_HDRS} VertexAdditionInteractor.cpp VertexSelectionInteractor.cpp VertexAdditionToPrimalInteractor.cpp EdgeSelectionInteractor.cpp EdgeAdditionInteractor.cpp) 
-qt5_use_modules(TTTNewGui Widgets)
-qt5_use_modules(TTTNewGui Sql)
-
-target_link_libraries(TTTNewGui 
+target_link_libraries(TTTGui 
 					${VTK_LIBRARIES} 
 					${ITK_LIBRARIES} 
 					mysqlcppconn
@@ -69,4 +97,4 @@ target_link_libraries(TTTNewGui
 					TTTIO
 					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
 					)
-
+install(TARGETS TTTGui DESTINATION bin)
