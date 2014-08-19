@@ -47,7 +47,7 @@ SET(TTTGUI_SRCS
                     src/VertexAdditionToPrimalInteractor.cpp 
                     src/EdgeSelectionInteractor.cpp 
                     src/EdgeAdditionInteractor.cpp
-                      src/main.cpp
+                    src/main.cpp
    )
    
 
@@ -82,7 +82,7 @@ qt5_use_modules(TTTGui Sql)
 target_link_libraries(TTTGui 
 					${VTK_LIBRARIES} 
 					${ITK_LIBRARIES} 
-					mysqlcppconn
+					${MYSQLCPPCONN_LIBRARY}
 					TTTDrawers 
 					TTTPlateness 
 					TTTVertexness 
@@ -95,6 +95,9 @@ target_link_libraries(TTTGui
 					TTTTectonics
 					TTTComputeDomains
 					TTTIO
-					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
+					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi 
+					${ZLIB_LIBRARIES} 
+					lapack
 					)
+					
 install(TARGETS TTTGui DESTINATION bin)
