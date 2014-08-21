@@ -8,8 +8,10 @@ include_directories(../Features/include/)
 
 #add_executable(testnewprojectapi source/testnewprojectapi.cpp)
 add_library(TTTIO source/mysqltissuetrackingproject2.cpp
+                  source/vtksqltissuetrackingproject2.cpp
                   source/jsontissuetrackingproject2.cpp
 )
+
 
 #target_link_libraries(TTTIO mysqlcppconn jsoncpp)
 #target_link_libraries(testnewprojectapi TTTIO jsoncpp)

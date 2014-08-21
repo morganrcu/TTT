@@ -4,13 +4,12 @@ FIND_PACKAGE(Qt5Widgets REQUIRED)
 FIND_PACKAGE(Qt5Core REQUIRED)
 FIND_PACKAGE(Qt5Gui REQUIRED)
 
-#set(CMAKE_AUTOMOC ON)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
-# some .ui files sqlnewprojectdialog.ui sqlopenprojectdialog.ui
 SET(TTTGUI_UIS    uis/tttmainwindow.ui
                   uis/tttsqlopenprojectdialog.ui 
                   uis/tttsqlnewprojectdialog.ui 
@@ -29,13 +28,9 @@ SET(TTTGUI_MOCS   include/tttmainwindow.h
                   include/EdgeSelectionInteractor.h
                   include/EdgeAdditionInteractor.h
                   include/CellFeatureTableModel.h   
-                  
-                  )
-
-
-
-SET(TTTGUI_SRCS    
-                    src/tttmainwindow.cpp 
+)
+    
+SET(TTTGUI_SRCS     src/tttmainwindow.cpp 
                     src/tttsqlnewprojectdialog.cpp 
                     src/tttsqlopenprojectdialog.cpp 
                     src/tttexplorer.cpp 
@@ -48,8 +43,7 @@ SET(TTTGUI_SRCS
                     src/EdgeSelectionInteractor.cpp 
                     src/EdgeAdditionInteractor.cpp
                     src/main.cpp
-   )
-   
+)
 
 # this will run uic on .ui files:
 include_directories( ${CMAKE_SOURCE_DIR}/Modules/IO/include/)
@@ -69,6 +63,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Tracking/include/)
 include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Ellipses/include/)
 include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/ComputeDomains/include/ )
 include_directories( ${CMAKE_SOURCE_DIR}/Modules/Commands/Tectonics/include/ )
+
 include_directories( ${CMAKE_SOURCE_DIR}/Modules/Features/include/)
 include_directories(./include)
 
@@ -79,25 +74,25 @@ add_executable(TTTGui ${TTTGUI_SRCS} ${UI_HDRS} ${MOC_SRCS} )
 qt5_use_modules(TTTGui Widgets)
 qt5_use_modules(TTTGui Sql)
 
-target_link_libraries(TTTGui 
-					${VTK_LIBRARIES} 
-					${ITK_LIBRARIES} 
-					${MYSQLCPPCONN_LIBRARY}
-					TTTDrawers 
-					TTTPlateness 
-					TTTVertexness 
-					TTTDataCasting 
-					TTTAnisotropicDiffusion 
-					TTTVertexLocation
-					TTTAdherensJunctionSegmentationDijkstra
-					TTTCellGraph
-					TTTTracking
-					TTTTectonics
-					TTTComputeDomains
-					TTTIO
-					Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi 
-					${ZLIB_LIBRARIES} 
-					lapack
+target_link_libraries(TTTGui ${VTK_LIBRARIES} 
+					         ${ITK_LIBRARIES} 
+					         ${MYSQLCPPCONN_LIBRARY}
+					         TTTDrawers 
+					         TTTPlateness 
+					         TTTVertexness 
+					         TTTDataCasting 
+					         TTTAnisotropicDiffusion 
+					         TTTVertexLocation
+					         TTTAdherensJunctionSegmentationDijkstra
+					         TTTCellGraph
+					         TTTTracking
+					         TTTTectonics
+					         TTTComputeDomains
+					         TTTIO
+					         ${COIN_CBC_LIBRARIES}  
+					         ${ZLIB_LIBRARIES} 
+					         ${BZIP2_LIBRARIES} 
+					         ${LAPACK_LIBRARIES}
 					)
 					
 install(TARGETS TTTGui DESTINATION bin)

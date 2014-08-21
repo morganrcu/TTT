@@ -205,6 +205,7 @@ public:
 
 	}
 
+
 	void AddCreationHypothesis(const ObservationType & obs,double cost){
 		FlowGraphEdgeType edge = boost::add_edge(m_A,m_R.left.at(obs),FlowGraphEdgePropertyType(),m_FlowGraph).first;
 		boost::get(boost::edge_weight,m_FlowGraph,edge)=cost;

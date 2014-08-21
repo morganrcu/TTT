@@ -9,7 +9,7 @@
 #define JSONTISSUETRACKINGPROJECT2_H_
 #include <fstream>
 #include <string>
-#include <json/json.h>
+#include <vtk_jsoncpp.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkSCIFIOImageIO.h>
