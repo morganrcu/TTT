@@ -1,13 +1,9 @@
 Project (TTTGUI)
 
-FIND_PACKAGE(Qt5Widgets REQUIRED)
-FIND_PACKAGE(Qt5Core REQUIRED)
-FIND_PACKAGE(Qt5Gui REQUIRED)
-
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
 SET(TTTGUI_UIS    uis/tttmainwindow.ui
@@ -74,7 +70,11 @@ add_executable(TTTGui ${TTTGUI_SRCS} ${UI_HDRS} ${MOC_SRCS} )
 qt5_use_modules(TTTGui Widgets)
 qt5_use_modules(TTTGui Sql)
 
-target_link_libraries(TTTGui ${VTK_LIBRARIES} 
+target_link_libraries(TTTGui ${VTK_LIBRARIES}
+                                #vtkjsoncpp
+                                #vtkGUISupportQt
+                                #vtkGUISupportQtOpenGL
+                                 
 					         ${ITK_LIBRARIES} 
 					         ${MYSQLCPPCONN_LIBRARY}
 					         TTTDrawers 
@@ -87,10 +87,13 @@ target_link_libraries(TTTGui ${VTK_LIBRARIES}
 					         TTTCellGraph
 					         TTTTracking
 					         TTTTectonics
+					         
 					         TTTComputeDomains
 					         TTTIO
+					         
 					         ${COIN_CBC_LIBRARIES}  
-					         ${ZLIB_LIBRARIES} 
+					         ${ZLIB_LIBRARIES}
+					          
 					         ${BZIP2_LIBRARIES} 
 					         ${LAPACK_LIBRARIES}
 					)

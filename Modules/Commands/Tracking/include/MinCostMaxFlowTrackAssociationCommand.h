@@ -57,6 +57,41 @@ public:
 	inline typename ttt::TrackedTissueDescriptor::Pointer GetCurrentTrackedTissueDescriptor(){
 		return m_CurrentTrackedTissueDescriptor;
 	}
+	inline void SetTerminationWeight(double weight){
+		m_TerminationWeight=weight;
+	}
+	inline void SetCreationWeight(double weight){
+		m_CreationWeight=weight;
+	}
+	inline void SetAssociationWeight(double weight){
+		m_AssociationWeight=weight;
+	}
+	inline void SetMitosisWeight(double weight){
+		m_MitosisWeight=weight;
+	}
+	inline void SetApoptosisWeight(double weight){
+		m_ApoptosisWeight=weight;
+	}
+
+
+	inline void SetDistanceWeight(double weight){
+		m_DistanceWeight=weight;
+	}
+	inline void SetAreaWeight(double weight){
+		m_AreaWeight=weight;
+	}
+	inline void SetPerimeterWeight(double weight){
+		m_PerimeterWeight=weight;
+	}
+	inline void SetXXWeight(double weight){
+		m_XXWeight=weight;
+	}
+	inline void SetXYWeight(double weight){
+		m_XYWeight=weight;
+	}
+	inline void SetYYWeight(double weight){
+		m_YYWeight=weight;
+	}
 
 	virtual void Do();
 

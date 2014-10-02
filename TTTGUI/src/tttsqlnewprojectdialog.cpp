@@ -4,7 +4,7 @@
 #include <itkImageFileReader.h>
 #include <qfiledialog.h>
 #include "jsontissuetrackingproject2.h"
-#include "mysqltissuetrackingproject2.h"
+#include "qtsqltissuetrackingproject2.h"
 
 SQLNewProjectDialog::SQLNewProjectDialog(QWidget *parent) :
     QDialog(parent),

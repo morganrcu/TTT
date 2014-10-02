@@ -39,42 +39,44 @@ private:
 public:
 	TrackingCommand();
 
-#if 0
+
     inline void SetMitosisWeight(double weight){
-    	m_Tracker->SetMitosisWeight(weight);
+    	m_Associator.SetMitosisWeight(weight);
     }
     inline void SetAssociationWeight(double weight){
-    	m_Tracker->SetAssociationWeight(weight);
+    	m_Associator.SetAssociationWeight(weight);
     }
     inline void SetCreationWeight(double weight){
-    	m_Tracker->SetCreationWeight(weight);
+    	m_Associator.SetCreationWeight(weight);
     }
     inline void SetTerminationWeight(double weight){
-    	m_Tracker->SetTerminationWeight(weight);
+    	m_Associator.SetTerminationWeight(weight);
     }
-
+    inline void SetApoptosisWeight(double weight){
+    	m_Associator.SetApoptosisWeight(weight);
+    }
     inline void SetAreaWeight(double weight){
-    	m_Tracker->SetAreaWeight(weight);
+    	m_Associator.SetAreaWeight(weight);
     }
     inline void SetPerimeterWeight(double perimeter){
-    	m_Tracker->SetPerimeterWeight(perimeter);
+    	m_Associator.SetPerimeterWeight(perimeter);
     }
 
-    inline void SetAspectRatioWeight(double weight){
-    	m_Tracker->SetAspectRatioWeight(weight);
+    inline void SetXXWeight(double weight){
+    	m_Associator.SetXXWeight(weight);
     }
-    inline void SetOrientationWeight(double weight){
-    	m_Tracker->SetOrientationWeight(weight);
+    inline void SetXYWeight(double weight){
+       	m_Associator.SetXYWeight(weight);
     }
 
-    inline void SetEllipseWeight(double weight){
-    	m_Tracker->SetEllipseWeight(weight);
+    inline void SetYYWeight(double weight){
+    	m_Associator.SetYYWeight(weight);
     }
 
     inline void SetDistanceWeight(double weight){
-    	m_Tracker->SetDistanceWeight(weight);
+    	m_Associator.SetDistanceWeight(weight);
     }
-#endif
+
 	virtual ~TrackingCommand();
 
 	inline void SetObservedTissues(const std::vector<TissueDescriptor::Pointer> & input){

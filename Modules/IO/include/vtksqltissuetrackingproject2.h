@@ -13,6 +13,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkSQLDatabase.h>
 
+#include <vtkMySQLDatabase.h>
+
 
 namespace ttt {
 class VTKSQLTissueTrackingProject2: public TissueTrackingAbstractProject2 {
@@ -57,12 +59,10 @@ public:
 		url << "mysql://" << m_User  << "@" << m_Host << ":" << m_Port << "/" << m_DBName;
 
 		m_DB=vtkSQLDatabase::CreateFromURL(url.str().c_str() );
+		std::cout << url.str() << std::endl;
 		bool status =m_DB->Open(m_Password.c_str());
 
-		if(!status){
-		}
-
-
+		assert(status);
 
 		TissueTrackingAbstractProject2::Open();
 	}

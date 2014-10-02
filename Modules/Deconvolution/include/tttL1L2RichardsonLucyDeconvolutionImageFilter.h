@@ -79,9 +79,11 @@ public:
     return true;
     }
   inline TReal operator()( const TReal & e, const TReal & x )
+
     {
-    //return std::max( e * x / ( 1 + (0.1*x +1)*m_Lambda   ), NumericTraits< TReal >::Zero );
-	  return std::max( e * x / ( 1 + m_Lambda   ), NumericTraits< TReal >::Zero );
+	  //return std::max( e * x / ( 1 + (x )*m_Lambda   ), NumericTraits< TReal >::Zero );
+    return std::max( e * x / ( 1 + (0.1*x +1)*m_Lambda   ), NumericTraits< TReal >::Zero );
+	//return std::max( e * x / ( 1 + m_Lambda   ), NumericTraits< TReal >::Zero );
     }
   TReal m_Lambda;
 };

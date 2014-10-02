@@ -89,54 +89,37 @@ void VTKSQLTissueTrackingProject2::SetAdherensJunctionVertices(
 		unsigned int frame,
 		const typename ttt::AdherensJunctionVertices::Pointer & vertices) {
 
-	try {
+		std::string deleteString("DELETE from VertexLocations WHERE idProject=? AND t=?");
 
-		std::string deleteString(
-				"DELETE from VertexLocations WHERE idProject=? AND t=?");
+		vtkSmartPointer<vtkSQLQuery> delete_stmt = m_DB->GetQueryInstance();
+		delete_stmt->SetQuery(deleteString.c_str());
 
-		std::auto_ptr<sql::PreparedStatement> delete_stmt(
-				m_DB->prepareStatement(deleteString));
+		delete_stmt->BindParameter(0, m_ProjectID); //IDproject==2
+		delete_stmt->BindParameter(1, frame); //IDproject==2
+		delete_stmt->Execute();
 
-		delete_stmt->setInt(1, m_ProjectID); //IDproject==2
-		delete_stmt->setInt(2, frame); //t==0
-		delete_stmt->execute();
+		std::string insertString("INSERT INTO VertexLocations (idProject,t,pointX,pointY,pointZ) VALUES (?,?,?,?,?)");
 
-		std::string insertString(
-				"INSERT INTO VertexLocations (idProject,t,pointX,pointY,pointZ) VALUES (?,?,?,?,?)");
+		vtkSmartPointer<vtkSQLQuery> insert_stmt = m_DB->GetQueryInstance();
+		insert_stmt->SetQuery(insertString.c_str());
 
-		std::auto_ptr<sql::PreparedStatement> insert_stmt(
-				m_DB->prepareStatement(insertString));
-		std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
-		transStatement->execute("START TRANSACTION;");
-		for (ttt::AdherensJunctionVertices::const_iterator it =
-				vertices->begin(); it != vertices->end(); it++) {
+		vtkSmartPointer<vtkSQLQuery> transStatement = m_DB->GetQueryInstance();
+		transStatement->SetQuery("START TRANSACTION;");
+		transStatement->Execute();
+
+		for (ttt::AdherensJunctionVertices::const_iterator it =vertices->begin(); it != vertices->end(); it++) {
 
 			ttt::AdherensJunctionVertex::Pointer p = *it;
 
-			insert_stmt->setInt(1, m_ProjectID);
-			insert_stmt->setInt(2, frame);
-			insert_stmt->setInt(3, p->GetPosition()[0]);
-			insert_stmt->setInt(4, p->GetPosition()[1]);
-			insert_stmt->setInt(5, p->GetPosition()[2]);
-			insert_stmt->execute();
+			insert_stmt->BindParameter(0, m_ProjectID);
+			insert_stmt->BindParameter(1, frame);
+			insert_stmt->BindParameter(2, p->GetPosition()[0]);
+			insert_stmt->BindParameter(3, p->GetPosition()[1]);
+			insert_stmt->BindParameter(4, p->GetPosition()[2]);
+			insert_stmt->Execute();
 		}
-		transStatement->execute("COMMIT;");
-	} catch (sql::SQLException &e) {
-		/*
-		 The MySQL Connector/C++ throws three different exceptions:
-
-		 - sql::MethodNotImplementedException (derived from sql::SQLException)
-		 - sql::InvalidArgumentException (derived from sql::SQLException)
-		 - sql::SQLException (derived from std::runtime_error)
-		 */
-		std::cout << "# ERR: SQLException in " << __FILE__;
-		//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-		/* Use what() (derived from std::runtime_error) to fetch the error message */
-		std::cout << "# ERR: " << e.what();
-		std::cout << " (MySQL error code: " << e.getErrorCode();
-		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
-
-	}
+		transStatement->SetQuery("COMMIT;");
+		transStatement->Execute();
 
 }
 bool VTKSQLTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(
@@ -145,6 +128,7 @@ bool VTKSQLTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(
 }
 typename ttt::TissueDescriptor::Pointer VTKSQLTissueTrackingProject2::GetTissueDescriptor(
 		unsigned int frame) {
+#if 0
 	ttt::TissueDescriptor::Pointer tissueDescriptor =ttt::TissueDescriptor::New();
 
 	{
@@ -300,11 +284,11 @@ typename ttt::TissueDescriptor::Pointer VTKSQLTissueTrackingProject2::GetTissueD
 		}
 	}
 	return tissueDescriptor;
-
+#endif
 }
 void VTKSQLTissueTrackingProject2::SetTissueDescriptor(unsigned int frame,
 		const typename ttt::TissueDescriptor::Pointer & tissueDescriptor) {
-
+#if 0
 	std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 		transStatement->execute("START TRANSACTION;");
 		try {
@@ -651,7 +635,7 @@ void VTKSQLTissueTrackingProject2::SetTissueDescriptor(unsigned int frame,
 
 	transStatement->execute("COMMIT;");
 
-
+#endif
 }
 bool VTKSQLTissueTrackingProject2::IsTissueDescriptorAvailable(
 		unsigned int frame) {
@@ -660,6 +644,7 @@ bool VTKSQLTissueTrackingProject2::IsTissueDescriptorAvailable(
 
 typename ttt::TrackedTissueDescriptor::Pointer VTKSQLTissueTrackingProject2::GetTrackedTissueDescriptor(
 		unsigned int frame) {
+#if 0
 	ttt::TrackedTissueDescriptor::Pointer trackedTissueDescriptor =
 			ttt::TrackedTissueDescriptor::New();
 
@@ -806,9 +791,11 @@ typename ttt::TrackedTissueDescriptor::Pointer VTKSQLTissueTrackingProject2::Get
 		}
 	}
 	return trackedTissueDescriptor;
+#endif
 }
 void VTKSQLTissueTrackingProject2::SetTrackedTissueDescriptor(unsigned int frame,
 		const typename ttt::TrackedTissueDescriptor::Pointer & descriptor) {
+#if 0
 	std::auto_ptr<sql::Statement> transStatement(m_DB->createStatement());
 	transStatement->execute("START TRANSACTION;");
 
@@ -1102,70 +1089,47 @@ void VTKSQLTissueTrackingProject2::SetTrackedTissueDescriptor(unsigned int frame
 
 }
 	transStatement->execute("COMMIT;");
+#endif
 
 }
+
 bool VTKSQLTissueTrackingProject2::IsTrackedTissueDescriptorAvailable(
 		unsigned int frame) {
 	return true;
 }
 
 void VTKSQLTissueTrackingProject2::LoadProjectInfo() {
-	try {
-		std::auto_ptr<sql::PreparedStatement> prep_stmt(
-				m_DB->prepareStatement(
-						"SELECT spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,samplingPeriod,workingDirectory,name from Project WHERE Project.idProject=?"));
 
-		prep_stmt->setInt(1, m_ProjectID);
-		prep_stmt->execute();
+	vtkSmartPointer<vtkSQLQuery> prep_stmt = m_DB->GetQueryInstance();
+	assert(prep_stmt->SetQuery("select spacingX,spacingY,spacingZ,sizeX,sizeY,sizeZ,samplingPeriod,workingDirectory,name from Project WHERE Project.idProject=?"));
 
-		std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+	prep_stmt->BindParameter(0, m_ProjectID);
+	prep_stmt->Execute();
 
+	prep_stmt->NextRow();
 
-		assert(res->next());
-		m_Spacing[0] = res->getDouble("spacingX");
-		m_Spacing[1] = res->getDouble("spacingY");
-		m_Spacing[2] = res->getDouble("spacingZ");
+	m_Spacing[0] = prep_stmt->DataValue(prep_stmt->GetFieldIndex("spacingX")).ToDouble();
+	m_Spacing[1] = prep_stmt->DataValue(prep_stmt->GetFieldIndex("spacingY")).ToDouble();
+	m_Spacing[2] = prep_stmt->DataValue(prep_stmt->GetFieldIndex("spacingZ")).ToDouble();
 
-		m_ProjectDirectory = res->getString("workingDirectory");
-		m_ProjectName = res->getString("name");
+	m_ProjectDirectory = prep_stmt->DataValue(prep_stmt->GetFieldIndex("workingDirectory")).ToString();
+	m_ProjectName = prep_stmt->DataValue(prep_stmt->GetFieldIndex("name")).ToString();
 
+	m_Size[0]=prep_stmt->DataValue(prep_stmt->GetFieldIndex("sizeX")).ToInt();
+	m_Size[1]=prep_stmt->DataValue(prep_stmt->GetFieldIndex("sizeY")).ToInt();
+	m_Size[2]=prep_stmt->DataValue(prep_stmt->GetFieldIndex("sizeZ")).ToInt();
 
+	m_SamplingPeriod = prep_stmt->DataValue(prep_stmt->GetFieldIndex("samplingPeriod")).ToDouble();
 
-		m_Size[0]=res->getInt("sizeX");
-		m_Size[1]=res->getInt("sizeY");
-		m_Size[2]=res->getInt("sizeZ");
+	vtkSmartPointer<vtkSQLQuery> framenum_stmt = m_DB->GetQueryInstance();
 
-		m_SamplingPeriod = res->getDouble("samplingPeriod");
+	framenum_stmt->SetQuery("SELECT COUNT(*) FROM Frame WHERE Frame.idProject=?");
 
-		std::auto_ptr<sql::PreparedStatement> framenum_stmt(
-					m_DB->prepareStatement(
-							"SELECT COUNT(*) FROM Frame WHERE Frame.idProject=?"));
+	framenum_stmt->BindParameter(0, m_ProjectID); //IDproject==2
+	framenum_stmt->Execute();
 
-		framenum_stmt->setInt(1, m_ProjectID); //IDproject==2
-		framenum_stmt->execute();
+	m_NumFrames=prep_stmt->DataValue(prep_stmt->GetFieldIndex("COUNT(*)")).ToInt();
 
-		std::auto_ptr<sql::ResultSet> resnumframes(framenum_stmt->getResultSet());
-		resnumframes->next();
-		m_NumFrames=resnumframes->getInt("COUNT(*)");
-
-
-	} catch (sql::SQLException &e) {
-		/*
-		 The MySQL Connector/C++ throws three different exceptions:
-
-		 - sql::MethodNotImplementedException (derived from sql::SQLException)
-		 - sql::InvalidArgumentException (derived from sql::SQLException)
-		 - sql::SQLException (derived from std::runtime_error)
-		 */
-		std::cout << "# ERR: SQLException in " << __FILE__ << ":" << __LINE__;
-		//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-		/* Use what() (derived from std::runtime_error) to fetch the error message */
-		std::cout << "# ERR: " << e.what();
-		std::cout << " (MySQL error code: " << e.getErrorCode();
-		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
-		exit(-1);
-
-	}
 }
 void VTKSQLTissueTrackingProject2::StoreProjectInfo() {
 
@@ -1174,7 +1138,7 @@ void VTKSQLTissueTrackingProject2::StoreFrameInfo(unsigned int frame) {
 
 }
 void VTKSQLTissueTrackingProject2::LoadFrameInfo(unsigned int frame) {
-
+#if 0
 	try {
 		std::string query(
 				"SELECT platenessSteps,platenessHighestScale,platenessLowestScale,vertexnessSteps,vertexnessLowestScale,vertexnessHighestScale FROM Frame WHERE Frame.idProject=? AND Frame.t=?");
@@ -1213,11 +1177,12 @@ void VTKSQLTissueTrackingProject2::LoadFrameInfo(unsigned int frame) {
 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 
 	}
-
+#endif
 }
 
 bool VTKSQLTissueTrackingProject2::IsImageAvailable(const std::string & name,
 		int frame) {
+#if 0
 	std::stringstream ss;
 	try {
 		ss << "SELECT COUNT(*) FROM " << name << " WHERE " << name
@@ -1250,33 +1215,31 @@ bool VTKSQLTissueTrackingProject2::IsImageAvailable(const std::string & name,
 
 	}
 	return false;
-
+#endif
 }
 
 typename itk::Image<float, 3>::Pointer VTKSQLTissueTrackingProject2::LoadImage(
 		const std::string & table, int frame) {
+
 
 	typedef itk::ImageFileReader<itk::Image<float, 3> > ReaderType;
 	typename ReaderType::Pointer reader = ReaderType::New();
 
 	std::stringstream ssQuery, ssFileName;
 
-	try {
+
 		ssQuery << "SELECT fileName FROM " << table << " WHERE " << table
 				<< ".idProject=? AND " << table << ".t=?";
 
-		std::auto_ptr<sql::PreparedStatement> prep_stmt(
-				m_DB->prepareStatement(ssQuery.str()));
+		vtkSmartPointer<vtkSQLQuery> prep_stmt= m_DB->GetQueryInstance();
 
-		prep_stmt->setInt(1, m_ProjectID); //IDproject==2
-		prep_stmt->setInt(2, frame); //IDproject==2
-		prep_stmt->execute();
+		prep_stmt->BindParameter(0, m_ProjectID); //IDproject==2
+		prep_stmt->BindParameter(1, frame); //IDproject==2
+		prep_stmt->Execute();
 
-		std::auto_ptr<sql::ResultSet> res(prep_stmt->getResultSet());
+		//assert(prep_stmt->NextRow());
 
-		assert(res->next());
-
-		std::string fileName = res->getString("fileName");
+		std::string fileName = prep_stmt->DataValue(prep_stmt->GetFieldIndex("fileName")).ToString();
 
 		ssFileName << m_ProjectDirectory << "/" << fileName;
 
@@ -1287,28 +1250,12 @@ typename itk::Image<float, 3>::Pointer VTKSQLTissueTrackingProject2::LoadImage(
 		reader->GetOutput()->Print(std::cout,itk::Indent());
 		return reader->GetOutput();
 
-	} catch (sql::SQLException &e) {
-		/*
-		 The MySQL Connector/C++ throws three different exceptions:
 
-		 - sql::MethodNotImplementedException (derived from sql::SQLException)
-		 - sql::InvalidArgumentException (derived from sql::SQLException)
-		 - sql::SQLException (derived from std::runtime_error)
-		 */
-		std::cout << "# ERR: SQLException in " << __FILE__;
-		//    cout << "(" << EXAMPLE_FUNCTION << ") on line " << __LINE__ << endl;
-		/* Use what() (derived from std::runtime_error) to fetch the error message */
-		std::cout << "# ERR: " << e.what();
-		std::cout << " (MySQL error code: " << e.getErrorCode();
-		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
-
-	}
-	return NULL;
 }
 
 void VTKSQLTissueTrackingProject2::StoreImage(const std::string & name,
 		int frame, const typename itk::Image<float, 3>::Pointer & image) {
-
+#if 0
 	std::stringstream ssQuery, ssFileName, ssPath;
 
 	typedef itk::ImageFileWriter<itk::Image<float, 3> > WriterType;
@@ -1350,7 +1297,7 @@ void VTKSQLTissueTrackingProject2::StoreImage(const std::string & name,
 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 
 	}
-
+#endif
 }
 
 FeatureMap<CellVertexType,itk::Point<double,3> > VTKSQLTissueTrackingProject2::GetCentroids(unsigned int frame){

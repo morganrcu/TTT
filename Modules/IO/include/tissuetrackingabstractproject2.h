@@ -284,6 +284,25 @@ public:
 	virtual FeatureMap<CellVertexType,double> GetYY(unsigned int frame)=0;
 
 
+	virtual void SetTrackedCentroids(unsigned int frame, const   FeatureMap<TrackedCellVertexType,itk::Point<double,3> > & centroids)=0;
+	virtual FeatureMap<TrackedCellVertexType,itk::Point<double,3> >  GetTrackedCentroids(unsigned int frame)=0;
+
+	virtual void SetTrackedAreas(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & areas)=0;
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedAreas(unsigned int frame)=0;
+
+	virtual void SetTrackedPerimeter(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & perimeters)=0;
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedPerimeter(unsigned int frame)=0;
+
+	virtual void SetTrackedXX(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xx)=0;
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXX(unsigned int frame)=0;
+
+	virtual void SetTrackedXY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xy)=0;
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXY(unsigned int frame)=0;
+
+	virtual void SetTrackedYY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & yy)=0;
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedYY(unsigned int frame)=0;
+
+
 	/**
 	 * Opens the project, calling the backend to load metadata information
 	 */

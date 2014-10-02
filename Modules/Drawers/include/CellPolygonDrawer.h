@@ -19,7 +19,10 @@
 #ifndef TRACKINGDRAWER_H_
 #define TRACKINGDRAWER_H_
 #include <vtkPolygon.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkCellArray.h>
+#include <vtkPoints.h>
 #include <vtkProperty.h>
 #include <map>
 #include "tttDescriptionDataTypes.h"
@@ -94,11 +97,16 @@ public:
 				  if(m_TrackID2Color.count(trackID)){
 					  color=m_TrackID2Color[trackID];
 				  }else{
+					  int parentID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).GetParentID();
+					  if(parentID!=-1){
+						  color=m_TrackID2Color[parentID];
 
-					  //color=generator.generateRandomColor(rand());
-					  color.push_back(rand() );
-					  color.push_back(rand() );
-					  color.push_back(rand() );
+					  }else{
+						  //color=generator.generateRandomColor(rand());
+						  color.push_back(rand() );
+						  color.push_back(rand() );
+						  color.push_back(rand() );
+					  }
 					  m_TrackID2Color[trackID]=color;
 				  }
 				  std::cout << trackID << "->" << color[0] << " " <<color[1] << " " << color[2] << std::endl;

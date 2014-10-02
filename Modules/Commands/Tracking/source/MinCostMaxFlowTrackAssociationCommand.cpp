@@ -157,7 +157,7 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 
 		double costDistance = DistToPerimeter<ttt::TissueDescriptor>(observationCentroid, m_ObservedTissueDescriptor);
 		//double costArea = fabs((m_ObservationAreas[v]-meanObsArea)/stdObsArea);
-		std::cout << "Creation " <<  v << " CostDistance: " << costDistance << std::endl;
+		//std::cout << "Creation " <<  v << " CostDistance: " << costDistance << std::endl;
 
 		double creationCost = this->m_CreationWeight * this->m_DistanceWeight * costDistance;
 		associationGraph.AddCreationHypothesis(v, (creationCost));
@@ -181,11 +181,11 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 			itk::Vector<double, 3> diff = trackCentroid - observationCentroid;
 
 			double distance = diff.GetNorm();
-			std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
+			//std::cout << observationCentroid << "\t-\t" << trackCentroid << "\t=\t" << diff << "\t" << distance << std::endl;
 			distances[track] = distance;
 		}
 
-		m_K=10;
+		m_K=30;
 		for (int k = 0; k < m_K; k++) {
 
 			TrackedCellVertexType min;
@@ -201,14 +201,14 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 
 			double associationCost = this->m_AssociationWeight * (this->m_DistanceWeight * costDistance + this->m_AreaWeight * costArea + this->m_PerimeterWeight * costPerimeter + this->m_XXWeight * costXX + this->m_XYWeight*costXY + this->m_YYWeight*costYY);
 
-			std::cout << obs << " to " << min <<  " CostDistance: " << costDistance <<  " CostArea: " << " " << costArea<<" CostPerimeter: " << " " << costPerimeter<< " CostXX: " << costXX << " CostXY: " << costXY << " CostYY: " << costYY <<  " --> " << associationCost << std::endl ;
+			//std::cout << obs << " to " << min <<  " CostDistance: " << costDistance <<  " CostArea: " << " " << costArea<<" CostPerimeter: " << " " << costPerimeter<< " CostXX: " << costXX << " CostXY: " << costXY << " CostYY: " << costYY <<  " --> " << associationCost << std::endl ;
 
 			associationGraph.AddAssociationHypothesis(min, obs, associationCost);
 
 			minimum->second = std::numeric_limits<double>::max();
 		}
 		distances.clear();
-#if 0
+
 	/*
 	 * MYTHOSIS HYPOTHESIS
 	 */
@@ -259,30 +259,17 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 
 			min = minimum->first;
 
-//					double costArea= fabs((m_TrackAreas[min] -meanTrackArea)/stdTrackArea - (m_ObservationAreas[obs]+m_ObservationAreas[*neighbors.first]-2*meanObsArea)/stdObsArea);
-			double costArea = fabs(
-					trackAreas[min].GetValue() - mitosisArea.GetValue());
 
-			double costDistance = distances[min];
+			double costDistance = minimum->second;
+			double costArea = fabs(mitosisArea.GetValue()- trackAreas[min].GetValue());
+			double costPerimeter = fabs(mitosisPerimeter.GetValue() - trackPerimeter[min].GetValue());
+			double costXX = fabs(mitosisXX.GetValue() - trackXX[min].GetValue());
+			double costXY = fabs(mitosisXY.GetValue() - trackXY[min].GetValue());
+			double costYY = fabs(mitosisYY.GetValue() - trackYY[min].GetValue());
 
-			//vnl_matrix_fixed<double,2,2> trackEllipseMatrix;
-			//parametricEllipseToMatrixEllipse(m_TrackEllipses[min].m_Xrad,m_TrackEllipses[min].m_Yrad,m_TrackEllipses[min].m_Theta,trackEllipseMatrix);
 
-			//double costEllipse = (trackEllipseMatrix - mitosisEllipseMatrix).frobenius_norm();
+			double mitosisCost = this->m_MitosisWeight * (this->m_DistanceWeight * costDistance + this->m_AreaWeight * costArea + this->m_PerimeterWeight * costPerimeter + this->m_XXWeight * costXX + this->m_XYWeight*costXY + this->m_YYWeight*costYY);
 
-			double costPerimeter =
-			(trackPerimeter[min] - mitosisPerimeter).GetValue();
-
-			//double costAspectRatio = fabs(m_TrackEllipses[min].GetAspectRatio()-mitosisEllipse.GetAspectRatio());
-			//double costOrientation = fabs(m_TrackEllipses[min].m_Theta - mitosisEllipse.m_Theta);
-
-			//std::cout << "CostArea: " << " " << costArea<< " CostDistance: " << costDistance <<  " CostEllipse: " << costEllipse <<  std::endl;
-			double costEllipse = 0;
-			double mitosisCost = this->m_MitosisWeight
-			* (this->m_DistanceWeight * costDistance
-					+ this->m_AreaWeight * costArea
-					+ this->m_EllipseWeight * costEllipse
-					+ this->m_PerimeterWeight * costPerimeter);
 			associationGraph.AddMitosisHypothesis(min, obs,
 					*neighbors.first, mitosisCost);
 			//associationGraph.AddMitosisHypothesis(min,obs,*neighbors.first,0);
@@ -290,10 +277,10 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 		}
 		distances.clear();
 	}
-#endif
+
 }
 
-	associationGraph.Print();
+	//associationGraph.Print();
 	vnl_sparse_matrix<double> flowMatrix;
 	vnl_vector<double> flowVector, costVector, capacityVector;
 	associationGraph.GetProblem(costVector, flowVector, capacityVector,
@@ -329,13 +316,13 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 	associationGraph.DecodeSolution(solution, associations, toCreate, toDelete,
 			mitosis);
 
-	std::cout << "Associations: " << associations.size() << std::endl;
-	std::cout << "Mitosis: " << mitosis.size() << std::endl;
-	std::cout << "ToCreate: " << toCreate.size() << std::endl;
-	std::cout << "ToDelete: " << toDelete.size() << std::endl;
-	std::cout << "Observations: "
-			<< boost::num_vertices(*m_ObservedTissueDescriptor->m_CellGraph)
-			<< std::endl;
+	//std::cout << "Associations: " << associations.size() << std::endl;
+	//std::cout << "Mitosis: " << mitosis.size() << std::endl;
+	//std::cout << "ToCreate: " << toCreate.size() << std::endl;
+	//std::cout << "ToDelete: " << toDelete.size() << std::endl;
+	//std::cout << "Observations: "
+//			<< boost::num_vertices(*m_ObservedTissueDescriptor->m_CellGraph)
+	//			<< std::endl;
 	assert(
 			associations.size() + 2 * mitosis.size() + toCreate.size()
 					== boost::num_vertices(
@@ -376,7 +363,7 @@ void MinCostMaxFlowTrackAssociationCommand::Do() {
 				*m_CurrentTrackedTissueDescriptor->m_CellGraph, n).SetObservedCell(
 				it->first);
 
-		std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentTrackedTissueDescriptor->m_CellGraph,n).GetObservedCell() << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
+		//std::cout << "Associate observation " << boost::get(ttt::TrackedCellPropertyTag(),*m_CurrentTrackedTissueDescriptor->m_CellGraph,n).GetObservedCell() << " to " << trackID << " track ID " << trackID << " newTrack " << n << std::endl;
 
 		obsToTrack[it->first] = n;
 	}

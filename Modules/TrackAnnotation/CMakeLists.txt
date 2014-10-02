@@ -61,7 +61,6 @@ target_link_libraries(TTTTrackAnnotation
 					TTTCore
 					TTTVertexLocation
 					TTTIO
-					mysqlcppconn
 					
 					
 					)

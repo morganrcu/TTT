@@ -81,6 +81,24 @@ public:
 	virtual void SetYY(unsigned int frame, const FeatureMap<CellVertexType,double> & yy);
 	virtual FeatureMap<CellVertexType,double> GetYY(unsigned int frame);
 
+	virtual void SetTrackedCentroids(unsigned int frame, const   FeatureMap<TrackedCellVertexType,itk::Point<double,3> > & centroids);
+	virtual FeatureMap<TrackedCellVertexType,itk::Point<double,3> >  GetTrackedCentroids(unsigned int frame);
+
+	virtual void SetTrackedAreas(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & areas);
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedAreas(unsigned int frame);
+
+	virtual void SetTrackedPerimeter(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & perimeters);
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedPerimeter(unsigned int frame);
+
+	virtual void SetTrackedXX(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xx);
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXX(unsigned int frame);
+
+	virtual void SetTrackedXY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xy);
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXY(unsigned int frame);
+
+	virtual void SetTrackedYY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & yy);
+	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedYY(unsigned int frame);
+
 
 protected:
 	virtual void LoadProjectInfo();

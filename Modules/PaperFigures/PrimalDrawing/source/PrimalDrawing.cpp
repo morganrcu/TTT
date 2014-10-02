@@ -18,7 +18,8 @@
 
 #include "itkIndex.h"
 
-#include "mysqltissuetrackingproject2.h"
+#include "qtsqltissuetrackingproject2.h"
+#include "jsontissuetrackingproject2.h"
 
 typedef itk::Image<float,3> PlatenessImageType;
 typedef itk::ImageFileReader<PlatenessImageType> PlatenessReaderType;
@@ -70,6 +71,22 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 	vtkSmartPointer<vtkRenderWindowInteractor> iren =   vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	iren->SetRenderWindow(renWin);
 
+	BGL_FORALL_VERTICES(v,*reference->m_SkeletonGraph,ttt::SkeletonGraph){
+		itk::Point<double,3> centroid = boost::get(ttt::SkeletonPointPropertyTag(),*reference->m_SkeletonGraph,v).position;
+		vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
+		newSphere->SetCenter(centroid[0],centroid[1],centroid[2]);
+
+		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		mapper->SetInputConnection(newSphere->GetOutputPort());
+
+		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+		actor->SetMapper(mapper);
+
+		renderer->AddActor(actor);
+
+		actor->GetProperty()->SetColor(0.0,0.0,1.0);
+	}
+
 	BGL_FORALL_EDGES(e,*reference->m_SkeletonGraph,ttt::SkeletonGraph){
 		ttt::SkeletonVertexType a = boost::source(e,*reference->m_SkeletonGraph);
 		ttt::SkeletonVertexType b = boost::target(e,*reference->m_SkeletonGraph);
@@ -98,7 +115,7 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 
 			actor->GetProperty()->SetColor(0.0,1.0,0.0);
 	}
-
+#if 0
 	BGL_FORALL_EDGES(e,*reference->m_CellGraph,ttt::CellGraph){
 		ttt::SkeletonVertexType a = boost::source(e,*reference->m_CellGraph);
 		ttt::SkeletonVertexType b = boost::target(e,*reference->m_CellGraph);
@@ -127,7 +144,7 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 
 			actor->GetProperty()->SetColor(1.0,0.0,0.0);
 	}
-
+#endif
 	renWin->SetAlphaBitPlanes(1); //enable usage of alpha channel
 	renWin->Render();
 
@@ -138,7 +155,7 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 	windowToImageFilter->Update();
 
 	vtkSmartPointer<vtkTIFFWriter> writer = vtkSmartPointer<vtkTIFFWriter>::New();
-	writer->SetFileName("primal.tiff");
+	writer->SetFileName("primaleye.tiff");
 	writer->SetInputConnection(windowToImageFilter->GetOutputPort());
 	writer->Write();
 
@@ -149,16 +166,21 @@ void drawGraph(const ttt::TissueDescriptor::Pointer & reference){
 int main(int argc,char ** argv){
 
 	//2. Leer gt
-
-	ttt::MySQLTissueTrackingProject2 m_Project;
+#if 0
+	ttt::QTSQLTissueTrackingProject2 m_Project;
 	m_Project.SetHost("localhost");
 	m_Project.SetDBName("TuftsTissueTracker");
 	m_Project.SetUser("root");
 	m_Project.SetPassword("ttt1Tracker");
-	m_Project.SetProjectID(2);
+	m_Project.SetProjectID(16);
 	m_Project.Open();
 
+#endif
 
+	ttt::JSONTissueTrackingProject2 m_Project;
+
+	m_Project.SetDirectory("/home/morgan/TTTProjects/eye2/");
+	m_Project.Open();
 	ttt::TissueDescriptor::Pointer gt = m_Project.GetTissueDescriptor(0);
 
 

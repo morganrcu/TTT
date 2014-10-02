@@ -22,6 +22,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
 
     vtkSmartPointer<vtkAxesActor> axes =  vtkSmartPointer<vtkAxesActor>::New();
 
+
     m_CentralRenderer->AddActor(axes);
 
     this->m_pUI->centralQVTKView->SetRenderWindow(m_CentralRenderWindow);

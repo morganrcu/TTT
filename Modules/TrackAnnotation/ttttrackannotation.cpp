@@ -4,6 +4,7 @@
 #include <vtkPolygon.h>
 #include <vtkCellArray.h>
 
+#include "jsontissuetrackingproject2.h"
 
 
 TrackAnnotation::TrackAnnotation(QWidget *parent) :
@@ -63,19 +64,20 @@ TrackAnnotation::TrackAnnotation(QWidget *parent) :
     m_NextPrimalDrawer.SetVertexColorer(&m_NextVertexColorer);
 
 
+    ttt::JSONTissueTrackingProject2 * project =new ttt::JSONTissueTrackingProject2;
 
-    m_Project.openDB();
-    m_Project.OpenProject(26);
-    m_Project.SetFrame(0);
+    project->SetDirectory("/home/morgan/TTTProjects/miniroi");
+    m_Project=project;
+    m_Project->Open();
 
     this->m_pUI->frameSlider->setMinimum(0);
-    this->m_pUI->frameSlider->setMaximum(this->m_Project.GetNumFrames()-2);
+    this->m_pUI->frameSlider->setMaximum(this->m_Project->GetNumFrames()-2);
 
     this->m_pUI->currentTrackSpinBox->setMinimum(0);
-    this->m_pUI->currentTrackSpinBox->setMaximum(this->m_Project.GetNumTracks());
+    this->m_pUI->currentTrackSpinBox->setMaximum(1000);
     this->m_pUI->nextTrackSpinBox->setMinimum(0);
-    this->m_pUI->nextTrackSpinBox->setMaximum(this->m_Project.GetNumTracks());
-    this->m_pUI->globalTrackSpinBox->setMaximum(this->m_Project.GetNumTracks());
+    this->m_pUI->nextTrackSpinBox->setMaximum(1000);
+    this->m_pUI->globalTrackSpinBox->setMaximum(1000); //TODO
 
     connect(this->m_pUI->frameSlider,SIGNAL(valueChanged(int)),this,SLOT(FrameChanged(int)));
 
@@ -107,9 +109,8 @@ void TrackAnnotation::DoCorrection(){
 	int frame= m_CurrentFrame;
 	frame++;
 
-	while(frame<m_Project.GetNumFrames()){
-		this->m_Project.SetFrame(frame);
-		ttt::TrackedTissueDescriptor::Pointer current = this->m_Project.GetTrackedTissueDescriptor();
+	while(frame<m_Project->GetNumFrames()){
+		ttt::TrackedTissueDescriptor::Pointer current = this->m_Project->GetTrackedTissueDescriptor(frame);
 
 		ttt::TrackedCellVertexType a = ttt::CellID2VertexDescriptor(this->m_CurrentTrack,current);
 		ttt::TrackedCellVertexType b = ttt::CellID2VertexDescriptor(this->m_NextTrack,current);
@@ -117,13 +118,10 @@ void TrackAnnotation::DoCorrection(){
 		if(a!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),a).SetID(this->m_NextTrack);
 		if(b!=-1) boost::get(ttt::TrackedCellPropertyTag(),(*current->m_CellGraph),b).SetID(this->m_CurrentTrack);
 
-		m_Project.SetTrackedTissueDescriptor(current);
+		m_Project->SetTrackedTissueDescriptor(frame,current);
 
 		frame++;
 	}
-	m_Project.SetFrame(m_CurrentFrame);
-
-
 }
 void TrackAnnotation::CurrentCellSelected(vtkSmartPointer<vtkActor>& cell){
 
@@ -217,11 +215,10 @@ void TrackAnnotation::SplitCorrespondence(const ttt::TrackedTissueDescriptor::Po
 
 void TrackAnnotation::FrameChanged(int frame){
 	m_CurrentFrame=frame;
-	m_Project.SetFrame(frame);
 
-	m_CurrentTissueDescriptor=m_Project.GetTrackedTissueDescriptor();
-	m_Project.SetFrame(frame+1);
-	m_NextTissueDescriptor=m_Project.GetTrackedTissueDescriptor();
+	m_CurrentTissueDescriptor=m_Project->GetTrackedTissueDescriptor(m_CurrentFrame);
+
+	m_NextTissueDescriptor=m_Project->GetTrackedTissueDescriptor(m_CurrentFrame+1);
 
 
 

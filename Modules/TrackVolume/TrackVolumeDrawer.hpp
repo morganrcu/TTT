@@ -65,8 +65,10 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 
 				vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
 
-				line->SetPoint1(a[0],a[1],3*t);
-				line->SetPoint2(b[0],b[1],3*(t+1));
+				//line->SetPoint1(a[0],a[1],3*t);
+				line->SetPoint1(a[0],3*t,a[1]);
+				//line->SetPoint2(b[0],b[1],3*(t+1));
+				line->SetPoint2(b[0],3*(t+1),b[1]);
 
 				line->Update();
 				vtkSmartPointer<vtkOpenGLPolyDataMapper> mapper = vtkSmartPointer<vtkOpenGLPolyDataMapper>::New();
@@ -98,8 +100,10 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 
 				vtkSmartPointer<vtkLineSource> lineA=vtkSmartPointer<vtkLineSource>::New();
 
-				lineA->SetPoint1(a[0],a[1],3*t);
-				lineA->SetPoint2(b[0],b[1],3*(t+1));
+				//lineA->SetPoint1(a[0],a[1],3*t);
+				lineA->SetPoint1(a[0],3*t,a[1]);
+				//lineA->SetPoint2(b[0],b[1],3*(t+1));
+				lineA->SetPoint2(b[0],3*(t+1),b[1]);
 				lineA->Update();
 				vtkSmartPointer<vtkOpenGLPolyDataMapper> mapperA = vtkSmartPointer<vtkOpenGLPolyDataMapper>::New();
 				mapperA->SetInputConnection(lineA->GetOutputPort());
@@ -113,8 +117,9 @@ void DrawTrackVolume(const std::string & fileName,std::vector<ttt::TrackedTissue
 
 				vtkSmartPointer<vtkLineSource> lineB=vtkSmartPointer<vtkLineSource>::New();
 
-				lineB->SetPoint1(c[0],c[1],3*t);
-				lineB->SetPoint2(d[0],d[1],3*(t+1));
+				//lineB->SetPoint1(c[0],c[1],3*t);
+				lineB->SetPoint1(c[0],3*t,c[1]);
+				lineB->SetPoint2(d[0],3*(t+1),d[1]);
 				lineB->Update();
 				vtkSmartPointer<vtkOpenGLPolyDataMapper> mapperB = vtkSmartPointer<vtkOpenGLPolyDataMapper>::New();
 				mapperB->SetInputConnection(lineB->GetOutputPort());

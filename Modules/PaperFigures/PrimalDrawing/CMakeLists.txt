@@ -12,6 +12,6 @@ include_directories( ../../Features/include/)
 
 
 add_executable(PrimalDrawing source/PrimalDrawing.cpp)
-
-target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra mysqlcppconn)
+qt5_use_modules(PrimalDrawing Sql)
+target_link_libraries(PrimalDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra )
  

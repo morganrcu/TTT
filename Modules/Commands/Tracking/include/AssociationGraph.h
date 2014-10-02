@@ -452,7 +452,7 @@ public:
 
 			}
 		}
-		std::cout << "Sent " << flowSent << std::endl;
+		//std::cout << "Sent " << flowSent << std::endl;
 	}
 	void Print(){
 		std::cout<< "Num Tracks: " << m_NumTracks << std::endl;

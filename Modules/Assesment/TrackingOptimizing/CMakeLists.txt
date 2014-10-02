@@ -6,6 +6,7 @@ include_directories( ../../TrackVolume/)
 
 include_directories( ../../Drawers/include/)
 include_directories( ../AssesmentBase/include/)
+include_directories( ../TrackingAssesmentCommon/include/)
 include_directories( ../../Core/include/)
 include_directories( ../../IO/include/)
 include_directories( ../../Features/include/)
@@ -14,6 +15,32 @@ include_directories( ../../Features/include/)
 
 add_executable(TrackingOptimizing source/main.cpp)
 
-target_link_libraries(TrackingOptimizing ${ITK_LIBRARIES} ${VTK_LIBRARIES} mysqlcppconn TTTCore TTTTracking 			TTTIO		Cbc CbcSolver Cgl Clp CoinUtils bz2   OsiClp Osi ${ZLIB_LIBRARIES} lapack
+qt5_use_modules(TrackingOptimizing Sql)
+target_link_libraries(TrackingOptimizing ${VTK_LIBRARIES}
+                                #vtkjsoncpp
+                                #vtkGUISupportQt
+                                #vtkGUISupportQtOpenGL
+                                 
+					         ${ITK_LIBRARIES} 
+					         
+					         TTTDrawers 
+					         TTTPlateness 
+					         TTTVertexness 
+					         TTTDataCasting 
+					         TTTAnisotropicDiffusion 
+					         TTTVertexLocation
+					         TTTAdherensJunctionSegmentationDijkstra
+					         TTTCellGraph
+					         TTTTracking
+					         TTTTectonics
+					         
+					         TTTComputeDomains
+					         TTTIO
+					         
+					         ${COIN_CBC_LIBRARIES}  
+					         ${ZLIB_LIBRARIES}
+					          
+					         ${BZIP2_LIBRARIES} 
+					         ${LAPACK_LIBRARIES} 
 )
  

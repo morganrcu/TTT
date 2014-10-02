@@ -1,8 +1,9 @@
 #include "jsontissuetrackingproject2.h"
-#include "mysqltissuetrackingproject2.h"
+#include "qtsqltissuetrackingproject2.h"
+#include "CellMomentCalculator.h"
 int main(){
 
-	ttt::MySQLTissueTrackingProject2 mysql;
+	ttt::QTSQLTissueTrackingProject2 mysql;
 
 
 	mysql.SetProjectID(2);
@@ -38,6 +39,7 @@ int main(){
 		json.SetHighestVertexnessScale(frame,mysql.GetHighestVertexnessScale(frame));
 		json.SetLowestVertexnessScale(frame,mysql.GetLowestVertexnessScale(frame));
 
+
 		json.SetRawImage(frame,mysql.GetRawImage(frame));
 		json.SetDiffusedImage(frame,mysql.GetDiffusedImage(frame));
 		json.SetPlatenessImage(frame,mysql.GetPlatenessImage(frame));
@@ -50,6 +52,30 @@ int main(){
 		json.SetAdherensJunctionVertices(frame,mysql.GetAdherensJunctionVertices(frame));
 		json.SetTissueDescriptor(frame,mysql.GetTissueDescriptor(frame));
 		json.SetTrackedTissueDescriptor(frame,mysql.GetTrackedTissueDescriptor(frame));
+
+		CellMomentCalculator<ttt::TissueDescriptor> momentCalculator;
+		momentCalculator.SetTissueDescriptor(mysql.GetTissueDescriptor(frame));
+		momentCalculator.Compute();
+
+		json.SetAreas(frame,momentCalculator.GetAreas());
+		json.SetPerimeter(frame,momentCalculator.GetPerimeter());
+		json.SetCentroids(frame,momentCalculator.GetCentroid());
+		json.SetXX(frame,momentCalculator.GetXX());
+		json.SetXY(frame,momentCalculator.GetXY());
+		json.SetYY(frame,momentCalculator.GetXY());
+
+
+		CellMomentCalculator<ttt::TrackedTissueDescriptor> trackedMomentCalculator;
+		trackedMomentCalculator.SetTissueDescriptor(mysql.GetTrackedTissueDescriptor(frame));
+		trackedMomentCalculator.Compute();
+
+		json.SetTrackedAreas(frame,trackedMomentCalculator.GetAreas());
+		json.SetTrackedPerimeter(frame,trackedMomentCalculator.GetPerimeter());
+		json.SetTrackedCentroids(frame,trackedMomentCalculator.GetCentroid());
+		json.SetTrackedXX(frame,trackedMomentCalculator.GetXX());
+		json.SetTrackedXY(frame,trackedMomentCalculator.GetXY());
+		json.SetTrackedYY(frame,trackedMomentCalculator.GetXY());
+
 
 		json.Flush();
 
