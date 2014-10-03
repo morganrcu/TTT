@@ -570,6 +570,7 @@ void TTTMainWindow::ShowPreferences(){
 }
 
 void TTTMainWindow::OpenMySQL(){
+#if 0
 	SQLOpenProjectDialog dialog(m_Host,m_Port,m_DBName,m_User,m_Password);
 	dialog.exec();
 
@@ -590,6 +591,7 @@ void TTTMainWindow::OpenMySQL(){
 		this->SetupProjectTab();
 
 	}
+#endif
 }
 void TTTMainWindow::OpenJSON(){
 	QFileDialog dialog(this);

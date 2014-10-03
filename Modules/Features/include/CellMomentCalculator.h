@@ -178,11 +178,15 @@ public:
 			xx+= (pow(transformedPoints[i](0),2)+transformedPoints[i](0)* transformedPoints[i+1](0) + pow(transformedPoints[i+1](0),2) )*common;
 			yy+= (pow(transformedPoints[i](1),2)+transformedPoints[i](1)* transformedPoints[i+1](1) + pow(transformedPoints[i+1](1),2) )*common;
 			xy+= (2*transformedPoints[i](0)*transformedPoints[i](1) + transformedPoints[i](0)*transformedPoints[i+1](1) +  transformedPoints[i+1](0)*transformedPoints[i](1) )*common;
-
+			std::cout << common << std::endl;
 		}
-		area=area/2;
 
-		cellPerimeter.SetValue(perimeter);
+		area=fabs(area/2);
+
+		std::cout << "Area:" << area << std::endl;
+		std::cout << "Perimeter:" << perimeter << std::endl;
+
+		cellPerimeter.SetValue(fabs(perimeter));
 		cellArea.SetValue(area);
 
 		centroid2D(0)=centroid2D(0)/(6*area);
@@ -190,9 +194,12 @@ public:
 		//std::cout << "Centroid2D" << std::endl;
 		//std::cout<< centroid2D << std::endl;
 
-		xx=xx/(12*area);
-		yy=yy/(12*area);
+		xx=fabs(xx/(12*area));
+		yy=fabs(yy/(12*area));
 		xy=xy/(24*area);
+		std::cout << "XX:" << xx << std::endl;
+		std::cout << "XY:" << xy << std::endl;
+		std::cout << "YY:" << yy << std::endl;
 
 		cellXX.SetValue(xx);
 		cellYY.SetValue(yy);

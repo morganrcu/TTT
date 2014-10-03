@@ -1,8 +1,11 @@
 #include "jsontissuetrackingproject2.h"
 #include "qtsqltissuetrackingproject2.h"
 #include "CellMomentCalculator.h"
-int main(){
+int main(int argc,char ** argv){
 
+	if(argc!=3){
+		std::cerr << "Usage: " << argv[0] << " mumProject targetDirectory" << std::endl;
+	}
 	ttt::QTSQLTissueTrackingProject2 mysql;
 
 
@@ -12,13 +15,14 @@ int main(){
 	mysql.SetDBName("TuftsTissueTracker");
 	mysql.SetPassword("ttt1Tracker");
 
-	mysql.SetProjectID(2);
+	mysql.SetProjectID(atoi(argv[1]));
 	mysql.Open();
 
 	//mysql.LoadProjectInfo();
 	ttt::JSONTissueTrackingProject2 json;
 
-	std::string jsonDir("./test/");
+	std::string jsonDir(argv[2]);
+
 	json.SetDirectory(jsonDir);
 
 	json.Open();
@@ -62,7 +66,7 @@ int main(){
 		json.SetCentroids(frame,momentCalculator.GetCentroid());
 		json.SetXX(frame,momentCalculator.GetXX());
 		json.SetXY(frame,momentCalculator.GetXY());
-		json.SetYY(frame,momentCalculator.GetXY());
+		json.SetYY(frame,momentCalculator.GetYY());
 
 
 		CellMomentCalculator<ttt::TrackedTissueDescriptor> trackedMomentCalculator;
@@ -74,7 +78,7 @@ int main(){
 		json.SetTrackedCentroids(frame,trackedMomentCalculator.GetCentroid());
 		json.SetTrackedXX(frame,trackedMomentCalculator.GetXX());
 		json.SetTrackedXY(frame,trackedMomentCalculator.GetXY());
-		json.SetTrackedYY(frame,trackedMomentCalculator.GetXY());
+		json.SetTrackedYY(frame,trackedMomentCalculator.GetYY());
 
 
 		json.Flush();

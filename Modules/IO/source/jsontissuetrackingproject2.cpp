@@ -763,7 +763,7 @@ void ttt::JSONTissueTrackingProject2::SetXX(unsigned int frame,
 	int k = 0;
 	for (auto it = xx.begin(); it != xx.end(); it++) {
 		root["xx"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =it->second.GetValue();
 		root["xx"][k]["value"] = value;
 		k++;
 	}
@@ -816,7 +816,7 @@ void ttt::JSONTissueTrackingProject2::SetXY(unsigned int frame,
 	int k = 0;
 	for (auto it = xy.begin(); it != xy.end(); it++) {
 		root["xy"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value = it->second.GetValue();
 		root["xy"][k]["value"] = value;
 		k++;
 	}
@@ -871,7 +871,7 @@ void ttt::JSONTissueTrackingProject2::SetYY(unsigned int frame,
 	int k = 0;
 	for (auto it = yy.begin(); it != yy.end(); it++) {
 		root["yy"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value = it->second.GetValue();
 		root["yy"][k]["value"] = value;
 		k++;
 	}
@@ -925,7 +925,7 @@ void ttt::JSONTissueTrackingProject2::SetPerimeter(unsigned int frame,
 	int k = 0;
 	for (auto it = perimeter.begin(); it != perimeter.end(); it++) {
 		root["perimeter"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["perimeter"][k]["value"] = value;
 		k++;
 	}
@@ -953,16 +953,16 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetAreas(
 
 	int numcells = root["areas"].size();
 
-	FeatureMap<CellVertexType, double> perimeters;
+	FeatureMap<CellVertexType, double> areas;
 
 	for (int k = 0; k < numcells; k++) {
 		unsigned long cell = root["areas"][k]["id"].asUInt64();
 		double value = root["areas"][k]["value"].asDouble();
 
-		perimeters[cell].SetValue(value);
+		areas[cell].SetValue(value);
 		k++;
 	}
-	return perimeters;
+	return areas;
 }
 
 void ttt::JSONTissueTrackingProject2::SetAreas(unsigned int frame,
@@ -978,7 +978,7 @@ void ttt::JSONTissueTrackingProject2::SetAreas(unsigned int frame,
 	int k = 0;
 	for (auto it = areas.begin(); it != areas.end(); it++) {
 		root["areas"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["areas"][k]["value"] = value;
 		k++;
 	}
@@ -1063,7 +1063,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedAreas(unsigned int frame,
 	int k = 0;
 	for (auto it = areas.begin(); it != areas.end(); it++) {
 		root["areas"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["areas"][k]["value"] = value;
 		k++;
 	}
@@ -1116,7 +1116,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedPerimeter(unsigned int frame,
 	int k = 0;
 	for (auto it = perimeter.begin(); it != perimeter.end(); it++) {
 		root["perimeter"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["perimeter"][k]["value"] = value;
 		k++;
 	}
@@ -1169,7 +1169,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedXX(unsigned int frame,
 	int k = 0;
 	for (auto it = xx.begin(); it != xx.end(); it++) {
 		root["xx"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["xx"][k]["value"] = value;
 		k++;
 	}
@@ -1222,7 +1222,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedXY(unsigned int frame,
 	int k = 0;
 	for (auto it = xy.begin(); it != xy.end(); it++) {
 		root["xy"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["xy"][k]["value"] = value;
 		k++;
 	}
@@ -1276,7 +1276,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedYY(unsigned int frame,
 	int k = 0;
 	for (auto it = yy.begin(); it != yy.end(); it++) {
 		root["yy"][k]["id"] = (Json::UInt64) it->first;
-		double value = (Json::UInt64) it->second.GetValue();
+		double value =  it->second.GetValue();
 		root["yy"][k]["value"] = value;
 		k++;
 	}
