@@ -7,8 +7,10 @@
 
 #ifndef COINSOLVER_H_
 #define COINSOLVER_H_
+
 #include <coin/CbcModel.hpp>
 #include <coin/OsiClpSolverInterface.hpp>
+
 #include <coin/CoinPackedVector.hpp>
 #include <coin/CoinPackedVector.hpp>
 namespace ttt {
@@ -76,7 +78,7 @@ public:
 		}
 
 		solver.loadProblem(*matrix, col_lb, col_ub, objective, row_lb, row_ub);
-		solver.writeLp("problem", "mps");
+		//solver.writeLp("problem", "mps");
 
 		for (int i = 0; i < n_cols; i++) {
 			solver.setInteger(i);

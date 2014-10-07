@@ -5,8 +5,9 @@ cmake_minimum_required(VERSION 2.8)
 SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS} "-Wall -std=c++0x -fpermissive -fPIC " )
 
-
 INCLUDE(CPack)
+INCLUDE(ExternalProject)
+
 
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
@@ -38,54 +39,31 @@ add_definitions(${Qt5Sql_DEFINITIONS})
 
 
 
-find_package( BZip2 REQUIRED )
-find_package( LAPACK REQUIRED ) 
+
+
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
-find_package( ZLIB REQUIRED )
 
-#add_subdirectory(Modules/GUI)
-include(ExternalProject)
-#ExternalProject_add(mysql-connector-c++
-#                    PREFIX ${CMAKE_BINARY_DIR}/mysqlcppconn 
-#                    URL http://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-1.1.3.tar.gz 
-#                    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/mysqlcppconn-inst -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-#                    BINARY_DIR ${CMAKE_BINARY_DIR}/mysqlcppconn/src/mysql-connector-c++
-#                    INSTALL_DIR ${CMAKE_BINARY_DIR}/mysqlcppconn-inst
-#                    )
-                            
-#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/mysqlcppconn/src/mysql-connector-c++/cppconn)
-#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/mysqlcppconn/src/mysql-connector-c++/driver)
-#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/mysqlcppconn/src/mysql-connector-c++)
-#SET(MYSQLCPPCONN_LIBRARY ${CMAKE_BINARY_DIR}/mysqlcppconn/src/mysql-connector-c++/driver/libmysqlcppconn.so)
 
-#ExternalProject_add(jsoncpp PREFIX ${CMAKE_BINARY_DIR}/jsoncpp/
-#                            GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
-                            
-                            #BINARY_DIR ${CMAKE_BINARY_DIR}/jsoncpp
-                            #CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/jsoncpp-inst
-                            #INSTALL_DIR ${CMAKE_BINARY_DIR}/jsoncpp-inst
-#)
-                            
-#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/jsoncpp-inst/include/)
+
 OPTION(USE_SYSTEM_ZLIB "Use system Zlib" ON)
+OPTION(USE_SYSTEM_BZIP2 "Use system Bzip2" ON)
+OPTION(USE_SYSTEM_LAPACK "Use system Lapack" ON)
+OPTION(USE_SYSTEM_COINCBC "Use system Coin-cbc" ON)
 
-#IF(USE_SYSTEM_ZLIB)
-    
-#else(USE_SYSTEM_ZLIB)
-    #ExternalProject_add(ZLIB PREFIX ${CMAKE_BINARY_DIR}/zlib                             URL http://zlib.net/zlib-1.2.8.tar.gz                             CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DINSTALL_PREFIX=${CMAKE_BINARY_DIR}/zlib-inst -DINSTALL_BIN_DIR=${CMAKE_BINARY_DIR}/zlib-inst/bin -DINSTALL_INC_DIR=${CMAKE_BINARY_DIR}/zlib-inst/include  -DINSTALL_LIB_DIR=${CMAKE_BINARY_DIR}/zlib-inst/lib -DINSTALL_MAN_DIR=${CMAKE_BINARY_DIR}/zlib-inst/man                             INSTALL_DIR ${CMAKE_BINARY_DIR}/zlib-inst) 
-#endif(USE_SYSTEM_ZLIB)
+
+IF(USE_SYSTEM_COINCBC)
    
-ExternalProject_add(coin-cbc PREFIX ${CMAKE_BINARY_DIR}/coin-cbc/
+ELSE(USE_SYSTEM_COINCBC)
+	
+	ExternalProject_add(coin-cbc PREFIX ${CMAKE_BINARY_DIR}/coin-cbc/
                             URL http://www.coin-or.org/download/source/Cbc/Cbc-2.8.10.tgz
-                            CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/coin-cbc/src/coin-cbc/configure --enable-static --prefix=${CMAKE_BINARY_DIR}/coin-cbc
-                            
-#                            SOURCE_DIR ${CMAKE_BINARY_DIR}/src/coin-cbc/Cbc
-#                            CMAKE_ARGS ./Cbc -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/jsoncpp-inst
-                            INSTALL_DIR ${CMAKE_BINARY_DIR}/coin-cbc
+                            CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/coin-cbc/src/coin-cbc/configure --enable-static --prefix=${CMAKE_BINARY_DIR}/coin-cbc                           
+                            INSTALL_DIR ${CMAKE_BINARY_DIR}/coin-cbc-inst
     )
                             
-SET(COIN_CBC_LIBRARIES  ${CMAKE_BINARY_DIR}/coin-cbc/lib/libCbc.a
+                            
+	SET(COIN_CBC_LIBRARIES  ${CMAKE_BINARY_DIR}/coin-cbc/lib/libCbc.a
                         ${CMAKE_BINARY_DIR}/coin-cbc/lib/libCbcSolver.a
                         ${CMAKE_BINARY_DIR}/coin-cbc/lib/libCgl.a
                         ${CMAKE_BINARY_DIR}/coin-cbc/lib/libClp.a
@@ -94,7 +72,62 @@ SET(COIN_CBC_LIBRARIES  ${CMAKE_BINARY_DIR}/coin-cbc/lib/libCbc.a
                         ${CMAKE_BINARY_DIR}/coin-cbc/lib/libOsiClp.a
                         ${CMAKE_BINARY_DIR}/coin-cbc/lib/libOsi.a)                       
 
-include_directories(${CMAKE_BINARY_DIR}/coin-cbc/include )
+	include_directories(${CMAKE_BINARY_DIR}/coin-cbc/include)
+ENDIF(USE_SYSTEM_COINCBC)
+
+MESSAGE(${COIN_CBC_LIBRARIES})
+IF(USE_SYSTEM_ZLIB)
+    find_package( ZLIB REQUIRED )
+    
+else(USE_SYSTEM_ZLIB)
+	
+	ExternalProject_add(ZLIB PREFIX ${CMAKE_BINARY_DIR}/zlib                             
+						URL http://zlib.net/zlib-1.2.8.tar.gz
+						CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/zlib-inst -DINSTALL_BIN_DIR=${CMAKE_BINARY_DIR}/zlib-inst/bin -DINSTALL_INC_DIR=${CMAKE_BINARY_DIR}/zlib-inst/include  -DINSTALL_LIB_DIR=${CMAKE_BINARY_DIR}/zlib-inst/lib -DINSTALL_MAN_DIR=${CMAKE_BINARY_DIR}/zlib-inst/man -DINSTALL_PKGCONFIG_DIR=${CMAKE_BINARY_DIR}/zlib-inst/share/pkgconfig	                             
+						INSTALL_DIR PREFIX=${CMAKE_BINARY_DIR}/zlib-inst
+						) 
+	SET(ZLIB_LIBRARIES ${CMAKE_BINARY_DIR}/zlib-inst/lib/libz.a)						
+endif(USE_SYSTEM_ZLIB)
+
+IF(USE_SYSTEM_BZIP2)
+      find_package( BZip2 REQUIRED )
+else(USE_SYSTEM_BZIP2)
+	
+	EXTERNALPROJECT_ADD(bzip2
+			PREFIX ${CMAKE_BINARY_DIR}/bzip2
+			URL http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz    
+			CONFIGURE_COMMAND ""    
+			BUILD_COMMAND make PREFIX=${CMAKE_BINARY_DIR} SHARED= XCFLAGS=-I${CMAKE_BINARY_DIR}/include XLDFLAGS=-L${CMAKE_BINARY_DIR}/lib XLIBS=-ldl    
+			INSTALL_COMMAND make install PREFIX=${CMAKE_BINARY_DIR}/bzip2-inst SHARED=    
+			BUILD_IN_SOURCE 1) 
+			
+			                        
+	SET(BZIP2_LIBRARIES  ${CMAKE_BINARY_DIR}/bzip2-inst/lib/libbz2.a)
+                        
+endif(USE_SYSTEM_BZIP2)
+
+
+
+IF(USE_SYSTEM_LAPACK)
+    find_package( LAPACK REQUIRED ) 
+else(USE_SYSTEM_LAPACK)
+	ExternalProject_add(lapack PREFIX ${CMAKE_BINARY_DIR}/lapack/
+					      URL http://www.netlib.org/clapack/clapack-3.2.1-CMAKE.tgz
+					      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lapack-inst
+					      INSTALL_COMMAND ""
+					      INSTALL_DIR ${CMAKE_BINARY_DIR}/lapack-inst
+					      )
+	
+	SET(LAPACK_LIBRARIES 
+						 ${CMAKE_BINARY_DIR}/lapack/src/lapack-build/SRC/liblapack.a 
+					     ${CMAKE_BINARY_DIR}/lapack/src/lapack-build/BLAS/SRC/libblas.a  
+	                     
+	                     ${CMAKE_BINARY_DIR}/lapack/src/lapack-build/F2CLIBS/libf2c/libf2c.a
+						 )
+
+endif(USE_SYSTEM_LAPACK)
+
+
 add_subdirectory(Modules/Core)
 add_subdirectory(Modules/Drawers)
 add_subdirectory(Modules/Commands/Base)

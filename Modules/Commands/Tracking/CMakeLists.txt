@@ -7,13 +7,9 @@ include_directories(../../Core/include/)
 include_directories(../../Features/include/)
 include_directories( include)
 
-#INCLUDE_DIRECTORIES(/home/morgan/Development/solvers/coin-Cbc/include/coin)
-#link_directories(/home/morgan/Development/solvers/coin-Cbc/lib)
-
 set(TTTTracking_SRCS source/TrackingCommand.cpp 
-                     #source/giaaCellTracker.cpp
-                     #source/tttMinCostMaxFlowCellTracker.cpp
-                     source/TrackInitializationCommand.cpp source/MinCostMaxFlowTrackAssociationCommand.cpp
+                     source/TrackInitializationCommand.cpp 
+                     source/MinCostMaxFlowTrackAssociationCommand.cpp
                       )
 
 #add_executable(mincostmaxflowcelltrackertest source/mincostmaxflowcelltrackertest.cpp source/tttMinCostMaxFlowCellTracker.cpp)
