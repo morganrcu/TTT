@@ -283,9 +283,9 @@ private:
 
 }// end namespace itk
 
-#if ITK_TEMPLATE_TXX
+//#if ITK_MANUAL_INSTANTIATION
 # include "tttAnisotropicDiffusionVesselEnhancementImageFilter.hxx"
-#endif
+//#endif
 
 #endif
 

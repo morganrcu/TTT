@@ -180,9 +180,10 @@ private:
 # include "Templates/itkAnisotropicDiffusionVesselEnhancementFunction+-.h"
 #endif
 
-#if ITK_TEMPLATE_TXX
+//#if ITK_MANUAL_INSTANTIATION
 # include "tttAnisotropicDiffusionVesselEnhancementFunction.hxx"
-#endif
+//#endif
+
 
 #endif
 /** @}*/

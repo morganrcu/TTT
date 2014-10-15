@@ -101,7 +101,6 @@ else(USE_SYSTEM_BZIP2)
 			INSTALL_COMMAND make install PREFIX=${CMAKE_BINARY_DIR}/bzip2-inst SHARED=    
 			BUILD_IN_SOURCE 1) 
 			
-			                        
 	SET(BZIP2_LIBRARIES  ${CMAKE_BINARY_DIR}/bzip2-inst/lib/libbz2.a)
                         
 endif(USE_SYSTEM_BZIP2)
