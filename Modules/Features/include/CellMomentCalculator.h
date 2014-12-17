@@ -14,7 +14,9 @@
 #include <vnl/vnl_matrix_fixed.h>
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 template<class TissueDescriptorType> class CellMomentCalculator{
+
 public:
+	static const int NumDimensions = TissueDescriptorType::NumDimensions;
 	typedef typename ttt::TissueDescriptorTraits<TissueDescriptorType>::CellType CellType;
 	typedef typename ttt::TissueDescriptorTraits<TissueDescriptorType>::CellVertexType CellVertexType;
 	typedef itk::Point<double,3> PointType;
@@ -77,12 +79,12 @@ public:
 
 
 		for(typename CellType::PerimeterIterator perimeterIt= cell.PerimeterBegin();perimeterIt!=cell.PerimeterEnd();++perimeterIt){
-					itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*(m_TissueDescriptor->m_SkeletonGraph),*perimeterIt).position;
+					itk::Point<double,NumDimensions> position = boost::get(ttt::SkeletonPointPropertyTag<NumDimensions>(),m_TissueDescriptor->GetAJGraph(),*perimeterIt).position;
 					//std::cout << position << std::endl;
 		}
 
 		for(typename CellType::PerimeterIterator perimeterIt= cell.PerimeterBegin();perimeterIt!=cell.PerimeterEnd();++perimeterIt){
-			itk::Point<double,3> position = boost::get(ttt::SkeletonPointPropertyTag(),*(m_TissueDescriptor->m_SkeletonGraph),*perimeterIt).position;
+			itk::Point<double,NumDimensions> position = boost::get(ttt::SkeletonPointPropertyTag<NumDimensions>(),m_TissueDescriptor->GetAJGraph(),*perimeterIt).position;
 			points.push_back(position);
 			meanPoint[0]+=position[0];
 			meanPoint[1]+=position[1];
@@ -178,13 +180,13 @@ public:
 			xx+= (pow(transformedPoints[i](0),2)+transformedPoints[i](0)* transformedPoints[i+1](0) + pow(transformedPoints[i+1](0),2) )*common;
 			yy+= (pow(transformedPoints[i](1),2)+transformedPoints[i](1)* transformedPoints[i+1](1) + pow(transformedPoints[i+1](1),2) )*common;
 			xy+= (2*transformedPoints[i](0)*transformedPoints[i](1) + transformedPoints[i](0)*transformedPoints[i+1](1) +  transformedPoints[i+1](0)*transformedPoints[i](1) )*common;
-			std::cout << common << std::endl;
+			//std::cout << common << std::endl;
 		}
 
 		area=fabs(area/2);
 
-		std::cout << "Area:" << area << std::endl;
-		std::cout << "Perimeter:" << perimeter << std::endl;
+		//std::cout << "Area:" << area << std::endl;
+		//std::cout << "Perimeter:" << perimeter << std::endl;
 
 		cellPerimeter.SetValue(fabs(perimeter));
 		cellArea.SetValue(area);
@@ -197,9 +199,9 @@ public:
 		xx=fabs(xx/(12*area));
 		yy=fabs(yy/(12*area));
 		xy=xy/(24*area);
-		std::cout << "XX:" << xx << std::endl;
-		std::cout << "XY:" << xy << std::endl;
-		std::cout << "YY:" << yy << std::endl;
+		//std::cout << "XX:" << xx << std::endl;
+		//std::cout << "XY:" << xy << std::endl;
+		//std::cout << "YY:" << yy << std::endl;
 
 		cellXX.SetValue(xx);
 		cellYY.SetValue(yy);
@@ -235,7 +237,7 @@ public:
 
 		std::vector<PointType> points,centeredPoints;
 
-		boost::tie(it,it_end)=boost::vertices(*(m_TissueDescriptor->m_CellGraph));
+		boost::tie(it,it_end)=boost::vertices(m_TissueDescriptor->GetCellGraph());
 
 		typedef typename ttt::TissueDescriptorTraits<TissueDescriptorType>::CellPropertyTagType CellPropertyTagType;
 		while(it!=it_end){
@@ -244,7 +246,7 @@ public:
 
 			PointType meanPoint;
 			meanPoint.Fill(0);
-			CellType cell =boost::get(CellPropertyTagType(),*(m_TissueDescriptor->m_CellGraph),v);
+			CellType cell =boost::get(CellPropertyTagType(),m_TissueDescriptor->GetCellGraph(),v);
 
 			Feature<double> cellPerimeter;
 			Feature<double> cellArea;

@@ -28,13 +28,13 @@ signals:
 private:
 
     itk::FixedArray<double,3> m_Spacing;
-    ttt::AdherensJunctionVertices::Pointer m_AdherensJunctionsVertices;
-    vtkSmartPointer<ttt::VertexLocationsDrawer> m_VertexLocationsDrawer;
+    ttt::AdherensJunctionVertices<3>::Pointer m_AdherensJunctionsVertices;
+    vtkSmartPointer<ttt::VertexLocationsDrawer > m_VertexLocationsDrawer;
 
     vtkSmartPointer<vtkActor> m_AddedActor;
     vtkSmartPointer<vtkSphereSource> m_AddedSphere;
     vtkSmartPointer<vtkPolyDataMapper> m_AddedMapper;
-    ttt::AdherensJunctionVertex::Pointer m_AddedVertex;
+    ttt::AdherensJunctionVertex<3>::Pointer m_AddedVertex;
 
 protected:
 	vtkSmartPointer<vtkRenderer> m_Renderer;
@@ -50,10 +50,10 @@ public:
 		m_Renderer=renderer;
 	}
 
-	inline void SetAdherensJunctionVertices(const ttt::AdherensJunctionVertices::Pointer & vertices){
+	inline void SetAdherensJunctionVertices(const ttt::AdherensJunctionVertices<3>::Pointer & vertices){
 		m_AdherensJunctionsVertices=vertices;
 	}
-	inline ttt::AdherensJunctionVertices::Pointer GetAdherensJunctionVertices(){
+	inline ttt::AdherensJunctionVertices<3>::Pointer GetAdherensJunctionVertices(){
 		return m_AdherensJunctionsVertices;
 	}
 

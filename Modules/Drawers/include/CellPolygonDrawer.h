@@ -56,16 +56,16 @@ public:
 	}
 	virtual void Draw(){
 		this->Reset();
-		BGL_FORALL_VERTICES_T(v,*(m_Descriptor->m_CellGraph),CellGraph){
+		BGL_FORALL_VERTICES_T(v,m_Descriptor->GetCellGraph(),CellGraph){
 				vtkSmartPointer<vtkPoints> points =  vtkSmartPointer<vtkPoints>::New();
 				int npoints=0;
-				for( ttt::Cell::PerimeterIterator it=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterBegin();
-						it!= boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).PerimeterEnd();
+				for( typename ttt::Cell<TissueDescriptor::NumDimensions>::PerimeterIterator it=boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).PerimeterBegin();
+						it!= boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).PerimeterEnd();
 						++it){
 
-						points->InsertNextPoint(boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[0],
-												boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[1],
-												boost::get(SkeletonPointPropertyTag(),*(m_Descriptor->m_SkeletonGraph),*it).position[2]);
+						points->InsertNextPoint(boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonPointPropertyTagType(),m_Descriptor->GetAJGraph(),*it).position[0],
+												boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonPointPropertyTagType(),m_Descriptor->GetAJGraph(),*it).position[1],
+												boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonPointPropertyTagType(),m_Descriptor->GetAJGraph(),*it).position[2]);
 
 						npoints++;
 				}
@@ -91,13 +91,13 @@ public:
 				  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
 				  actor->SetMapper(mapper);
-				  int trackID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).GetID();
+				  int trackID=boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).GetID();
 
 				  std::vector<double> color;
 				  if(m_TrackID2Color.count(trackID)){
 					  color=m_TrackID2Color[trackID];
 				  }else{
-					  int parentID=boost::get(TrackedCellPropertyTag(),*(m_Descriptor->m_CellGraph),v).GetParentID();
+					  int parentID=boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).GetParentID();
 					  if(parentID!=-1){
 						  color=m_TrackID2Color[parentID];
 

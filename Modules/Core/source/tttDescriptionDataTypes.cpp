@@ -1,10 +1,10 @@
 #include <boost/graph/iteration_macros.hpp>
 #include "tttDescriptionDataTypes.h"
 
-ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType ttt::CellID2VertexDescriptor(int ID,const ttt::TrackedTissueDescriptor::Pointer & descriptor){
+template<int dim> typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType ttt::CellID2VertexDescriptor(int ID,const typename ttt::TrackedTissueDescriptor<dim>::Pointer & descriptor){
 	assert(descriptor);
 	assert(descriptor->m_CellGraph);
-	BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::TrackedTissueDescriptor::DualGraphType){
+	BGL_FORALL_VERTICES_T(v,*descriptor->m_CellGraph,typename ttt::TrackedTissueDescriptor<dim>::DualGraphType){
 
 		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).GetID()==ID){
 			return v;
@@ -13,13 +13,13 @@ ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType ttt::CellID2VertexDe
 	return -1;
 }
 
-std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> ttt::CellParentID2VertexDescriptor(int ID,const ttt::TrackedTissueDescriptor::Pointer & descriptor){
+template<int dim> std::pair<typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType,typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType> ttt::CellParentID2VertexDescriptor(int ID,const typename ttt::TrackedTissueDescriptor<dim>::Pointer & descriptor){
 	assert(descriptor);
 	assert(descriptor->m_CellGraph);
-	std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> result;
+	std::pair<typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType,typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType> result;
 	bool firstFound=false;
 
-	BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::TrackedTissueDescriptor::DualGraphType){
+	BGL_FORALL_VERTICES_T(v,*descriptor->m_CellGraph,typename ttt::TrackedTissueDescriptor<dim>::DualGraphType){
 
 		if(boost::get(ttt::TrackedCellPropertyTag(),*descriptor->m_CellGraph,v).GetParentID()==ID){
 			if(!firstFound){
@@ -31,22 +31,22 @@ std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::Track
 			}
 		}
 	}
-	return std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType>(-1,-1);
+	return std::pair<typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType,typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType>(-1,-1);
 
 }
 
-ttt::TissueDescriptor::Pointer ttt::cloneTissueDescriptor(const ttt::TissueDescriptor::Pointer & descriptor){
+template<int dim> typename ttt::TissueDescriptor<dim>::Pointer ttt::cloneTissueDescriptor(const typename ttt::TissueDescriptor<dim>::Pointer & descriptor){
       
-      ttt::TissueDescriptor::Pointer result = ttt::TissueDescriptor::New();
+      typename ttt::TissueDescriptor<dim>::Pointer result = ttt::TissueDescriptor<dim>::New();
       
       
       std::cout << "Duplicando...." << std::endl;
-      BGL_FORALL_VERTICES(v,*descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+      BGL_FORALL_VERTICES_T(v,*descriptor->m_SkeletonGraph,typename ttt::SkeletonGraph<dim>){
     	  boost::add_vertex(boost::get(ttt::SkeletonPointPropertyTag(),*descriptor->m_SkeletonGraph,v),*result->m_SkeletonGraph);
       }
       
       std::cout << "SkeletonGraphVertices" << std::endl;
-      BGL_FORALL_EDGES(e,*descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+      BGL_FORALL_EDGES_T(e,*descriptor->m_SkeletonGraph,typename ttt::SkeletonGraph<dim>){
     	  boost::add_edge(boost::source(e,*descriptor->m_SkeletonGraph),boost::target(e,*descriptor->m_SkeletonGraph),*result->m_SkeletonGraph);
       }
 
@@ -122,12 +122,12 @@ ttt::TissueDescriptor::Pointer ttt::cloneTissueDescriptor(const ttt::TissueDescr
       }
       #endif
 
-      BGL_FORALL_VERTICES(v,*descriptor->m_CellGraph,ttt::CellGraph){
+      BGL_FORALL_VERTICES_T(v,*descriptor->m_CellGraph,typename ttt::CellGraph<dim>){
         boost::add_vertex(boost::get(ttt::CellPropertyTag(),*descriptor->m_CellGraph,v),*result->m_CellGraph);
       } 
       std::cout << "...CellGraphVertex" << std::endl;
       
-      BGL_FORALL_EDGES(e,*descriptor->m_CellGraph,ttt::CellGraph){
+      BGL_FORALL_EDGES_T(e,*descriptor->m_CellGraph,typename ttt::CellGraph<dim>){
 	       boost::add_edge(boost::source(e,*descriptor->m_CellGraph),boost::target(e,*descriptor->m_CellGraph),*result->m_CellGraph);
       }
       std::cout << "...CellGraphEdges" << std::endl;

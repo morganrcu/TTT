@@ -153,7 +153,7 @@ private:
   typedef typename SpeedImageType::Pointer      SpeedImagePointer;
   typedef typename SpeedImageType::ConstPointer SpeedImageConstPointer;
 
-  typedef itk::Image<int,3> VoronoiImageType;
+  typedef itk::Image<int,TLevelSet::ImageDimension> VoronoiImageType;
   typedef typename VoronoiImageType::Pointer VoronoiImagePointer;
 
   /** Dimension of the level set and the speed image. */
@@ -260,7 +260,7 @@ private:
 	  return m_ClusterImage;
   }
 
-  void SetVoronoiImage(const VoronoiImageType::Pointer & voronoiImage){
+  void SetVoronoiImage(const typename VoronoiImageType::Pointer & voronoiImage){
 	  m_VoronoiImage=voronoiImage;
   }
 

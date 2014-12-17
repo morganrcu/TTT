@@ -7,12 +7,12 @@
 #include "VertexLocationsDrawer.h"
 void ttt::VertexLocationsDrawer::Draw() {
 	this->Reset();
-	for (ttt::AdherensJunctionVertices::iterator it = m_VertexLocations->begin(); it != m_VertexLocations->end(); it++) {
+	for (ttt::AdherensJunctionVertices<3>::iterator it = m_VertexLocations->begin(); it != m_VertexLocations->end(); it++) {
 		this->DrawAdherensJunctionVertex(*it);
 	}
 }
 
-ttt::VertexLocationsDrawer::VertexSphereMapperAndActor ttt::VertexLocationsDrawer::DrawAdherensJunctionVertex(const ttt::AdherensJunctionVertex::Pointer & vertex){
+ttt::VertexLocationsDrawer::VertexSphereMapperAndActor ttt::VertexLocationsDrawer::DrawAdherensJunctionVertex(const ttt::AdherensJunctionVertex<3>::Pointer & vertex){
 
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	sphereSource->SetCenter(vertex->GetPosition()[0] * m_Spacing[0],vertex->GetPosition()[1] * m_Spacing[1],vertex->GetPosition()[2] * m_Spacing[2]);

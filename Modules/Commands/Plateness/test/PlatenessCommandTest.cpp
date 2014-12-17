@@ -17,9 +17,9 @@ int main(int argc, char ** argv){
 
 	InputImageType::Pointer input =reader->GetOutput();
 	InputImageType::SpacingType spacing;
-	spacing[0]=0.0965251;
-	spacing[1]=0.0965251;
-	spacing[2]=0.3782843;
+	spacing[0]=0.1904762;//0.0965251;
+	spacing[1]=0.1904762;//0.0965251;
+	spacing[2]=1;//0.3782843;
 
 	input->SetSpacing(spacing);
 
@@ -29,8 +29,8 @@ int main(int argc, char ** argv){
 	rescaler01->Update();
 	ttt::PlatenessCommand command;
 
-	command.SetSigmaMin(0.25);
-	command.SetSigmaMax(0.45);
+	command.SetSigmaMin(0.05);
+	command.SetSigmaMax(0.15);
 	command.SetSigmaSteps(4);
 	command.SetInput(rescaler01->GetOutput());
 

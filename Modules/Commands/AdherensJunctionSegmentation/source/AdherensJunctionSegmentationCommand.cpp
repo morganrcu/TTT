@@ -15,7 +15,7 @@
 void ttt::AdherensJunctionSegmentationCommand::InitDefGraph() {
 	m_Descriptor->m_SkeletonGraph= boost::shared_ptr<ttt::SkeletonGraph>(new ttt::SkeletonGraph);
 
-	for (typename ttt::AdherensJunctionVertices::iterator it = m_Locations->begin();it != m_Locations->end(); it++) {
+	for (typename ttt::AdherensJunctionVertices<3>::iterator it = m_Locations->begin();it != m_Locations->end(); it++) {
 		itk::Point<float, 3> pos;
 
 		for (int i = 0; i < 3; i++) {

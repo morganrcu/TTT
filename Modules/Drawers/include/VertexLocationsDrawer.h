@@ -32,12 +32,12 @@ namespace ttt{
 
 class VertexLocationsDrawer : public Drawer {
 public:
-	typedef boost::tuple<ttt::AdherensJunctionVertex::Pointer, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
+	typedef boost::tuple<ttt::AdherensJunctionVertex<3>::Pointer, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
 
 private:
     typedef itk::FixedArray<float,3> SpacingType;
 
-    ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
+    ttt::AdherensJunctionVertices<3>::Pointer m_VertexLocations;
     SpacingType m_Spacing;
 
 
@@ -65,14 +65,14 @@ public:
 
 
     }
-    inline void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & vertexLocations){
+    inline void SetVertexLocations(const ttt::AdherensJunctionVertices<3>::Pointer & vertexLocations){
     	m_VertexLocations=vertexLocations;
     }
     inline void SetSpacing(const SpacingType & spacing){
     	m_Spacing=spacing;
     }
 
-    AdherensJunctionVertex::Pointer GetVertexFromActor(const vtkSmartPointer<vtkActor> & actor){
+    AdherensJunctionVertex<3>::Pointer GetVertexFromActor(const vtkSmartPointer<vtkActor> & actor){
     	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
     	bool found=false;
 
@@ -129,9 +129,9 @@ public:
     	}
     }
 
-    VertexSphereMapperAndActor DrawAdherensJunctionVertex(const ttt::AdherensJunctionVertex::Pointer & vertex);
+    VertexSphereMapperAndActor DrawAdherensJunctionVertex(const ttt::AdherensJunctionVertex<3>::Pointer & vertex);
 
-    void EraseAdherensJunctionVertex(const ttt::AdherensJunctionVertex::Pointer & vertex){
+    void EraseAdherensJunctionVertex(const ttt::AdherensJunctionVertex<3>::Pointer & vertex){
     	std::list<VertexSphereMapperAndActor>::iterator it= m_VertexSphereMapperAndActorList.begin();
     	bool found=false;
 

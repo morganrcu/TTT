@@ -29,9 +29,13 @@
 namespace ttt{
 template<class TissueDescriptor> class PrimalGraphDrawer: public Drawer {
 public:
-	typedef itk::FixedArray<float,3> SpacingType;
+	const static int NumDimensions = TissueDescriptor::NumDimensions;
+	typedef itk::FixedArray<float,NumDimensions> SpacingType;
+	typedef typename ttt::TissueDescriptorTraits<TissueDescriptor >::SkeletonVertexType SkeletonVertexType;
+	typedef typename ttt::TissueDescriptorTraits<TissueDescriptor >::SkeletonEdgeType SkeletonEdgeType;
+	typedef boost::tuple<SkeletonVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
 
-	typedef boost::tuple<ttt::SkeletonVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > VertexSphereMapperAndActor ;
+
 private:
 	typename TissueDescriptor::Pointer m_Descriptor;
 
@@ -44,8 +48,8 @@ private:
 	typedef std::map<vtkSmartPointer<vtkActor>, SkeletonEdgeType> Actor2SkeletonEdgeType;
 	Actor2SkeletonEdgeType m_Actor2SkeletonEdge;
 
-	Colorer<ttt::SkeletonEdgeType> *  m_pEdgeColorer;
-	Colorer<ttt::SkeletonVertexType> *  m_pVertexColorer;
+	Colorer<SkeletonEdgeType> *  m_pEdgeColorer;
+	Colorer<SkeletonVertexType> *  m_pVertexColorer;
 
 
 
@@ -64,9 +68,6 @@ public:
 		return new PrimalGraphDrawer;
 	}
 #endif
-	PrimalGraphDrawer(){
-
-	}
 
 	inline void SetTissueDescriptor(const typename TissueDescriptor::Pointer & descriptor){
 		m_Descriptor=descriptor;
@@ -94,15 +95,16 @@ public:
 		return m_Actor2SkeletonEdge[actor];
 	}
 
-	VertexSphereMapperAndActor DrawVertex(const ttt::SkeletonVertexType & vertex){
-		itk::Point<double, 3> a =boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,vertex).position;
+	VertexSphereMapperAndActor DrawVertex(const SkeletonVertexType & vertex){
+		itk::Point<double, NumDimensions> a =boost::get(SkeletonPointPropertyTag<NumDimensions>(),m_Descriptor->GetAJGraph(),vertex).position;
 
 
 			vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 
-			newSphere->SetCenter(a[0],a[1],a[2]);
+			newSphere->SetCenter(a[0],a[1],NumDimensions==3?a[2]:0);
 
 			newSphere->SetRadius(0.15);
+
 
 			vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			//sphereMapper->ImmediateModeRenderingOn();
@@ -133,18 +135,19 @@ public:
 			m_Renderer->AddActor(sphereActor);
 			return VertexSphereMapperAndActor(vertex,newSphere,sphereMapper,sphereActor);
 	}
-	inline void DrawEdge(const ttt::SkeletonEdgeType & edge){
-		typedef itk::Point<double,3> itkpt;
-			ttt::SkeletonVertexType src = boost::source(edge,*m_Descriptor->m_SkeletonGraph);
-			ttt::SkeletonVertexType tgt = boost::target(edge,*m_Descriptor->m_SkeletonGraph);
+
+	inline void DrawEdge(SkeletonEdgeType & edge){
+		typedef itk::Point<double,NumDimensions> itkpt;
+			SkeletonVertexType src = boost::source(edge,m_Descriptor->GetAJGraph());
+			SkeletonVertexType tgt = boost::target(edge,m_Descriptor->GetAJGraph());
 
 			vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
-			itkpt a= boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::source(edge,*m_Descriptor->m_SkeletonGraph)).position;
+			itkpt a= boost::get(ttt::SkeletonPointPropertyTag<NumDimensions>(),m_Descriptor->GetAJGraph(),boost::source(edge,m_Descriptor->GetAJGraph())).position;
 
-			newLine->SetPoint1(a[0],a[1],a[2]);
-			itkpt b= boost::get(ttt::SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,boost::target(edge,*m_Descriptor->m_SkeletonGraph)).position;
+			newLine->SetPoint1(a[0],a[1],NumDimensions==3?a[2]:0);
+			itkpt b= boost::get(ttt::SkeletonPointPropertyTag<NumDimensions>(),m_Descriptor->GetAJGraph(),boost::target(edge,m_Descriptor->GetAJGraph())).position;
 
-			newLine->SetPoint2(b[0],b[1],b[2]);
+			newLine->SetPoint2(b[0],b[1],NumDimensions==3?b[2]:0);
 			vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			mapper->ImmediateModeRenderingOn();
 			mapper->SetInputConnection(newLine->GetOutputPort());
@@ -157,20 +160,20 @@ public:
 
 			actor->GetProperty()->SetLineWidth(5);
 			actor->VisibilityOff();
-			boost::tuple<ttt::SkeletonVertexType,ttt::SkeletonVertexType> pts (src,tgt);
+			boost::tuple<SkeletonVertexType,SkeletonVertexType> pts (src,tgt);
 
 			m_Actor2SkeletonEdge[actor]=edge;
 
-			boost::tuple<ttt::SkeletonVertexType,ttt::SkeletonVertexType> ptt (tgt,src);
+			boost::tuple<SkeletonVertexType,SkeletonVertexType> ptt (tgt,src);
 
 			m_Renderer->AddActor(actor);
 	}
 
 	virtual void Reset(){
-			for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+			for(typename Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 				m_Renderer->RemoveActor(it->first);
 			}
-			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+			for(typename Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
 				m_Renderer->RemoveActor(it->first);
 			}
 
@@ -180,18 +183,18 @@ public:
 
 	}
 	virtual void PickableOn(){
-			for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+			for(typename Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 				it->first->PickableOn();
 			}
-			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+			for(typename Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
 				it->first->PickableOn();
 			}
 	}
 	virtual void PickableOff(){
-			for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+			for(typename Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 				it->first->PickableOff();
 			}
-			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+			for(typename Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
 				it->first->PickableOff();
 			}
 	}
@@ -202,33 +205,35 @@ public:
 
 		this->Reset();
 
-		BGL_FORALL_VERTICES(v,*m_Descriptor->m_SkeletonGraph,SkeletonGraph){
+		BGL_FORALL_VERTICES_T(v,m_Descriptor->GetAJGraph(),ttt::SkeletonGraph<NumDimensions>){
 			this->DrawVertex(v);
 		}
 
-		BGL_FORALL_EDGES(e,*m_Descriptor->m_SkeletonGraph,ttt::SkeletonGraph){
+		BGL_FORALL_EDGES_T(e,m_Descriptor->GetAJGraph(),ttt::SkeletonGraph<NumDimensions>){
 			this->DrawEdge(e);
 		}
 	}
 
 	virtual void Show(){
-		for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+		for(typename Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 				it->first->VisibilityOn();
 			}
-			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+			for( typename Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
 				it->first->VisibilityOn();
 			}
 	}
 	virtual void Hide(){
-		for(Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
+		for(typename Actor2SkeletonVertexType::iterator it =m_Actor2SkeletonVertex.begin();it!=m_Actor2SkeletonVertex.end();++it){
 				it->first->VisibilityOff();
 			}
-			for(Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
+			for(typename Actor2SkeletonEdgeType::iterator it =m_Actor2SkeletonEdge.begin();it!=m_Actor2SkeletonEdge.end();++it){
 				it->first->VisibilityOff();
 			}
 	}
 };
 }
+
+//#include "PrimalGraphDrawer.hxx"
 
 #endif /* PRIMALGRAPHDRAWER_H_ */
 /** @}*/

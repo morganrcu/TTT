@@ -85,16 +85,16 @@ template<class TissueDescriptor> void EllipsesCommand<TissueDescriptor>::Do(){
 	assert(m_Descriptor);
 	assert(m_Descriptor->m_CellGraph);
 
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,CellGraph) {
+	BGL_FORALL_VERTICES_T(v,m_Descriptor->GetCellGraph(),TissueDescriptor::DualGraphType) {
 
 
 		//std::vector<SkeletonVertexType> svt = boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).m_SkeletonNodes;
 		typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellType CellType;
-		CellType currentCell =boost::get(TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v);
+		CellType currentCell =boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v);
 		std::vector<itk::Point<double,3> > points;
 
 		for(typename CellType::PerimeterIterator itr = currentCell.PerimeterBegin(); itr != currentCell.PerimeterEnd(); ++itr){
-			itk::Point<double,3> pos = boost::get(SkeletonPointPropertyTag(),*m_Descriptor->m_SkeletonGraph,*itr).position;
+			itk::Point<double,3> pos = boost::get(typename ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonPointPropertyTagType(),m_Descriptor->GetAJGraph(),*itr).position;
 			points.push_back(pos);
 		}
 		bool done=false;

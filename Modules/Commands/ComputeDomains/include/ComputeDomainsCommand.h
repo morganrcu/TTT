@@ -24,11 +24,11 @@
 #include "AppCommand.h"
 
 namespace ttt{
-class ComputeDomainsCommand : public AppCommand{
+template<int dim> class ComputeDomainsCommand : public AppCommand{
 
 private:
-	TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
-	boost::shared_ptr<std::vector<TrackedDomain> > m_Domains;
+	typename TrackedTissueDescriptor<dim>::Pointer m_TrackedTissueDescriptor;
+	boost::shared_ptr<std::vector<TrackedDomain<dim> > > m_Domains;
 
 	unsigned int m_Order;
 public:
@@ -41,11 +41,11 @@ public:
 		m_Order=order;
 	}
 
-	inline void SetTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
+	inline void SetTrackedTissueDescriptor(const typename TrackedTissueDescriptor<dim>::Pointer & trackedTissueDescriptor){
 		m_TrackedTissueDescriptor=trackedTissueDescriptor;
 	}
 
-	inline boost::shared_ptr<std::vector<TrackedDomain> > GetDomains(){
+	inline boost::shared_ptr<std::vector<TrackedDomain<dim> > > GetDomains(){
 		return m_Domains;
 	}
 };

@@ -29,8 +29,8 @@
 #include <boost/bimap/set_of.hpp>
 namespace std{
 
-static bool operator<(const  itk::Index<3> & a, const itk::Index<3> & b){
-	for(int i=0;i<3;i++){
+template<int dim> static bool operator<(const  itk::Index<dim> & a, const itk::Index<dim> & b){
+	for(int i=0;i<dim;i++){
 		if(a[i]<b[i]){
 			return true;
 		}else if(a[i]>b[i]){
@@ -46,7 +46,7 @@ namespace ttt{
  * TODO
  * \class AdherensJunctionSegmentationCommand
  */
-class AdherensJunctionSegmentationDijkstraCommand: public AppCommand {
+template<int dim> class AdherensJunctionSegmentationDijkstraCommand: public AppCommand {
 
 public:
 	/**
@@ -56,56 +56,57 @@ public:
 	/**
 		 * TODO
 		 */
-	typedef itk::Image<float,3> PlatenessImageType;
-	typedef itk::Image<float,3> VertexnessImageType;
+	typedef itk::Image<float,dim> PlatenessImageType;
+	typedef itk::Image<float,dim> VertexnessImageType;
 private:
 
-	typedef itk::Image<float,3> SpeedImageType;
-	typedef itk::Image<float,3> DistanceImageType;
+	typedef itk::Image<float,dim> SpeedImageType;
+	typedef itk::Image<float,dim> DistanceImageType;
 
-	typedef itk::Image<int,3> LabelImageType;
+	typedef itk::Image<int,dim> LabelImageType;
 
-	typedef itk::Image<unsigned char,3> ColorImageType;
+	typedef itk::Image<unsigned char,dim> ColorImageType;
 
 
-	typedef itk::Image<double,3> LevelSetImageType;
+	typedef itk::Image<double,dim> LevelSetImageType;
 
-	typedef LevelSetImageType::IndexType Index;
-	typedef LevelSetImageType::OffsetType Offset;
+	typedef typename LevelSetImageType::IndexType Index;
+	typedef typename LevelSetImageType::OffsetType Offset;
 	/**
 	 * TODO
 	 */
-	ttt::AdherensJunctionVertices::Pointer m_Locations;
+	typename ttt::AdherensJunctionVertices<dim>::Pointer m_Locations;
 	/**
 	 * TODO
 	 */
-	PlatenessImageType::Pointer m_Plateness;
+	typename PlatenessImageType::Pointer m_Plateness;
 	/**
 	 * TODO
 	 */
-	VertexnessImageType::Pointer m_Vertexness;
+	typename VertexnessImageType::Pointer m_Vertexness;
 
-
-	/**
-	 * TODO
-	 */
-	SpeedImageType::Pointer m_Speed;
 
 	/**
 	 * TODO
 	 */
-	ttt::TissueDescriptor::Pointer m_Descriptor;
+	typename SpeedImageType::Pointer m_Speed;
 
-	typedef boost::bimaps::bimap< boost::bimaps::set_of<ttt::AdherensJunctionVertex::Pointer > , boost::bimaps::set_of<SkeletonVertexType> > IndexAndSkeletonVertexBimapType;
+	typedef typename ttt::TissueDescriptor<dim>::PrimalGraphVertexDescriptorType SkeletonVertexType;
+	/**
+	 * TODO
+	 */
+	typename TissueDescriptor<dim>::Pointer m_Descriptor;
+
+	typedef typename boost::bimaps::bimap< boost::bimaps::set_of<typename ttt::AdherensJunctionVertex<dim>::Pointer > , boost::bimaps::set_of< typename ttt::TissueDescriptor<dim>::PrimalGraphVertexDescriptorType> > IndexAndSkeletonVertexBimapType;
 
 	typedef typename IndexAndSkeletonVertexBimapType::value_type IndexAndSkeletonVertexType;
 
 	IndexAndSkeletonVertexBimapType m_IndexToVertex;
 
 
-	LevelSetImageType::Pointer m_LevelSet;
+	typename LevelSetImageType::Pointer m_LevelSet;
 
-	LabelImageType::Pointer m_Labels;
+	typename LabelImageType::Pointer m_Labels;
 	double m_LevelSetThreshold;
 
 	double m_StoppingValue;
@@ -132,28 +133,28 @@ public:
 	 * TODO
 	 * @param locations
 	 */
-	inline void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & locations){
+	inline void SetVertexLocations(const typename ttt::AdherensJunctionVertices<dim>::Pointer & locations){
 		m_Locations=locations;
 	}
 	/**
 	 * TODO
 	 * @param plateness
 	 */
-	inline void SetPlatenessImage(const PlatenessImageType::Pointer & plateness){
+	inline void SetPlatenessImage(const typename PlatenessImageType::Pointer & plateness){
 		m_Plateness=plateness;
 	}
 	/**
 	 * TODO
-	 * @param plateness
+	 * @param vertexness
 	 */
-	inline void SetVertexnessImage(const VertexnessImageType::Pointer & vertexness){
+	inline void SetVertexnessImage(const typename VertexnessImageType::Pointer & vertexness){
 		m_Vertexness=vertexness;
 	}
 	/**
 	 * TODO
 	 * @return
 	 */
-	inline ttt::TissueDescriptor::Pointer GetTissueDescriptor(){
+	inline typename ttt::TissueDescriptor<dim>::Pointer GetTissueDescriptor(){
 		return m_Descriptor;
 	}
 	inline void SetLimit(double stoppingValue){
@@ -170,10 +171,10 @@ private:
 	void InitDefGraph();
 	void DoFastMarching();
 	void DoVertexSegmentation();
-	void GetNeighbors(const itk::Index<3> & index,std::vector<itk::Index<3> > & neighbors);
+	void GetNeighbors(const itk::Index<dim> & index,std::vector<itk::Index<dim> > & neighbors);
 	double ComputePath(const SkeletonVertexType & a, const SkeletonVertexType & b);
 };
 }
-
+#include "AdherensJunctionSegmentationDijkstraCommand.hpp"
 #endif
 /** @}*/

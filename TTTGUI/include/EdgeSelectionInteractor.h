@@ -21,7 +21,7 @@ private:
 
 protected:
 
-	vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor> > m_Drawer;
+	vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > > m_Drawer;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	vtkSmartPointer<vtkProperty> m_PickedProperty;
 	vtkSmartPointer<vtkActor> m_PickedEdgeActor;
@@ -38,7 +38,7 @@ signals:
 	void edgeSelected(vtkSmartPointer<vtkActor> & actor);
 	void edgeUnselected(vtkSmartPointer<vtkActor> & actor);
 public:
-	inline void SetPrimalGraphDrawer(const vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor> > & drawer){
+	inline void SetPrimalGraphDrawer(const vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > > & drawer){
 		m_Drawer=drawer;
 	}
 

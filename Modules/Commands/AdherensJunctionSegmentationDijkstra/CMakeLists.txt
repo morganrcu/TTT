@@ -5,5 +5,5 @@ include_directories(../Base/include/)
 include_directories(../../Core/include/)
 set(TTTAdherensJunctionSegmentationDijkstra_SRCS source/AdherensJunctionSegmentationDijkstraCommand.cpp)
 
-add_library(TTTAdherensJunctionSegmentationDijkstra ${TTTAdherensJunctionSegmentationDijkstra_SRCS})
+#add_library(TTTAdherensJunctionSegmentationDijkstra ${TTTAdherensJunctionSegmentationDijkstra_SRCS})
 

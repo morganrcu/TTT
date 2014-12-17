@@ -13,5 +13,5 @@ include_directories( ../../Features/include/)
 
 add_executable(TrackedCellsDrawing source/TrackedCellsDrawing.cpp)
 qt5_use_modules(TrackedCellsDrawing Sql)
-target_link_libraries(TrackedCellsDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTIO TTTDrawers TTTAdherensJunctionSegmentationDijkstra )
+target_link_libraries(TrackedCellsDrawing ${ITK_LIBRARIES} ${VTK_LIBRARIES} TTTDrawers jsoncpp )
  

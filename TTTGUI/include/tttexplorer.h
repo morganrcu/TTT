@@ -30,7 +30,7 @@ class TTTExplorer : public QDialog
 public:
     explicit TTTExplorer(QWidget *parent = 0);
     ~TTTExplorer();
-    void SetProject(ttt::TissueTrackingAbstractProject2 * project);
+    void SetProject(ttt::TissueTrackingAbstractProject2<3> * project);
 private slots:
 	void SetFrame(int frame);
 	void ExportMovie();
@@ -49,7 +49,7 @@ private slots:
 
 
 private:
-	ttt::TissueTrackingAbstractProject2 * m_Project;
+	ttt::TissueTrackingAbstractProject2<3> * m_Project;
 
 private:
     Ui::TTTExplorer *m_pUI;
@@ -59,8 +59,8 @@ private:
     ttt::PlatenessImageDrawer m_PlatenessDrawer;
     ttt::VertexnessImageDrawer m_VertexnessDrawer;
     ttt::VertexLocationsDrawer m_VertexLocationsDrawer;
-    ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalGraphDrawer;
-    ttt::DualGraphDrawer<ttt::TissueDescriptor> m_DualGraphDrawer;
+    ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > m_PrimalGraphDrawer;
+    ttt::DualGraphDrawer<ttt::TissueDescriptor<3> > m_DualGraphDrawer;
 
     ttt::MotionVectorDrawer m_CellMotionVectorDrawer;
 

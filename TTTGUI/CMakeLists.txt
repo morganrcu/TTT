@@ -74,6 +74,11 @@ target_link_libraries(TTTGui ${VTK_LIBRARIES}
                                 #vtkjsoncpp
                                 #vtkGUISupportQt
                                 #vtkGUISupportQtOpenGL
+                                #vtkRenderingAnnotation
+                                #vtkRenderingVolume
+                                #vtkRenderingVolumeOpenGL
+                                #vtkIOFFMPEG
+                                #vtkInteractionWidgets
                                  
 					         ${ITK_LIBRARIES} 
 					         ${MYSQLCPPCONN_LIBRARY}
@@ -83,14 +88,14 @@ target_link_libraries(TTTGui ${VTK_LIBRARIES}
 					         TTTDataCasting 
 					         TTTAnisotropicDiffusion 
 					         TTTVertexLocation
-					         TTTAdherensJunctionSegmentationDijkstra
-					         TTTCellGraph
-					         TTTTracking
-					         TTTTectonics
+					         #TTTAdherensJunctionSegmentationDijkstra
+					         #TTTCellGraph
+					         #TTTTracking
+					         #TTTTectonics
 					         
-					         TTTComputeDomains
-					         TTTIO
-					         
+					         #TTTComputeDomains
+					         #TTTIO
+					         jsoncpp
 					         ${COIN_CBC_LIBRARIES}  
 					         ${ZLIB_LIBRARIES}
 					          

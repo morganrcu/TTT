@@ -12,7 +12,6 @@
 template<class TObject,class TValue >  class FeatureMap : public std::map<TObject,Feature<TValue> > {
 public:
 	typedef Feature<TValue> FeatureType;
-
 };
 
 

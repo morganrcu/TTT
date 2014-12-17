@@ -9,7 +9,7 @@
 
 namespace ttt {
 
-ProjectTableModel::ProjectTableModel(ttt::TissueTrackingAbstractProject2 * project, QObject *parent) :QAbstractTableModel(parent) {
+ProjectTableModel::ProjectTableModel(ttt::TissueTrackingAbstractProject2<3> * project, QObject *parent) :QAbstractTableModel(parent) {
 	m_Project=project;
 }
 

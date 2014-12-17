@@ -11,23 +11,23 @@
 #include "AppCommand.h"
 #include "tttDescriptionDataTypes.h"
 namespace ttt{
-class TrackInitializationCommand : public ttt::AppCommand{
+template<int dim> class TrackInitializationCommand : public ttt::AppCommand{
 
 private:
 
-	ttt::TissueDescriptor::Pointer m_TissueDescriptor;
-	ttt::TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
+	typename ttt::TissueDescriptor<dim>::Pointer m_TissueDescriptor;
+	typename ttt::TrackedTissueDescriptor<dim>::Pointer m_TrackedTissueDescriptor;
 	unsigned int m_NextID;
 public:
 	TrackInitializationCommand(){
 		m_NextID=0;
 	}
-	inline void SetTissueDescriptor(const ttt::TissueDescriptor::Pointer & tissueDescriptor){
+	inline void SetTissueDescriptor(const typename ttt::TissueDescriptor<dim>::Pointer & tissueDescriptor){
 
 		m_TissueDescriptor=tissueDescriptor;
 	}
 
-	inline ttt::TrackedTissueDescriptor::Pointer GetTrackedTissueDescriptor(){
+	inline typename ttt::TrackedTissueDescriptor<dim>::Pointer GetTrackedTissueDescriptor(){
 		return m_TrackedTissueDescriptor;
 	}
 
@@ -39,5 +39,5 @@ public:
 
 };
 }
-
+#include "TrackInitializationCommand.hxx"
 #endif /* TRACKINITIALIZATIONCOMMAND_H_ */

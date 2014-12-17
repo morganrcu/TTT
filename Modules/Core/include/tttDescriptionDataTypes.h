@@ -24,6 +24,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "itkDataObject.h"
+#include "itkMacro.h"
 
 #include <set>
 #include <boost/graph/adj_list_serialize.hpp>
@@ -51,13 +52,13 @@ template<class Archive> void serialize(Archive & ar,
 
 namespace ttt {
 
-class AdherensJunctionVertex : public itk::DataObject{
+template<int dim = 3> class AdherensJunctionVertex : public itk::DataObject{
 public:
 	/**
 	 * Location of the point in pixel coordinates
 	 */
-	typedef itk::Index<3> IndexType;
-	typedef AdherensJunctionVertex Self;
+	typedef itk::Index<dim> IndexType;
+	typedef AdherensJunctionVertex<dim> Self;
 	typedef itk::SmartPointer<Self> Pointer;
 	typedef itk::SmartPointer<const Self> ConstPointer;
 	typedef itk::DataObject Superclass;
@@ -67,7 +68,9 @@ public:
 
 	itkGetConstReferenceMacro(Position,IndexType);
 	itkSetMacro(Position,IndexType);
+
 protected:
+
 	/**
 	 * Default constructor. The attributes are fixed to default values
 	 */
@@ -86,37 +89,40 @@ private:
 };
 
 
-class AdherensJunctionVertices : public itk::DataObject, public std::vector<AdherensJunctionVertex::Pointer>{
+template<int dim =3 > class AdherensJunctionVertices : public itk::DataObject, public std::vector<typename AdherensJunctionVertex<dim>::Pointer>{
 public:
-	typedef AdherensJunctionVertices Self;
+	typedef AdherensJunctionVertices<dim> Self;
 	typedef itk::SmartPointer<Self> Pointer;
 	typedef itk::SmartPointer<const Self> ConstPointer;
 	typedef itk::DataObject Superclass;
-
+	typedef AdherensJunctionVertex<dim> VertexType;
 	itkTypeMacro(Self,Superclass);
 	itkNewMacro(Self);
 protected:
 	/**
 	 * Default constructor. The attributes are fixed to default values
 	 */
-	AdherensJunctionVertices() : std::vector<AdherensJunctionVertex::Pointer>(0){
+	AdherensJunctionVertices() : std::vector<typename VertexType::Pointer>(0){
 
 	}
 
 private:
 	AdherensJunctionVertices(const Self &);
 };
-
+template<int dim> class TissueDescriptor;
+template<class T> struct TissueDescriptorTraits{};
 /**
  * \brief Class to represent a point in the adherens junction graph
  */
 
-class SkeletonPoint {
+template<int dim=3> class SkeletonPoint {
 public:
 	/**
 	 * Location of the point in pixel coordinates
 	 */
-	typedef itk::Point<float, 3> PointType;
+	typedef itk::Point<float, dim> PointType;
+
+
 
 	/**
 	 * Default constructor. The attributes are fixed to default values
@@ -131,7 +137,7 @@ public:
 	 * @param position of the point in the 3D space, in pixel coordinates
 	 */
 
-	SkeletonPoint(PointType & position) {
+	SkeletonPoint(const PointType & position) {
 		this->position = position;
 	}
 
@@ -168,7 +174,7 @@ public:
 /**
  * Auxiliary class to specify the graph storage
  */
-class SkeletonPointPropertyTag {
+template<int dim> class SkeletonPointPropertyTag {
 public:
 	typedef boost::vertex_property_tag kind;
 };
@@ -176,8 +182,10 @@ public:
 /**
  * Auxiliary class to specify the graph storage
  */
-typedef boost::property<ttt::SkeletonPointPropertyTag, ttt::SkeletonPoint,
-		boost::property<boost::vertex_index_t, int> > SkeletonPointProperty;
+typedef boost::property<ttt::SkeletonPointPropertyTag<2>, ttt::SkeletonPoint<2>, boost::property<boost::vertex_index_t, int> > SkeletonPointProperty2D;
+typedef boost::property<ttt::SkeletonPointPropertyTag<3>, ttt::SkeletonPoint<3>, boost::property<boost::vertex_index_t, int> > SkeletonPointProperty3D;
+
+//template<int dim> struct SkeletonPointProperty : public boost::property<ttt::SkeletonPointPropertyTag<dim>, ttt::SkeletonPoint<dim>, boost::property<boost::vertex_index_t, int> >{};
 
 /**
  * SkeletonPoint storage. The graph structure represents the intercellular skeleton
@@ -187,30 +195,84 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
 #endif
 
-typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
-		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
+//typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
+//		ttt::SkeletonPointProperty, boost::property<boost::edge_index_t, int> > SkeletonGraph;
+
+template<int dim> class SkeletonGraph;
+
+template<> class SkeletonGraph<2> : public boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,ttt::SkeletonPointProperty2D, boost::property<boost::edge_index_t, int> > {
+public:
+	const static int NumDimensions=2;
+	typedef SkeletonGraph<2> Self;
+	typedef typename ttt::SkeletonPoint<2>::PointType PointType;
+
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,ttt::SkeletonPointProperty2D, boost::property<boost::edge_index_t, int> > Superclass;
+
+	typedef ttt::SkeletonPointProperty2D  SkeletonPointProperty;
+
+	void AddVertex(const PointType & pt){
+		 ttt::SkeletonPoint<2> point(pt);
+		boost::add_vertex(point,*this);
+
+	}
+
+protected:
+
+private:
+
+
+};
+
+template<> class SkeletonGraph<3> : public boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,ttt::SkeletonPointProperty3D, boost::property<boost::edge_index_t, int> > {
+public:
+	const static int NumDimensions=3;
+	typedef SkeletonGraph<3> Self;
+	typedef typename ttt::SkeletonPoint<3>::PointType PointType;
+
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,ttt::SkeletonPointProperty3D, boost::property<boost::edge_index_t, int> > Superclass;
+
+	typedef ttt::SkeletonPointProperty3D  SkeletonPointProperty;
+
+	void AddVertex(const PointType & pt){
+		 ttt::SkeletonPoint<3> point(pt);
+		boost::add_vertex(point,*this);
+
+	}
+
+protected:
+
+private:
+
+
+};
 /**
  * Type of the vertices in the graph_traits
  */
-typedef boost::graph_traits<ttt::SkeletonGraph>::vertex_descriptor SkeletonVertexType;
+//typedef boost::graph_traits<ttt::SkeletonGraph>::vertex_descriptor SkeletonVertexType;
+//template<int dim> struct SkeletonVertexType : boost::graph_traits<typename ttt::SkeletonGraph<dim> >::vertex_descriptor;
+//template<int dim> struct SkeletonVertexType : boost::graph_traits<typename ttt::SkeletonGraph<dim> >::vertex_descriptor;
 
 /**
  * Type of the edges in the graph_traits
  */
-typedef boost::graph_traits<ttt::SkeletonGraph>::edge_descriptor SkeletonEdgeType;
+//typedef boost::graph_traits<ttt::SkeletonGraph>::edge_descriptor SkeletonEdgeType;
+//template<int dim> struct SkeletonEdgeType : public boost::graph_traits<ttt::SkeletonGraph<dim> >::edge_descriptor {};
 
 
 /**
  * Class to represent a Cell in a Tissue
  */
-class Cell {
+template<int dim> class Cell {
 public:
+
+	const static int NumDimensions = dim;
 	/**
 	 * Position of the centroid of the cell, in Real World? Coordinates
 	 */
-	typedef itk::Point<double, 3> Point;
+	typedef itk::Point<double, dim> Point;
 
-	typedef std::vector<SkeletonVertexType>::const_iterator PerimeterIterator;
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<dim> >::vertex_descriptor SkeletonVertexType;
+	typedef typename std::vector<SkeletonVertexType>::const_iterator PerimeterIterator;
 
 	/**
 	 *  Default constructor. Sets m_Centroid to zero.
@@ -274,7 +336,7 @@ private:
 	 * Container with the points in the Cellular Border
 	 */
 
-	std::vector<SkeletonVertexType> m_SkeletonNodes;
+	std::vector< SkeletonVertexType > m_SkeletonNodes;
 	/**
 	 * Cell centroid location
 	 */
@@ -284,16 +346,21 @@ private:
 /**
  * Definition of the Cell Properties as vertex properties
  */
-struct CellPropertyTag {
+template<int dim> struct CellPropertyTag {
 
 	typedef boost::vertex_property_tag kind;
 };
 /**
  * Cell Property definition
  */
-typedef boost::property<CellPropertyTag, Cell,boost::property<boost::vertex_index_t, int> >  CellProperty;
+//typedef boost::property<CellPropertyTag, Cell,boost::property<boost::vertex_index_t, int> >  CellProperty;
+
+typedef boost::property<CellPropertyTag<2>, Cell<2>,boost::property<boost::vertex_index_t, int> >  CellProperty2D;
+typedef boost::property<CellPropertyTag<3>, Cell<3>,boost::property<boost::vertex_index_t, int> >  CellProperty3D;
 
 
+//typedef boost::property<ttt::SkeletonPointPropertyTag<2>, ttt::SkeletonPoint<2>, boost::property<boost::vertex_index_t, int> > SkeletonPointProperty2D;
+//typedef boost::property<ttt::SkeletonPointPropertyTag<3>, ttt::SkeletonPoint<3>, boost::property<boost::vertex_index_t, int> > SkeletonPointProperty3D;
 /**
  * Cell Graph definition
  */
@@ -301,16 +368,32 @@ typedef boost::property<CellPropertyTag, Cell,boost::property<boost::vertex_inde
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, CellProperty, boost::property<boost::edge_index_t, int> > CellGraph;
 #endif
 
-typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty, boost::property<boost::edge_index_t, int> > CellGraph;
+template<int dim> class CellGraph;
+
+//typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty, boost::property<boost::edge_index_t, int> > CellGraph;
+template<> struct CellGraph<2> : public boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty2D, boost::property<boost::edge_index_t, int> >{
+	typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty2D, boost::property<boost::edge_index_t, int> > GraphType;
+	typedef typename boost::graph_traits<GraphType>::vertex_descriptor CellVertexType;
+
+};
+template<> struct CellGraph<3> : public boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty3D, boost::property<boost::edge_index_t, int> >{
+	typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, CellProperty3D, boost::property<boost::edge_index_t, int> > GraphType;
+	typedef  typename boost::graph_traits<GraphType>::vertex_descriptor CellVertexType;
+
+};
 
 
-typedef boost::graph_traits<CellGraph>::vertex_descriptor CellVertexType;
+template<int dim> class TrackedTissueDescriptor;
 
-typedef boost::graph_traits<CellGraph>::edge_descriptor CellEdgeType;
+//typedef boost::graph_traits<CellGraph>::vertex_descriptor CellVertexType;
+//template<int dim> struct CellVertexType : public boost::graph_traits<CellGraph<dim> >::vertex_descriptor{};
+
+//template<int dim> struct CellEdgeType : public boost::graph_traits<CellGraph<dim> >::edge_descriptor{};
 /**
  * Class extending Cell class to represent tracked Cells
  */
-class TrackedCell: public Cell {
+
+template<int dim> class TrackedCell: public Cell<dim> {
 public:
 	/**
 	 * Next identifier for new tracks
@@ -328,11 +411,13 @@ private:
 	/**
 	 * Velocity vector of the cell
 	 */
-	itk::Vector<double, 3> m_Velocity;
+	itk::Vector<double, dim> m_Velocity;
 	/**
 	 *
 	 */
-	ttt::CellVertexType m_ObservedCell;
+	//FIXME
+	typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType m_ObservedCell;
+	//unsigned int m_ObservedCell;
 
 public:
 
@@ -348,10 +433,10 @@ public:
 	void SetParentID(int ParentID){
 		m_ParentID=ParentID;
 	}
-	itk::Vector<double,3> GetVelocity(){
+	itk::Vector<double,dim> GetVelocity(){
 		return m_Velocity;
 	}
-	void SetVelocity(const itk::Vector<double,3> & velocity){
+	void SetVelocity(const itk::Vector<double,dim> & velocity){
 		m_Velocity=velocity;
 	}
 
@@ -362,7 +447,7 @@ public:
 	int GetObservedCell(){
 		return m_ObservedCell;
 	}
-
+#if 0
 
 	template<typename Archive>
 	void serialize(Archive& ar, const unsigned version) {
@@ -371,6 +456,7 @@ public:
 		ar & m_Velocity;
 		ar & m_ParentID;
 	}
+#endif
 	/**
 	 * Default constructor initializing fields to default values
 	 */
@@ -383,7 +469,7 @@ public:
 	/**
 	 * Copy constructor. Copies fields from the other cell
      */
-	TrackedCell(const TrackedCell & other) : Cell(other) {
+	TrackedCell(const TrackedCell<dim> & other) : Cell<dim>(other) {
 		this->m_Velocity = other.m_Velocity;
 		this->m_ID = other.m_ID;
 		this->m_ParentID=other.m_ParentID;
@@ -393,7 +479,7 @@ public:
 	/**
 	 * Copy constructor. Copies fields from the other cell
      */
-	TrackedCell(const Cell & other) : Cell(other) {
+	TrackedCell(const Cell<dim> & other) : Cell<dim>(other) {
 		this->m_Velocity.Fill(0);
 		this->m_ID = -1;
 		this->m_ParentID=-1;
@@ -401,18 +487,26 @@ public:
 	}
 };
 
-struct TrackedCellPropertyTag {
+template<int dim> struct TrackedCellPropertyTag {
 	typedef boost::vertex_property_tag kind;
 };
 
-typedef boost::property<TrackedCellPropertyTag, TrackedCell,
-		boost::property<boost::vertex_index_t, int> > TrackedCellProperty;
+//typedef boost::property<TrackedCellPropertyTag, TrackedCell, boost::property<boost::vertex_index_t, int> > TrackedCellProperty;
+//template<int dim> struct TrackedCellProperty : public boost::property<TrackedCellPropertyTag<dim>, TrackedCell<dim>, boost::property<boost::vertex_index_t, int> > {};
+typedef boost::property<TrackedCellPropertyTag<2>, TrackedCell<2>, boost::property<boost::vertex_index_t, int> > TrackedCellProperty2D;
+typedef boost::property<TrackedCellPropertyTag<3>, TrackedCell<3>, boost::property<boost::vertex_index_t, int> > TrackedCellProperty3D;
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-		TrackedCellProperty, boost::property<boost::edge_index_t, int> > TrackedCellGraph;
+//typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,TrackedCellProperty, boost::property<boost::edge_index_t, int> > TrackedCellGraph;
+//template<int dim> struct TrackedCellGraph : public boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,TrackedCellProperty<dim>, boost::property<boost::edge_index_t, int> >{};
 
-typedef boost::graph_traits<TrackedCellGraph>::vertex_descriptor TrackedCellVertexType;
-typedef boost::graph_traits<TrackedCellGraph>::edge_descriptor TrackedCellEdgeType;
+template<int dim> struct TrackedCellGraph;
+template<> struct TrackedCellGraph<2> : public boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, TrackedCellProperty2D, boost::property<boost::edge_index_t, int> >{};
+template<> struct TrackedCellGraph<3> : public boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, TrackedCellProperty3D, boost::property<boost::edge_index_t, int> >{};
+
+//typedef boost::graph_traits<TrackedCellGraph>::vertex_descriptor TrackedCellVertexType;
+//template<int dim> struct TrackedCellVertexType : public boost::graph_traits<TrackedCellGraph<dim> >::vertex_descriptor{};
+//template<int dim> struct TrackedCellEdgeType : public  boost::graph_traits<TrackedCellGraph<dim> >::edge_descriptor{};
+//typedef boost::graph_traits<TrackedCellGraph>::edge_descriptor TrackedCellEdgeType;
 
 
 
@@ -479,38 +573,54 @@ private:
 	int m_Order;
 };
 
-typedef Domain<TrackedCellVertexType> TrackedDomain;
+//template<int dim> struct  TrackedDomain : public Domain<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType >{};
 
-template<class T> struct TissueDescriptorTraits{
-
-};
+//template<class T> struct TissueDescriptorTraits{
+//typedef void SkeletonVertexType;
+//typedef void SkeletonEdgeType;
+//};
 
 
 /**
  * Template Class to represent a Tissue, composed by a primal graph and a dual graph. Primal graph represents intercellular skeleton, Dual graph represents cells
  */
-template <class TPrimalGraph, class TDualGraph> class TemplateTissueDescriptor: public itk::Object {
+template <class TPrimalGraph, class TDualGraph> class TemplateTissueDescriptor: public itk::DataObject {
 public:
+
+	const static int NumDimensions = TPrimalGraph::NumDimensions;
+
 	typedef TemplateTissueDescriptor Self;
 	typedef itk::SmartPointer<Self> Pointer;
 	typedef itk::SmartPointer<const Self> ConstPointer;
 
 	typedef TPrimalGraph PrimalGraphType;
 	typedef typename boost::graph_traits<PrimalGraphType>::vertex_descriptor PrimalGraphVertexDescriptorType;
+
 	typedef TDualGraph DualGraphType;
 	typedef typename boost::graph_traits<DualGraphType>::vertex_descriptor DualGraphVertexDescriptorType;
-
 
 	itkNewMacro(TemplateTissueDescriptor);
 
 	TemplateTissueDescriptor(){
-		m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
-		m_SkeletonGraph=boost::shared_ptr<PrimalGraphType>(new PrimalGraphType());
+		//m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
+		//m_SkeletonGraph=boost::shared_ptr<PrimalGraphType>(new PrimalGraphType());
 
 	}
 
+	TPrimalGraph & GetAJGraph(){
+		return this->m_AJGraph;
+	}
+
+	void SetAJGraph(TPrimalGraph & graph){
+		this->m_AJGraph=graph;
+	}
+
+	TDualGraph & GetCellGraph(){
+			return this->m_CellGraph;
+	}
+
 	void InvalidateDual(){
-		m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
+		//m_CellGraph=boost::shared_ptr<DualGraphType>(new DualGraphType());
 		this->ClearPerimeter();
 	}
 
@@ -528,19 +638,22 @@ public:
 	 * Return the number of cells stored in the tissue
 	 */
 	inline int GetNumCells() {
-		return boost::num_vertices(*m_CellGraph);
+		return boost::num_vertices(m_CellGraph);
 	}
 
+private:
 	/**
 	 * Primal Graph data structure -> Intercellular skeleton
 	 */
-	boost::shared_ptr<PrimalGraphType>  m_SkeletonGraph;
+	//boost::shared_ptr<PrimalGraphType>  m_SkeletonGraph;
+	PrimalGraphType m_AJGraph;
 
 	/**
 	 * Dual Graph data structure -> Cells defined by the intercellular skeleton
 	 */
-	boost::shared_ptr<DualGraphType> m_CellGraph;
-
+	//boost::shared_ptr<DualGraphType> m_CellGraph;
+	DualGraphType m_CellGraph;
+public:
 	void AddVertexToPerimeter(const PrimalGraphVertexDescriptorType & vertex){
 		m_Perimeter.push_back(vertex);
 	}
@@ -568,46 +681,96 @@ private:
 
 
 
-typedef TemplateTissueDescriptor<SkeletonGraph,CellGraph> TissueDescriptor;
-typedef TemplateTissueDescriptor<SkeletonGraph,TrackedCellGraph> TrackedTissueDescriptor;
+//typedef TemplateTissueDescriptor<SkeletonGraph,CellGraph> TissueDescriptor;
+template<int dim> struct TissueDescriptor : public TemplateTissueDescriptor<SkeletonGraph<dim>,CellGraph<dim> >{};
+//typedef TemplateTissueDescriptor<SkeletonGraph,TrackedCellGraph> TrackedTissueDescriptor;
+template<int dim> struct TrackedTissueDescriptor : public TemplateTissueDescriptor<SkeletonGraph<dim>,TrackedCellGraph<dim> >{};
 
 
-template<> struct TissueDescriptorTraits<TissueDescriptor>{
-	typedef ttt::SkeletonVertexType SkeletonVertexType;
-	typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
-	typedef ttt::SkeletonEdgeType SkeletonEdgeType;
-	typedef ttt::SkeletonPointProperty SkeletonPointPropertyType;
+template<> struct TissueDescriptorTraits<TissueDescriptor<2> >{
+	//typedef ttt::SkeletonVertexType<dim> SkeletonVertexType;
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<2> >::vertex_descriptor SkeletonVertexType;
+	//typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<2> >::edge_descriptor SkeletonEdgeType;
 
-	typedef ttt::CellVertexType CellVertexType;
-	typedef ttt::CellPropertyTag CellPropertyTagType;
-	typedef ttt::CellEdgeType CellEdgeType;
-	typedef ttt::CellProperty CellPropertyType;
-	typedef ttt::Cell CellType;
+
+	typedef typename boost::graph_traits<ttt::CellGraph<2> >::edge_descriptor CellEdgeType;
+	typedef typename boost::graph_traits<ttt::CellGraph<2> >::vertex_descriptor CellVertexType;
+	//typedef ttt::CellVertexType<2> CellVertexType;
+	typedef ttt::CellPropertyTag<2> CellPropertyTagType;
+	//typedef ttt::CellEdgeType<2> CellEdgeType;
+	//typedef ttt::CellProperty<2> CellPropertyType;
+	typedef ttt::Cell<2> CellType;
+
+	typedef ttt::SkeletonPointProperty2D SkeletonPointPropertyType;
 };
 
-template<> struct TissueDescriptorTraits<TrackedTissueDescriptor>{
-	typedef ttt::SkeletonVertexType SkeletonVertexType;
-	typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
-	typedef ttt::SkeletonEdgeType SkeletonEdgeType;
-	typedef ttt::SkeletonPointProperty SkeletonPointProperty;
+template<> struct TissueDescriptorTraits<TissueDescriptor<3> >{
 
-	typedef ttt::TrackedCellVertexType CellVertexType;
-	typedef ttt::TrackedCellPropertyTag CellPropertyTagType;
-	typedef ttt::TrackedCellEdgeType CellEdgeType;
-	typedef ttt::TrackedCellProperty CellProperty;
+	//typedef ttt::SkeletonVertexType<dim> SkeletonVertexType;
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<3> >::vertex_descriptor SkeletonVertexType;
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<3> >::edge_descriptor SkeletonEdgeType;
+	//typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
+	//typedef ttt::SkeletonEdgeType<3> SkeletonEdgeType;
 
-	typedef ttt::TrackedCell CellType;
+
+	typedef typename boost::graph_traits<ttt::CellGraph<3> >::edge_descriptor CellEdgeType;
+	typedef typename boost::graph_traits<ttt::CellGraph<3> >::vertex_descriptor CellVertexType;
+
+
+	typedef ttt::CellPropertyTag<3> CellPropertyTagType;
+
+	typedef ttt::CellProperty3D CellPropertyType;
+	typedef ttt::Cell<3> CellType;
+
+	typedef ttt::SkeletonPointProperty3D SkeletonPointPropertyType;
 };
 
-TrackedTissueDescriptor::DualGraphVertexDescriptorType CellID2VertexDescriptor(int ID,const TrackedTissueDescriptor::Pointer & descriptor);
+template<int dim> struct TissueDescriptorTraits<TrackedTissueDescriptor<dim> >{
+	typedef  typename boost::graph_traits<ttt::SkeletonGraph<dim> >::vertex_descriptor SkeletonVertexType;
+	//typedef ttt::SkeletonPointPropertyTag SkeletonPointPropertyTag;
 
-std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> CellParentID2VertexDescriptor(int ID,const ttt::TrackedTissueDescriptor::Pointer & descriptor);
+
+
+	//typedef ttt::TrackedCellVertexType<dim> CellVertexType;
+
+	//typedef ttt::TrackedCellEdgeType<dim> CellEdgeType;
+	//typedef ttt::TrackedCellProperty<dim> CellProperty;
+
+
+};
+
+template<> struct TissueDescriptorTraits<TrackedTissueDescriptor<2> >{
+	typedef ttt::SkeletonPointProperty2D SkeletonPointPropertyType;
+	typedef typename boost::graph_traits<ttt::TrackedCellGraph<2> >::vertex_descriptor CellVertexType;
+	typedef  typename boost::graph_traits<ttt::SkeletonGraph<2> >::edge_descriptor SkeletonEdgeType;
+
+	typedef ttt::TrackedCellPropertyTag<2> CellPropertyTagType;
+	typedef ttt::SkeletonPointPropertyTag<2> SkeletonPointPropertyTagType;
+};
+template<> struct TissueDescriptorTraits<TrackedTissueDescriptor<3> >{
+	typedef ttt::SkeletonPointProperty3D SkeletonPointPropertyType;
+	typedef ttt::SkeletonPointPropertyTag<3> SkeletonPointPropertyTagType;
+	typedef typename boost::graph_traits<ttt::TrackedCellGraph<3> >::vertex_descriptor CellVertexType;
+	typedef typename boost::graph_traits<ttt::TrackedCellGraph<3> >::edge_descriptor CellEdgeType;
+
+	typedef typename boost::graph_traits<ttt::SkeletonGraph<3> >::vertex_descriptor SkeletonVertexType;
+	typedef  typename boost::graph_traits<ttt::SkeletonGraph<3> >::edge_descriptor SkeletonEdgeType;
+	typedef ttt::TrackedCell<3> CellType;
+	typedef ttt::TrackedCellPropertyTag<3> CellPropertyTagType;
+
+
+};
+
+template<int dim> typename TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType CellID2VertexDescriptor(int ID,const typename TrackedTissueDescriptor<dim>::Pointer & descriptor);
+
+template<int dim> std::pair<typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType,typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType> CellParentID2VertexDescriptor(int ID,const typename ttt::TrackedTissueDescriptor<dim>::Pointer & descriptor);
 
 
 /**
  * Return a duplicate of a TissueDescriptor
  */
-TissueDescriptor::Pointer cloneTissueDescriptor(const TissueDescriptor::Pointer & descriptor);
+template<int dim> typename TissueDescriptor<dim>::Pointer cloneTissueDescriptor(const typename TissueDescriptor<dim>::Pointer & descriptor);
 
 
 
@@ -622,21 +785,21 @@ template<class CellType> void CellUnion(const CellType & a, const CellType & b,C
 	PerimeterIterator itB = b.PerimeterBegin();
 	PerimeterIterator itBEnd = b.PerimeterEnd();
 
-	std::vector<ttt::SkeletonVertexType> pointsInA;
+	std::vector<typename CellType::SkeletonVertexType > pointsInA;
 	pointsInA.insert(pointsInA.begin(),itA,itAEnd);
 	std::sort(pointsInA.begin(),pointsInA.end());
 
-	std::vector<ttt::SkeletonVertexType> pointsInB;
+	std::vector<typename CellType::SkeletonVertexType  > pointsInB;
 	pointsInB.insert(pointsInB.begin(),itB,itBEnd);
 	std::sort(pointsInB.begin(),pointsInB.end());
 
-	std::vector<ttt::SkeletonVertexType> common(2);
+	std::vector<typename CellType::SkeletonVertexType > common(2);
 	std::set_intersection(pointsInA.begin(),pointsInA.end(),pointsInB.begin(),pointsInB.end(),common.begin());
 
 	assert(common.size()==2);
 
-	ttt::SkeletonVertexType point1 = common[0];
-	ttt::SkeletonVertexType point2 = common[1];
+	typename CellType::SkeletonVertexType point1 = common[0];
+	typename CellType::SkeletonVertexType point2 = common[1];
 
 
 	PerimeterIterator loc1A = std::find(itA,itAEnd,point1);
@@ -735,7 +898,8 @@ template<class TissueDescriptorType,class DomainType> void GetDomains(const type
 	std::cout << boost::num_edges(*descriptor->m_CellGraph);
 	int k=0;
 	BGL_FORALL_VERTICES_T(v,*descriptor->m_CellGraph,typename TissueDescriptorType::DualGraphType){
-		typedef boost::graph_traits<typename TrackedTissueDescriptor::DualGraphType>::vertex_descriptor VertexType;
+
+		typedef typename boost::graph_traits<typename TissueDescriptorType::DualGraphType>::vertex_descriptor VertexType;
 		typedef std::set<VertexType > ExplorationSet; //TODO fix to employ VertexType
 		ExplorationSet open,next,visited;
 		int currentOrder=order;
@@ -743,6 +907,7 @@ template<class TissueDescriptorType,class DomainType> void GetDomains(const type
 		next.insert(v);
 		domains[k].SetOrder(order);
 		while(currentOrder>0){
+
 			open=next;
 			next.clear();
 			while(!open.empty()){
@@ -765,7 +930,7 @@ template<class TissueDescriptorType,class DomainType> void GetDomains(const type
 
 	for(unsigned int i=0;i<domains.size();i++){
 		std::cout << domains[i].GetNucleus() << "\t";
-		for(std::set<CellVertexType>::iterator it = domains[i].Begin(); it!=domains[i].End();++it){
+		for(typename std::set<typename TissueDescriptorType::CellVertexType>::iterator it = domains[i].Begin(); it!=domains[i].End();++it){
 			std::cout << *it << " ";
 		}
 		std::cout << std::endl;
@@ -889,4 +1054,5 @@ void Store(const TissueDescriptor & descriptor, const std::string & fileName) {
 
 #endif
 }//namespace TTT
+#include "tttDescriptionDataTypes.hxx"
 /** @}*/

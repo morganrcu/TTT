@@ -37,11 +37,11 @@ void ttt::MotionVectorDrawer::Draw(){
 	assert(m_Descriptor);
 	assert(m_Renderer);
 	this->Reset();
-	BGL_FORALL_VERTICES(v,*m_Descriptor->m_CellGraph,ttt::TrackedCellGraph){
+	BGL_FORALL_VERTICES_T(v,m_Descriptor->GetCellGraph(),ttt::TrackedCellGraph<3>){
 
 		vtkSmartPointer<vtkArrowSource> arrowSource = vtkSmartPointer<vtkArrowSource>::New();
-		itk::Point<double,3> midPoint= boost::get(ttt::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).GetCentroid();
-		itk::Vector<double,3> velocity= boost::get(ttt::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,v).GetVelocity();
+		itk::Point<double,3> midPoint= boost::get(typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<3> >::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).GetCentroid();
+		itk::Vector<double,3> velocity= boost::get(typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<3> >::CellPropertyTagType(),m_Descriptor->GetCellGraph(),v).GetVelocity();
 
 
 		// Generate a random start and end point

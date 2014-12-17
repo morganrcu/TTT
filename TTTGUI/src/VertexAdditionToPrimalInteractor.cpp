@@ -16,13 +16,13 @@ void VertexAdditionToPrimalInteractor::OnLeftButtonDown(){
 
 		std::cout << "ClickPosition " << clickPosition[0] << " "<< clickPosition[1] << " "<< clickPosition[2]<< std::endl;
 
-		m_AddedVertex = boost::add_vertex(*m_TissueDescriptor->m_SkeletonGraph);
+		m_AddedVertex = boost::add_vertex(m_TissueDescriptor->GetAJGraph());
 
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_AddedVertex).position[0]=clickPosition[0];
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_AddedVertex).position[1]=clickPosition[1];
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_AddedVertex).position[2]=clickPosition[2];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_AddedVertex).position[0]=clickPosition[0];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_AddedVertex).position[1]=clickPosition[1];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_AddedVertex).position[2]=clickPosition[2];
 
-		ttt::PrimalGraphDrawer<ttt::TissueDescriptor>::VertexSphereMapperAndActor drawnStuff = m_PrimalGraphDrawer->DrawVertex(m_AddedVertex);
+		ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> >::VertexSphereMapperAndActor drawnStuff = m_PrimalGraphDrawer->DrawVertex(m_AddedVertex);
 
 
 		m_AddedSphere=drawnStuff.get<1>();

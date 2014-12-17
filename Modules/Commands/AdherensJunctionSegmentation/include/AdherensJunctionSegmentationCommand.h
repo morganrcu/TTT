@@ -44,7 +44,7 @@ private:
 	/**
 	 * TODO
 	 */
-	ttt::AdherensJunctionVertices::Pointer m_Locations;
+	ttt::AdherensJunctionVertices<3>::Pointer m_Locations;
 	/**
 	 * TODO
 	 */
@@ -80,7 +80,7 @@ public:
 	 * TODO
 	 * @param locations
 	 */
-	inline void SetVertexLocations(const ttt::AdherensJunctionVertices::Pointer & locations){
+	inline void SetVertexLocations(const ttt::AdherensJunctionVertices<3>::Pointer & locations){
 		m_Locations=locations;
 	}
 	/**

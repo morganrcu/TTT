@@ -9,30 +9,38 @@
 #define TRACKINGEVALUATIONCOSTFUNCTION_H_
 #include <vnl/vnl_cost_function.h>
 #include "CellMomentCalculator.h"
-void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
-		ttt::TrackedTissueDescriptor::Pointer & t1,
+template<class T> T Decimate(const T & dataset,int howMany){
+	T result;
+	for(int i=0;i<dataset.size();i=i+howMany){
+		result.push_back(dataset[i]);
+	}
+	return result;
+}
+
+template<int dim> void SplitCorrespondence(const typename ttt::TrackedTissueDescriptor<dim>::Pointer & t0,
+		typename ttt::TrackedTissueDescriptor<dim>::Pointer & t1,
 		std::map<int,int> & associations,
 		std::vector<int> & creations,
 		std::vector<int> & terminations,
 		std::map<int,std::pair<int,int> > & mitosis){
 
-	BGL_FORALL_VERTICES(v0,*t0->m_CellGraph,ttt::TrackedCellGraph){
+	BGL_FORALL_VERTICES_T(v0,t0->GetCellGraph(),ttt::TrackedCellGraph<dim>){
 
-		ttt::TrackedCell cell0=boost::get(ttt::TrackedCellPropertyTag(),*t0->m_CellGraph,v0);
+		ttt::TrackedCell<dim> cell0=boost::get(ttt::TrackedCellPropertyTag<dim>(),t0->GetCellGraph(),v0);
 		int trackID=cell0.GetID();
 
-		ttt::TrackedCellVertexType v1=ttt::CellID2VertexDescriptor(trackID,t1);
+		typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType v1=ttt::CellID2VertexDescriptor<dim>(trackID,t1);
 
 		if(v1!=-1){
 
-			ttt::TrackedCell cell1=boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,v1);
+			ttt::TrackedCell<dim> cell1=boost::get(ttt::TrackedCellPropertyTag<dim>(),t1->GetCellGraph(),v1);
 			associations[cell0.GetObservedCell()]=cell1.GetObservedCell();
 		}else{
-			std::pair<ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType> children= ttt::CellParentID2VertexDescriptor(trackID,t1);
+			std::pair<typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType,typename ttt::TrackedTissueDescriptor<dim>::DualGraphVertexDescriptorType> children= ttt::CellParentID2VertexDescriptor<dim>(trackID,t1);
 
 			if(children.first!=-1 && children.second!=-1){
-				ttt::TrackedCell cell1A= boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,children.first);
-				ttt::TrackedCell cell1B= boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,children.second);
+				ttt::TrackedCell<dim> cell1A= boost::get(ttt::TrackedCellPropertyTag<dim>(),t1->GetCellGraph(),children.first);
+				ttt::TrackedCell<dim> cell1B= boost::get(ttt::TrackedCellPropertyTag<dim>(),t1->GetCellGraph(),children.second);
 
 				mitosis[cell0.GetObservedCell()]=std::pair<int,int>(cell1A.GetObservedCell(),cell1B.GetObservedCell());
 			}else{
@@ -41,18 +49,18 @@ void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
 		}
 	}
 
-	BGL_FORALL_VERTICES(v1,*t1->m_CellGraph,ttt::TrackedCellGraph){
-		ttt::TrackedCell cell1=boost::get(ttt::TrackedCellPropertyTag(),*t1->m_CellGraph,v1);
+	BGL_FORALL_VERTICES_T(v1,t1->GetCellGraph(),ttt::TrackedCellGraph<dim>){
+		ttt::TrackedCell<dim> cell1=boost::get(ttt::TrackedCellPropertyTag<dim>(),t1->GetCellGraph(),v1);
 
 		int trackID=cell1.GetID();
 
-		ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(trackID,t0);
+		typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType v0=ttt::CellID2VertexDescriptor<dim>(trackID,t0);
 
 		if(v0==-1){
 
 			int parentID=cell1.GetParentID();
 
-			ttt::TrackedCellVertexType v0=ttt::CellID2VertexDescriptor(parentID,t0);
+			typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType v0=ttt::CellID2VertexDescriptor<dim>(parentID,t0);
 
 			if(v0==-1){
 				creations.push_back(cell1.GetObservedCell());
@@ -65,8 +73,8 @@ void SplitCorrespondence(const ttt::TrackedTissueDescriptor::Pointer & t0,
 }
 
 
-double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> & reference,
-		const std::vector<ttt::TissueDescriptor::Pointer> & observation,
+template<int dim> double EvaluateDataset(const std::vector<typename ttt::TrackedTissueDescriptor<dim>::Pointer> & reference,
+		const std::vector<typename ttt::TissueDescriptor<dim>::Pointer> & observation,
 		double distanceWeight,
 		double areaWeight,
 		double perimeterWeight,
@@ -77,13 +85,15 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 		double terminationWeight,
 		double associationWeight,
 		double mitosisWeight,
-		double apoptosisWeight){
+		double apoptosisWeight,
+		int K,
+		int Kmitosis){
 
 
 
 
 
-	ttt::TrackingCommand tracker;
+	ttt::TrackingCommand<dim> tracker;
 
 	tracker.SetDistanceWeight(distanceWeight);
 	tracker.SetAreaWeight(areaWeight);
@@ -100,10 +110,12 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 	tracker.SetApoptosisWeight(apoptosisWeight);
 
 	tracker.SetObservedTissues(observation);
+	tracker.SetK(K);
+	tracker.SetKMitosis(K);
 	tracker.Do();
 
 	int numFrames = observation.size();
-	std::vector<ttt::TrackedTissueDescriptor::Pointer> queryTissue = tracker.GetTrackedTissue();
+	std::vector<typename ttt::TrackedTissueDescriptor<dim>::Pointer> queryTissue = tracker.GetTrackedTissue();
 
 	int trueAssociations = 0;
 	int wrongAssociations = 0;
@@ -124,18 +136,18 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 	int mitosisAsAssociation = 0;
 	int mitosisAsTermination = 0;
 
-	CellMomentCalculator<ttt::TissueDescriptor> observationMomentCalculator;
+	CellMomentCalculator<ttt::TissueDescriptor<dim> > observationMomentCalculator;
 	for (int t = 0; t < numFrames - 1; t++) {
 
-		ttt::TrackedTissueDescriptor::Pointer currentReference =reference[t];
-		ttt::TrackedTissueDescriptor::Pointer nextReference = reference[t + 1];
+		typename ttt::TrackedTissueDescriptor<dim>::Pointer currentReference =reference[t];
+		typename ttt::TrackedTissueDescriptor<dim>::Pointer nextReference = reference[t + 1];
 
 		std::map<int, int> associationsReference;
 		std::vector<int> creationsReference;
 		std::vector<int> terminationsReference;
 		std::map<int, std::pair<int, int> > mitosisReference;
 
-		SplitCorrespondence(currentReference, nextReference,
+		SplitCorrespondence<dim>(currentReference, nextReference,
 				associationsReference, creationsReference,
 				terminationsReference, mitosisReference);
 		std::cout << "True associations " << associationsReference.size() << std::endl;
@@ -143,9 +155,9 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 		std::cout << "True terminations " << terminationsReference.size() << std::endl;
 		std::cout << "True mitosis " << mitosisReference.size() << std::endl;
 
-		ttt::TrackedTissueDescriptor::Pointer currentQuery =
+		typename ttt::TrackedTissueDescriptor<dim>::Pointer currentQuery =
 				queryTissue[t];
-		ttt::TrackedTissueDescriptor::Pointer nextQuery =
+		typename ttt::TrackedTissueDescriptor<dim>::Pointer nextQuery =
 				queryTissue[t + 1];
 
 		std::map<int, int> associationsQuery;
@@ -153,7 +165,7 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 		std::vector<int> terminationsQuery;
 		std::map<int, std::pair<int, int> > mitosisQuery;
 
-		SplitCorrespondence(currentQuery, nextQuery,
+		SplitCorrespondence<dim>(currentQuery, nextQuery,
 				associationsQuery, creationsQuery,
 				terminationsQuery, mitosisQuery);
 
@@ -370,18 +382,18 @@ double EvaluateDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> 
 }
 
 
-class tracking_cost_function: public vnl_cost_function {
+template<int NumDimensions> class tracking_cost_function: public vnl_cost_function {
 
 
 public:
-	std::vector< std::vector<ttt::TrackedTissueDescriptor::Pointer>  > m_References;
-	std::vector< std::vector< ttt::TissueDescriptor::Pointer> > m_Observations ;
+	std::vector<typename std::vector<typename ttt::TrackedTissueDescriptor<NumDimensions>::Pointer >  > m_References;
+	std::vector<typename std::vector<typename  ttt::TissueDescriptor<NumDimensions>::Pointer > > m_Observations ;
 	std::ofstream  m_Output;
 
-	tracking_cost_function(char * outputName): vnl_cost_function(7){
+	tracking_cost_function(char * outputName): vnl_cost_function(13){
 		m_Output.open(outputName,std::ifstream::out);
 		//m_Output << "distanceWeight,areaWeight,ellipseWeight,creationWeight,terminationWeight,associationWeight,mitosisWeight,trueAssociations,wrongAssociations,associationAsTermination,associationAsMitosis,trueTermination,terminationAsAssociation,terminationAsMitosis,trueCreation,creationAsAssociation,creationAsMitosis,trueMitosis,wrongMitosis,mitosisAsAssociation,mitosisAsTermination,precisionAssociations,recallAssociations,F1Associations,precisionTermination,recallTermination,F1Termination,precisionCreation,recallCreation,F1Creation,precisionMitosis,recallMitosis,F1Mitosis,F1" << std::endl;
-		m_Output << "distanceWeight,areaWeight,perimeterWeight,xxWeight,xyWeight,yyWeight,creationWeight,terminationWeight,associationWeight,mitosisWeight,apoptosisWeight,F1" << std::endl;
+		m_Output << "distanceWeight,areaWeight,perimeterWeight,xxWeight,xyWeight,yyWeight,creationWeight,terminationWeight,associationWeight,mitosisWeight,apoptosisWeight,K,Kmitosis,F1" << std::endl;
 
 
 	}
@@ -389,8 +401,8 @@ public:
 		m_Output.close();
 	}
 
-	void AddDataset(const std::vector<ttt::TrackedTissueDescriptor::Pointer> & reference,
-			const std::vector<ttt::TissueDescriptor::Pointer> & observation){
+	void AddDataset(const typename std::vector<typename ttt::TrackedTissueDescriptor<NumDimensions>::Pointer> & reference,
+			const typename std::vector<typename ttt::TissueDescriptor<NumDimensions>::Pointer> & observation){
 		m_References.push_back(reference);
 		m_Observations.push_back(observation);
 	}
@@ -399,20 +411,22 @@ public:
 public:
 	double f(const vnl_vector<double>& x)  {
 
-		double x0 =x(0);
-		double x1 =x(1);
-		double x2 =x(2);
-		double x3 =x(3);
-		double x4 =x(4);
-		double x5 =x(5);
-		double x6 =x(6);
-		double x7 =x(7);
-		double x8 =x(8);
-		double x9 =x(9);
-		double x10 =x(10);
+		double x0 =std::abs(x(0));
+		double x1 =std::abs(x(1));
+		double x2 =std::abs(x(2));
+		double x3 =std::abs(x(3));
+		double x4 =std::abs(x(4));
+		double x5 =std::abs(x(5));
+		double x6 =std::abs(x(6));
+		double x7 =std::abs(x(7));
+		double x8 =std::abs(x(8));
+		double x9 =std::abs(x(9));
+		double x10 =std::abs(x(10));
+		unsigned int x11 =(unsigned int)round(std::abs(x(11)));
+		unsigned int x12 =(unsigned int)round(std::abs(x(12)));
 
 
-
+#if 0
 		if(x0<0) x0=0;
 		if(x1<0) x1=0;
 		if(x2<0) x2=0;
@@ -424,7 +438,8 @@ public:
 		if(x8<0) x8=0;
 		if(x9<0) x9=0;
 		if(x10<0) x10=0;
-
+		if(x)
+#endif
 
 
 
@@ -455,6 +470,11 @@ public:
 		double mitosisWeight=x9/sum2;
 		double apoptosisWeight=x10/sum2;
 
+		int K = 1+x11;
+		if(K>50) K=50;
+		int Kmitosis = 1+x12;
+		if(Kmitosis>50) Kmitosis=50;
+		//std::cout << "K" << K << std::endl;
 
 #else
 		double creationWeight= x3;
@@ -471,7 +491,7 @@ public:
 		bool allok=true;
 
 		for(int i=0;i<nDatasets;i++){
-			F1values[i]=EvaluateDataset(m_References[i],m_Observations[i],distanceWeight,areaWeight,perimeterWeight,xxWeight,xyWeight,yyWeight,creationWeight,terminationWeight,associationWeight,mitosisWeight,apoptosisWeight);
+			F1values[i]=EvaluateDataset<NumDimensions>(m_References[i],m_Observations[i],distanceWeight,areaWeight,perimeterWeight,xxWeight,xyWeight,yyWeight,creationWeight,terminationWeight,associationWeight,mitosisWeight,apoptosisWeight,K,Kmitosis);
 
 			std::cout << "F1Values[ " << i << "] = " <<F1values[i]  << std::endl;
 
@@ -489,7 +509,7 @@ public:
 			}
 			F1=nDatasets/F1;
 		}
-		m_Output << distanceWeight << "," << areaWeight << "," << perimeterWeight  << ","<< xxWeight  << ","<< xyWeight  << ","<< yyWeight  << ","  << creationWeight <<"," << terminationWeight <<"," << associationWeight << "," << mitosisWeight << ","<< apoptosisWeight << ","  << F1 << std::endl;
+		m_Output << distanceWeight << "," << areaWeight << "," << perimeterWeight  << ","<< xxWeight  << ","<< xyWeight  << ","<< yyWeight  << ","  << creationWeight <<"," << terminationWeight <<"," << associationWeight << "," << mitosisWeight << ","<< apoptosisWeight << "," << K <<"," << Kmitosis <<"," << F1 << std::endl;
 
 		double l1reg = fabs(x0) + fabs(x1) + fabs(x2);
 

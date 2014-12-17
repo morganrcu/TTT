@@ -14,10 +14,10 @@ namespace ttt {
 
 class ProjectTableModel: public QAbstractTableModel {
 private:
-	ttt::TissueTrackingAbstractProject2 * m_Project;
+	ttt::TissueTrackingAbstractProject2<3> * m_Project;
 	const static int NUM_COLS=6; //PlatenessLow PlatenessHigh Platenes sSteps VertexnessLow VertexnessHigh VertexnessSteps
 public:
-	ProjectTableModel(ttt::TissueTrackingAbstractProject2 * project,QObject * parent);
+	ProjectTableModel(ttt::TissueTrackingAbstractProject2<3> * project,QObject * parent);
 	virtual ~ProjectTableModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const ;

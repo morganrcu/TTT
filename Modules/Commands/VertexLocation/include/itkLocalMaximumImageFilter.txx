@@ -84,7 +84,7 @@ template<class TInputImage> void LocalMaximumImageFilter<TInputImage>::GenerateD
 					}
 				}
 				if (isMaximum) {
-					ttt::AdherensJunctionVertex::Pointer maxIndex = ttt::AdherensJunctionVertex::New();
+					typename ttt::AdherensJunctionVertex<InputImageDimension>::Pointer maxIndex = ttt::AdherensJunctionVertex<InputImageDimension>::New();
 					maxIndex->SetPosition(bit.GetIndex());
 
 					m_LocalMaxima->push_back(maxIndex);

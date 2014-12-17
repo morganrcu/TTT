@@ -8,6 +8,7 @@
 TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTExplorer){
 	m_pUI->setupUi(this);
 
+
 	{
 	m_CentralRenderer = vtkSmartPointer<vtkRenderer>::New();
 	m_CentralRenderer->SetBackground(81.0/255,87.0/255,110.0/255);
@@ -53,7 +54,7 @@ TTTExplorer::TTTExplorer(QWidget *parent) : QDialog(parent),  m_pUI(new Ui::TTTE
     connect(this->m_pUI->exportMovieButton,SIGNAL(clicked()),this,SLOT(ExportMovie()));
 }
 
-void TTTExplorer::SetProject(ttt::TissueTrackingAbstractProject2 * project){
+void TTTExplorer::SetProject(ttt::TissueTrackingAbstractProject2<3> * project){
 			this->m_Project=project;
 			this->m_pUI->frameSlider->setMinimum(0);
 			this->m_pUI->frameSlider->setMaximum(this->m_Project->GetNumFrames()-1);

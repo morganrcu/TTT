@@ -27,7 +27,7 @@ signals:
 	void edgeAdditionCancelled();
 protected:
 
-	ttt::PrimalGraphDrawer<ttt::TissueDescriptor> * m_Drawer;
+	ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > * m_Drawer;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	vtkSmartPointer<vtkActor> m_Source;
 	vtkSmartPointer<vtkActor> m_Target;
@@ -47,7 +47,7 @@ public:
 
 public:
 
-	void SetDrawer(ttt::PrimalGraphDrawer<ttt::TissueDescriptor> * drawer){
+	void SetDrawer(ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > * drawer){
 		m_Drawer=drawer;
 	}
 	EdgeAdditionInteractor();

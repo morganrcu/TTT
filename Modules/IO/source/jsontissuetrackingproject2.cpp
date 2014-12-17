@@ -6,6 +6,9 @@
  */
 
 #include "jsontissuetrackingproject2.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 namespace ttt {
 
 void ttt::JSONTissueTrackingProject2::LoadProjectInfo() {
@@ -19,7 +22,7 @@ void ttt::JSONTissueTrackingProject2::LoadProjectInfo() {
 
 	std::cout << projectConfigFile << std::endl;
 
-	std::ifstream jsonProjectConfigFile(projectConfigFile);
+	std::ifstream jsonProjectConfigFile(projectConfigFile.c_str(),std::ifstream::in);
 	reader.parse(jsonProjectConfigFile, root);
 
 	m_ProjectName = root["name"].asString();
@@ -103,7 +106,7 @@ void ttt::JSONTissueTrackingProject2::LoadFrameInfo(unsigned int frame) {
 	fileNameStream >> frameMetadataFile;
 	std::cout << "File: " << frameMetadataFile << std::endl;
 
-	std::ifstream jsonFrameFile(frameMetadataFile);
+	std::ifstream jsonFrameFile(frameMetadataFile.c_str());
 
 	reader.parse(jsonFrameFile, root);
 
@@ -219,7 +222,7 @@ bool ttt::JSONTissueTrackingProject2::IsVertexnessImageAvailable(
 
 void ttt::JSONTissueTrackingProject2::SetAdherensJunctionVertices(
 		unsigned int frame,
-		const typename ttt::AdherensJunctionVertices::Pointer & vertices) {
+		const typename ttt::AdherensJunctionVertices<3>::Pointer & vertices) {
 	Json::StyledWriter writer;
 	Json::Value root;
 	std::stringstream fileNameStream;
@@ -237,7 +240,7 @@ void ttt::JSONTissueTrackingProject2::SetAdherensJunctionVertices(
 	}
 
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 
 	file << jsoncontent;
@@ -245,7 +248,7 @@ void ttt::JSONTissueTrackingProject2::SetAdherensJunctionVertices(
 	file.close();
 }
 
-typename AdherensJunctionVertices::Pointer ttt::JSONTissueTrackingProject2::GetAdherensJunctionVertices(
+typename AdherensJunctionVertices<3>::Pointer ttt::JSONTissueTrackingProject2::GetAdherensJunctionVertices(
 		unsigned int frame) {
 	Json::Reader reader;
 	Json::Value root;
@@ -259,17 +262,17 @@ typename AdherensJunctionVertices::Pointer ttt::JSONTissueTrackingProject2::GetA
 
 	std::cout << ajVerticesFile << std::endl;
 
-	std::ifstream jsonAJVerticesFile(ajVerticesFile);
+	std::ifstream jsonAJVerticesFile(ajVerticesFile.c_str());
 	reader.parse(jsonAJVerticesFile, root);
 
-	typename AdherensJunctionVertices::Pointer vertices =
-			AdherensJunctionVertices::New();
+	typename AdherensJunctionVertices<3>::Pointer vertices =
+			AdherensJunctionVertices<3>::New();
 
 	int numvertices = root["Vertices"].size();
 
 	for (int i = 0; i < numvertices; i++) {
-		ttt::AdherensJunctionVertex::Pointer newVertex =
-				ttt::AdherensJunctionVertex::New();
+		ttt::AdherensJunctionVertex<3>::Pointer newVertex =
+				ttt::AdherensJunctionVertex<3>::New();
 		itk::Index<3> position;
 		position[0] = root["Vertices"][i]["x"].asInt();
 		position[1] = root["Vertices"][i]["y"].asInt();
@@ -292,7 +295,7 @@ bool ttt::JSONTissueTrackingProject2::IsAdherensJunctionVerticesAvailable(
 	std::string fileName;
 	fileNameStream >> fileName;
 
-	std::ifstream infile(fileName);
+	std::ifstream infile(fileName.c_str());
 
 	return infile.good();
 }
@@ -309,7 +312,7 @@ typename ttt::TissueDescriptor::Pointer ttt::JSONTissueTrackingProject2::GetTiss
 	std::string ajTissueFile;
 	fileNameStream >> ajTissueFile;
 
-	std::ifstream jsonAJTissueFile(ajTissueFile);
+	std::ifstream jsonAJTissueFile(ajTissueFile.c_str());
 	reader.parse(jsonAJTissueFile, root);
 
 	ttt::TissueDescriptor::Pointer descriptor = ttt::TissueDescriptor::New();
@@ -442,7 +445,7 @@ void ttt::JSONTissueTrackingProject2::SetTissueDescriptor(unsigned int frame,
 		root["perimeter"][k++] = (Json::UInt64) *it;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 
 	file << jsoncontent;
@@ -457,7 +460,7 @@ bool ttt::JSONTissueTrackingProject2::IsTissueDescriptorAvailable(
 
 	std::string fileName;
 	fileNameStream >> fileName;
-	std::ifstream infile(fileName);
+	std::ifstream infile(fileName.c_str());
 	return infile.good();
 }
 
@@ -473,7 +476,7 @@ typename ttt::TrackedTissueDescriptor::Pointer ttt::JSONTissueTrackingProject2::
 	std::string ajTissueFile;
 	fileNameStream >> ajTissueFile;
 
-	std::ifstream jsonAJTissueFile(ajTissueFile);
+	std::ifstream jsonAJTissueFile(ajTissueFile.c_str());
 	reader.parse(jsonAJTissueFile, root);
 
 	ttt::TrackedTissueDescriptor::Pointer descriptor =
@@ -630,7 +633,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedTissueDescriptor(
 	}
 
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -643,7 +646,7 @@ bool ttt::JSONTissueTrackingProject2::IsTrackedTissueDescriptorAvailable(
 
 	std::string fileName;
 	fileNameStream >> fileName;
-	std::ifstream infile(fileName);
+	std::ifstream infile(fileName.c_str());
 	return infile.good();
 }
 
@@ -656,7 +659,7 @@ bool ttt::JSONTissueTrackingProject2::IsImage(const std::string & name,
 
 	std::string fileName;
 	fileNameStream >> fileName;
-	std::ifstream infile(fileName);
+	std::ifstream infile(fileName.c_str());
 	return infile.good();
 }
 
@@ -672,7 +675,7 @@ FeatureMap<CellVertexType, itk::Point<double, 3> > ttt::JSONTissueTrackingProjec
 	std::string centroidsStorageFile;
 	fileNameStream >> centroidsStorageFile;
 
-	std::ifstream jsonCentroidsFile(centroidsStorageFile);
+	std::ifstream jsonCentroidsFile(centroidsStorageFile.c_str());
 	reader.parse(jsonCentroidsFile, root);
 
 	int numcells = root["centroid"].size();
@@ -714,7 +717,7 @@ void ttt::JSONTissueTrackingProject2::SetCentroids(unsigned int frame,
 	}
 
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -732,7 +735,7 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetXX(
 	std::string xxStorageFile;
 	fileNameStream >> xxStorageFile;
 
-	std::ifstream jsonXXFile(xxStorageFile);
+	std::ifstream jsonXXFile(xxStorageFile.c_str());
 	reader.parse(jsonXXFile, root);
 
 	int numcells = root["xx"].size();
@@ -768,7 +771,7 @@ void ttt::JSONTissueTrackingProject2::SetXX(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -785,7 +788,7 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetXY(
 	std::string xyStorageFile;
 	fileNameStream >> xyStorageFile;
 
-	std::ifstream jsonXYFile(xyStorageFile);
+	std::ifstream jsonXYFile(xyStorageFile.c_str());
 	reader.parse(jsonXYFile, root);
 
 	int numcells = root["xy"].size();
@@ -821,7 +824,7 @@ void ttt::JSONTissueTrackingProject2::SetXY(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -839,7 +842,7 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetYY(
 	std::string yyStorageFile;
 	fileNameStream >> yyStorageFile;
 
-	std::ifstream jsonYYFile(yyStorageFile);
+	std::ifstream jsonYYFile(yyStorageFile.c_str());
 	reader.parse(jsonYYFile, root);
 
 	int numcells = root["yy"].size();
@@ -876,7 +879,7 @@ void ttt::JSONTissueTrackingProject2::SetYY(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -894,7 +897,7 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetPerimeter
 	std::string perimeterStorageFile;
 	fileNameStream >> perimeterStorageFile;
 
-	std::ifstream jsonPerimeterFile(perimeterStorageFile);
+	std::ifstream jsonPerimeterFile(perimeterStorageFile.c_str());
 	reader.parse(jsonPerimeterFile, root);
 
 	int numcells = root["perimeter"].size();
@@ -930,7 +933,7 @@ void ttt::JSONTissueTrackingProject2::SetPerimeter(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -948,7 +951,7 @@ FeatureMap<CellVertexType, double> ttt::JSONTissueTrackingProject2::GetAreas(
 	std::string areasStorageFile;
 	fileNameStream >> areasStorageFile;
 
-	std::ifstream jsonAreasFile(areasStorageFile);
+	std::ifstream jsonAreasFile(areasStorageFile.c_str());
 	reader.parse(jsonAreasFile, root);
 
 	int numcells = root["areas"].size();
@@ -983,7 +986,7 @@ void ttt::JSONTissueTrackingProject2::SetAreas(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1001,7 +1004,7 @@ FeatureMap<TrackedCellVertexType, itk::Point<double, 3> > ttt::JSONTissueTrackin
 	std::string centroidsStorageFile;
 	fileNameStream >> centroidsStorageFile;
 
-	std::ifstream jsonCentroidsFile(centroidsStorageFile);
+	std::ifstream jsonCentroidsFile(centroidsStorageFile.c_str());
 	reader.parse(jsonCentroidsFile, root);
 
 	int numcells = root["centroid"].size();
@@ -1042,7 +1045,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedCentroids(unsigned int frame,
 	}
 
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1068,7 +1071,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedAreas(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1085,7 +1088,7 @@ FeatureMap<TrackedCellVertexType, double> ttt::JSONTissueTrackingProject2::GetTr
 	std::string areasStorageFile;
 	fileNameStream >> areasStorageFile;
 
-	std::ifstream jsonAreasFile(areasStorageFile);
+	std::ifstream jsonAreasFile(areasStorageFile.c_str());
 	reader.parse(jsonAreasFile, root);
 
 	int numcells = root["areas"].size();
@@ -1121,7 +1124,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedPerimeter(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1137,7 +1140,7 @@ FeatureMap<TrackedCellVertexType, double> ttt::JSONTissueTrackingProject2::GetTr
 	std::string perimeterStorageFile;
 	fileNameStream >> perimeterStorageFile;
 
-	std::ifstream jsonPerimeterFile(perimeterStorageFile);
+	std::ifstream jsonPerimeterFile(perimeterStorageFile.c_str());
 	reader.parse(jsonPerimeterFile, root);
 
 	int numcells = root["perimeter"].size();
@@ -1174,7 +1177,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedXX(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1190,7 +1193,7 @@ FeatureMap<TrackedCellVertexType, double> ttt::JSONTissueTrackingProject2::GetTr
 	std::string xxStorageFile;
 	fileNameStream >> xxStorageFile;
 
-	std::ifstream jsonXXFile(xxStorageFile);
+	std::ifstream jsonXXFile(xxStorageFile.c_str());
 	reader.parse(jsonXXFile, root);
 
 	int numcells = root["xx"].size();
@@ -1227,7 +1230,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedXY(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1243,7 +1246,7 @@ FeatureMap<TrackedCellVertexType, double> ttt::JSONTissueTrackingProject2::GetTr
 	std::string xyStorageFile;
 	fileNameStream >> xyStorageFile;
 
-	std::ifstream jsonXYFile(xyStorageFile);
+	std::ifstream jsonXYFile(xyStorageFile.c_str());
 	reader.parse(jsonXYFile, root);
 
 	int numcells = root["xy"].size();
@@ -1281,7 +1284,7 @@ void ttt::JSONTissueTrackingProject2::SetTrackedYY(unsigned int frame,
 		k++;
 	}
 	std::string jsoncontent = writer.write(root);
-	std::ofstream file(vertexStorageFile,
+	std::ofstream file(vertexStorageFile.c_str(),
 			std::ofstream::out | std::ofstream::trunc);
 	file << jsoncontent;
 	file.close();
@@ -1297,7 +1300,7 @@ FeatureMap<TrackedCellVertexType, double> ttt::JSONTissueTrackingProject2::GetTr
 	std::string yyStorageFile;
 	fileNameStream >> yyStorageFile;
 
-	std::ifstream jsonYYFile(yyStorageFile);
+	std::ifstream jsonYYFile(yyStorageFile.c_str());
 	reader.parse(jsonYYFile, root);
 
 	int numcells = root["yy"].size();

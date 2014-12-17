@@ -24,19 +24,8 @@ target_link_libraries(TrackingOptimizing ${VTK_LIBRARIES}
 					         ${ITK_LIBRARIES} 
 					         
 					         TTTDrawers 
-					         TTTPlateness 
-					         TTTVertexness 
-					         TTTDataCasting 
-					         TTTAnisotropicDiffusion 
-					         TTTVertexLocation
-					         TTTAdherensJunctionSegmentationDijkstra
-					         TTTCellGraph
-					         TTTTracking
-					         TTTTectonics
-					         
-					         TTTComputeDomains
-					         TTTIO
-					         
+			         
+				         	jsoncpp
 					         ${COIN_CBC_LIBRARIES}  
 					         ${ZLIB_LIBRARIES}
 					          

@@ -13,13 +13,13 @@
 
 namespace ttt {
 
-class MinCostMaxFlowTrackAssociationCommand : AppCommand {
+template<int dim> class MinCostMaxFlowTrackAssociationCommand : public AppCommand {
 
 private:
-	typename ttt::TissueDescriptor::Pointer m_ObservedTissueDescriptor;
+	typename ttt::TissueDescriptor<dim>::Pointer m_ObservedTissueDescriptor;
 
-	typename ttt::TrackedTissueDescriptor::Pointer m_PreviousTrackedTissueDescriptor;
-	typename ttt::TrackedTissueDescriptor::Pointer m_CurrentTrackedTissueDescriptor;
+	typename ttt::TrackedTissueDescriptor<dim>::Pointer m_PreviousTrackedTissueDescriptor;
+	typename ttt::TrackedTissueDescriptor<dim>::Pointer m_CurrentTrackedTissueDescriptor;
 
 	double m_TerminationWeight=1;
 	double m_CreationWeight=0.5;
@@ -36,6 +36,7 @@ private:
 
 
 	int m_K;
+	int m_KMitosis;
 	unsigned int m_NextID;
 
 public:
@@ -46,15 +47,15 @@ public:
 	inline void SetNextID(unsigned int nextID){
 		m_NextID=nextID;
 	}
-	inline void SetPreviousTrackedTissueDescriptor(const typename ttt::TrackedTissueDescriptor::Pointer & previousTrackedTissueDescriptor){
+	inline void SetPreviousTrackedTissueDescriptor(const typename ttt::TrackedTissueDescriptor<dim>::Pointer & previousTrackedTissueDescriptor){
 		m_PreviousTrackedTissueDescriptor=previousTrackedTissueDescriptor;
 	}
 
-	inline void SetObservedTissueDescriptor(const typename ttt::TissueDescriptor::Pointer & observedTissueDescriptor ){
+	inline void SetObservedTissueDescriptor(const typename ttt::TissueDescriptor<dim>::Pointer & observedTissueDescriptor ){
 		m_ObservedTissueDescriptor=observedTissueDescriptor;
 	}
 
-	inline typename ttt::TrackedTissueDescriptor::Pointer GetCurrentTrackedTissueDescriptor(){
+	inline typename ttt::TrackedTissueDescriptor<dim>::Pointer GetCurrentTrackedTissueDescriptor(){
 		return m_CurrentTrackedTissueDescriptor;
 	}
 	inline void SetTerminationWeight(double weight){
@@ -92,11 +93,16 @@ public:
 	inline void SetYYWeight(double weight){
 		m_YYWeight=weight;
 	}
-
+	inline void SetK(unsigned int K){
+		m_K=K;
+	}
+	inline void SetKMitosis(unsigned int K){
+		m_KMitosis=K;
+	}
 	virtual void Do();
 
 };
 
 } /* namespace ttt */
-
+#include "MinCostMaxFlowTrackAssociationCommand.hxx"
 #endif /* MINCOSTMAXFLOWTRACKASSOCIATIONCOMMAND_H_ */

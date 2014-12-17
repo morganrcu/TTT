@@ -82,7 +82,7 @@ public:
 		m_SphereSource=sphere;
 	}
 
-	void SetVertex(const ttt::AdherensJunctionVertex::Pointer & vertex){
+	void SetVertex(const ttt::AdherensJunctionVertex<3>::Pointer & vertex){
 		m_Vertex=vertex;
 	}
 
@@ -90,7 +90,7 @@ public:
 private:
 	vtkSmartPointer<vtkActor> m_Actor;
 	vtkSmartPointer<vtkSphereSource> m_SphereSource;
-	ttt::AdherensJunctionVertex::Pointer m_Vertex;
+	ttt::AdherensJunctionVertex<3>::Pointer m_Vertex;
 
 	SpacingType m_Spacing;
 };
@@ -110,9 +110,9 @@ public:
 		m_SphereSource->SetCenter(position);
 		m_SphereSource->Update();
 
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[0]=position[0];
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[1]=position[1];
-		boost::get(ttt::SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,m_Vertex).position[2]=position[2];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_Vertex).position[0]=position[0];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_Vertex).position[1]=position[1];
+		boost::get(ttt::SkeletonPointPropertyTag<3>(),m_TissueDescriptor->GetAJGraph(),m_Vertex).position[2]=position[2];
 
 	}
 private:
@@ -128,18 +128,19 @@ public:
 		m_SphereSource=sphere;
 	}
 
-	void SetVertex(const ttt::SkeletonVertexType & vertex){
+	void SetVertex(const ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType & vertex){
 		m_Vertex=vertex;
 	}
-	void SetTissueDescriptor(const ttt::TissueDescriptor::Pointer & tissueDescriptor){
+	void SetTissueDescriptor(const ttt::TissueDescriptor<3>::Pointer & tissueDescriptor){
 		m_TissueDescriptor=tissueDescriptor;
 	}
 
 private:
 	vtkSmartPointer<vtkActor> m_Actor;
 	vtkSmartPointer<vtkSphereSource> m_SphereSource;
-	ttt::SkeletonVertexType m_Vertex;
-	ttt::TissueDescriptor::Pointer m_TissueDescriptor;
+	ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType m_Vertex;
+
+	ttt::TissueDescriptor<3>::Pointer m_TissueDescriptor;
 	SpacingType m_Spacing;
 };
 
@@ -303,7 +304,7 @@ private:
 
 
     Ui::TTTMainWindow *m_pUI;
-    std::shared_ptr<ttt::TissueTrackingAbstractProject2>  m_Project;
+    std::shared_ptr<ttt::TissueTrackingAbstractProject2<3> >  m_Project;
 
     QString m_SettingsFile;
 	QString m_Host;
@@ -365,7 +366,7 @@ private:
     vtkSmartPointer<vtkInteractorStyleTrackballCamera> m_StandardInteractor;
     vtkSmartPointer<vtkPointWidget> m_VertexLocationPointWidget;
 
-    ttt::AdherensJunctionVertices::Pointer m_DrawnAJVertices;
+    ttt::AdherensJunctionVertices<3>::Pointer m_DrawnAJVertices;
 
 
     //CELL SEGMENTATION TAB
@@ -374,16 +375,16 @@ private:
     vtkSmartPointer<vtkRenderWindow> m_CellSegmentationRendererWindow;
     vtkSmartPointer<QVTKInteractor> m_CellSegmentationRenderWindowInteractor;
 
-    ttt::PrimalGraphDrawer<ttt::TissueDescriptor> m_PrimalGraphDrawer;
+    ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3> > m_PrimalGraphDrawer;
     ttt::PlatenessImageDrawer m_PlatenessDrawerOnSegmentation;
 
-	DefaultColorer<ttt::SkeletonVertexType> m_PrimalGraphVertexColorer;
-	DefaultColorer<ttt::SkeletonEdgeType> m_PrimalGraphEdgeColorer;
+	DefaultColorer<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType> m_PrimalGraphVertexColorer;
+	DefaultColorer<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3>>::SkeletonEdgeType> m_PrimalGraphEdgeColorer;
 
-    ttt::DualGraphDrawer<ttt::TissueDescriptor> m_DualGraphDrawer;
+    ttt::DualGraphDrawer<ttt::TissueDescriptor<3> > m_DualGraphDrawer;
 
-    DefaultColorer<ttt::CellVertexType> m_DualGraphVertexColorer;
-    DefaultColorer<ttt::CellEdgeType> m_DualGraphEdgeColorer;
+    DefaultColorer<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::CellVertexType> m_DualGraphVertexColorer;
+    DefaultColorer<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::CellEdgeType> m_DualGraphEdgeColorer;
 
     vtkSmartPointer<EdgeSelectionInteractor> m_EdgeSelectionInteractor;
     vtkSmartPointer<EdgeAdditionInteractor> m_EdgeAdditionInteractor;
@@ -392,21 +393,21 @@ private:
 
     vtkSmartPointer<vtkPointWidget> m_PrimalGraphVertexPointWidget;
 
-    ttt::TissueDescriptor::Pointer m_DrawnTissueDescriptor;
+    ttt::TissueDescriptor<3>::Pointer m_DrawnTissueDescriptor;
 
     //TRACKING TAB
     vtkSmartPointer<vtkRenderer> m_TrackingRenderer;
     vtkSmartPointer<vtkRenderWindow> m_TrackingRendererWindow;
     vtkSmartPointer<QVTKInteractor> m_TrackingRenderWindowInteractor;
-    ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor> m_PrimalGraphTrackingDrawer;
-    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_TrackingDrawer;
+    ttt::PrimalGraphDrawer<ttt::TrackedTissueDescriptor<3> > m_PrimalGraphTrackingDrawer;
+    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor<3> > m_TrackingDrawer;
 
-    ttt::FeatureColorer<ttt::TrackedCellVertexType,unsigned int > m_TrackingVertexColorer;
+    ttt::FeatureColorer<ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<3> >::CellVertexType,unsigned int > m_TrackingVertexColorer;
 
 
-    DefaultColorer<ttt::TrackedCellEdgeType> m_TrackingEdgeColorer;
+    DefaultColorer<ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<3> >::CellEdgeType> m_TrackingEdgeColorer;
 
-    ttt::TrackedTissueDescriptor::Pointer m_DrawnTrackedTissueDescriptor;
+    ttt::TrackedTissueDescriptor<3>::Pointer m_DrawnTrackedTissueDescriptor;
     //INTERACTIVE TRACKING TAB
     vtkSmartPointer<vtkRenderer> m_PreviousTrackingRenderer;
     vtkSmartPointer<vtkRenderer> m_CurrentTrackingRenderer;
@@ -422,7 +423,7 @@ private:
     vtkSmartPointer<vtkRenderWindow> m_InspectionRenderWindow;
     vtkSmartPointer<QVTKInteractor> m_InspectionRenderWindowInteractor;
 
-    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor> m_InspectionDrawer;
+    ttt::CellPolygonDrawer<ttt::TrackedTissueDescriptor<3> > m_InspectionDrawer;
 
     //TECTONICS TAB
     vtkSmartPointer<vtkRenderer> m_TectonicsRenderer;
@@ -431,7 +432,7 @@ private:
 
     ttt::EllipseDrawer m_EllipseDrawer;
 
-    ttt::DomainStrainRatesDrawer m_DomainStrainRatesDrawer;
+    //ttt::DomainStrainRatesDrawer m_DomainStrainRatesDrawer;
 
 
 

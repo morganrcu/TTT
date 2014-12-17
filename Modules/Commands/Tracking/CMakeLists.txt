@@ -16,4 +16,4 @@ set(TTTTracking_SRCS source/TrackingCommand.cpp
 
 #target_link_libraries(mincostmaxflowcelltrackertest ${ITK_LIBRARIES} ${COIN_CBC_LIBRARIES} ${ZLIB_LIBRARIES} lapack TTTCellGraph)
  
-add_library(TTTTracking ${TTTTracking_SRCS})
+#add_library(TTTTracking ${TTTTracking_SRCS})

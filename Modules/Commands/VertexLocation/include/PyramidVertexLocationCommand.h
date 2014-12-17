@@ -33,8 +33,8 @@ private:
     /**
      * TODO
      */
-    std::vector<ttt::AdherensJunctionVertices::Pointer> m_PyramidVertexLocations;
-    ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
+    std::vector<ttt::AdherensJunctionVertices<3>::Pointer> m_PyramidVertexLocations;
+    ttt::AdherensJunctionVertices<3>::Pointer m_VertexLocations;
     /**
      * TODO
      */
@@ -68,7 +68,7 @@ public:
 	 * TODO
 	 * @return
 	 */
-	virtual ttt::AdherensJunctionVertices::Pointer GetLocalMaxima(){
+	virtual ttt::AdherensJunctionVertices<3>::Pointer GetLocalMaxima(){
 		return m_VertexLocations;
 	}
 	/**

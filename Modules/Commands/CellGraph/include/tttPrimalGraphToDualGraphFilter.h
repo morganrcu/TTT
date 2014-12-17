@@ -42,6 +42,7 @@ template<class InputGraph, class OutputGraph, class EdgeIndexMap> class Centroid
 
 public:
 
+	const static int NumDimensions = InputGraph::NumDimensions;
 	/**
 	 * TODO
 	 */
@@ -81,11 +82,13 @@ public:
 	 * TODO
 	 */
 	void begin_face() {
-		std::cout << "Comenzando nueva cara ";
+		//std::cout << "Comenzando nueva cara ";
 
-		m_CurrentVertex = boost::add_vertex(CellProperty(), m_Dual);
+
+			m_CurrentVertex = boost::add_vertex(Cell<NumDimensions>(), m_Dual);
+
 		m_CurrentCentroid.Fill(0);
-		std::cout << m_CurrentVertex << std::endl;
+		//std::cout << m_CurrentVertex << std::endl;
 		m_Total = 0;
 	}
 
@@ -93,11 +96,11 @@ public:
 	 * TODO
 	 */
 	void end_face() {
-		m_CurrentCentroid[0]/=m_Total;
-		m_CurrentCentroid[1]/=m_Total;
-		m_CurrentCentroid[2]/=m_Total;
-		boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).SetCentroid(m_CurrentCentroid);
-		std::cout << "Centroide en: " << m_CurrentCentroid	<< std::endl;
+		for(int i=0;i<NumDimensions;i++){
+			m_CurrentCentroid[i]/=m_Total;
+		}
+		boost::get(CellPropertyTag<NumDimensions>(), m_Dual, m_CurrentVertex).SetCentroid(m_CurrentCentroid);
+		//std::cout << "Centroide en: " << m_CurrentCentroid	<< std::endl;
 	}
 
 	/**
@@ -108,14 +111,12 @@ public:
 	void next_vertex(Vertex v) {
 
 		if(boost::degree(v,m_Graph)>1){
-			m_CurrentCentroid[0] +=
-					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[0];
-			m_CurrentCentroid[1] +=
-					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[1];
-			m_CurrentCentroid[2] +=
-					boost::get(SkeletonPointPropertyTag(), m_Graph, v).position[2];
+			for(int i=0;i<NumDimensions;i++){
+				m_CurrentCentroid[i] +=
+									boost::get(SkeletonPointPropertyTag<NumDimensions>(), m_Graph, v).position[i];
+			}
 
-			boost::get(CellPropertyTag(), m_Dual, m_CurrentVertex).AddVertexToPerimeter(
+			boost::get(CellPropertyTag<NumDimensions>(), m_Dual, m_CurrentVertex).AddVertexToPerimeter(
 					v);
 			m_Total++;
 		}
@@ -135,8 +136,7 @@ public:
 				(*m_EdgeToFace)[e] = m_CurrentVertex;
 			} else {
 				boost::add_edge(existing_face, m_CurrentVertex, m_Dual);
-				std::cout << "Conectando " << existing_face << " con "
-						<< m_CurrentVertex << std::endl;
+				//std::cout << "Conectando " << existing_face << " con " << m_CurrentVertex << std::endl;
 			}
 		}
 	}
@@ -146,12 +146,12 @@ private:
 	/**
 	 * TODO
 	 */
-	CellVertexType m_CurrentVertex;
+	typename OutputGraph::CellVertexType m_CurrentVertex;
 
 	/**
 	 *
 	 */
-	itk::Point<double,3> m_CurrentCentroid;
+	itk::Point<double,NumDimensions> m_CurrentCentroid;
 	/**
 	 *
 	 */
@@ -212,9 +212,9 @@ void create_dual_graph(InputGraph& g, OutputGraph& dual_g,
  * \class PrimalGraphToDualGraphFilter
  * TODO
  */
-template<class TCellGraph> class PrimalGraphToDualGraphFilter: public itk::ProcessObject {
+template<class TTissueDescriptor> class PrimalGraphToDualGraphFilter: public itk::ProcessObject {
 public:
-
+	static const int NumDimensions = TTissueDescriptor::NumDimensions;
 	/**
 	 * TODO
 	 */
@@ -230,7 +230,8 @@ public:
 	/**
 	 * TODO
 	 */
-	typedef TCellGraph TissueDescriptorType;
+	typedef TTissueDescriptor TissueDescriptorType;
+
 	/**
 	 * TODO
 	 */
@@ -275,95 +276,95 @@ private:
 
 };
 
-template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::GenerateData() {
+template<class TTissueDescriptor> void PrimalGraphToDualGraphFilter<TTissueDescriptor>::GenerateData() {
 	//dual graph
 	{
 
-		typename boost::property_map<SkeletonGraph, boost::edge_index_t>::type e_index =
-				boost::get(boost::edge_index,
-						*m_TissueDescriptor->m_SkeletonGraph);
+		typename boost::property_map<typename TTissueDescriptor::PrimalGraphType, boost::edge_index_t>::type e_index =
+				boost::get(boost::edge_index,m_TissueDescriptor->GetAJGraph());
 		//typename boost::property_map<CellGraph, EllipsePropertyTag>::type name = boost::get(EllipsePropertyTag(), m_TissueDescriptor->m_CellGraph);
-		typename boost::graph_traits<SkeletonGraph>::edges_size_type edge_count =
+		typename boost::graph_traits<typename TTissueDescriptor::PrimalGraphType>::edges_size_type edge_count =
 				0;
-		typename boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_end;
+		typename boost::graph_traits<typename TTissueDescriptor::PrimalGraphType>::edge_iterator ei, ei_end;
 
 		for (boost::tie(ei, ei_end) = boost::edges(
-				*m_TissueDescriptor->m_SkeletonGraph); ei != ei_end; ++ei) {
+				m_TissueDescriptor->GetAJGraph()); ei != ei_end; ++ei) {
 			boost::put(e_index, *ei, edge_count++);
 		}
 
-		std::cout << "Num edges: " << edge_count << std::endl;
+		//std::cout << "Num edges: " << edge_count << std::endl;
 
 		typedef std::vector<
-				typename boost::graph_traits<SkeletonGraph>::edge_descriptor> vec_t;
+				typename boost::graph_traits<typename TTissueDescriptor::PrimalGraphType>::edge_descriptor> vec_t;
 
 		std::vector<vec_t> embedding(
-				boost::num_vertices(*m_TissueDescriptor->m_SkeletonGraph));
+				boost::num_vertices(m_TissueDescriptor->GetAJGraph()));
 
 		std::vector<vec_t> myembedding(
-						boost::num_vertices(*m_TissueDescriptor->m_SkeletonGraph));
+						boost::num_vertices(m_TissueDescriptor->GetAJGraph()));
 
 		if (boost::boyer_myrvold_planarity_test(
 				boost::boyer_myrvold_params::graph =
-						*m_TissueDescriptor->m_SkeletonGraph,
+						m_TissueDescriptor->GetAJGraph(),
 				boost::boyer_myrvold_params::embedding = &embedding[0]))
 			std::cout << "Input graph is planar" << std::endl;
-		else
+		else{
 			std::cout << "Input graph is not planar" << std::endl;
-
-		m_TissueDescriptor->m_CellGraph = boost::shared_ptr<CellGraph>(
-				new CellGraph());
+			return;
+		}
 
 
 		//TODO create my embedding
 
 
 
-		BGL_FORALL_VERTICES_T(v,*m_TissueDescriptor->m_SkeletonGraph,SkeletonGraph){
+		BGL_FORALL_VERTICES_T(v,m_TissueDescriptor->GetAJGraph(),TTissueDescriptor::PrimalGraphType){
 //			embedding[v].clear();
-			if (boost::degree(v,*m_TissueDescriptor->m_SkeletonGraph)<3){
-				typename boost::graph_traits<SkeletonGraph>::out_edge_iterator oi,  oi_end;
-				for (boost::tie(oi, oi_end) = boost::out_edges(v,*m_TissueDescriptor->m_SkeletonGraph); oi != oi_end; ++oi) {
+			if (boost::degree(v,m_TissueDescriptor->GetAJGraph())<3){
+				typename boost::graph_traits<typename TTissueDescriptor::PrimalGraphType>::out_edge_iterator oi,  oi_end;
+				for (boost::tie(oi, oi_end) = boost::out_edges(v,m_TissueDescriptor->GetAJGraph()); oi != oi_end; ++oi) {
 					myembedding[v].push_back(*oi);
 				}
-			}else if (boost::degree(v,*m_TissueDescriptor->m_SkeletonGraph)>=3){
-				typedef itk::Point<double,3> PointType;
+			}else if (boost::degree(v,m_TissueDescriptor->GetAJGraph())>=3){
+				typedef itk::Point<double,NumDimensions> PointType;
 				std::vector<PointType > points,centeredPoints;
 				std::vector<PointType> projectedPoints;
 				PointType meanPoint;
 				meanPoint.Fill(0);
 
 
-				PointType center=boost::get(SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,v).position;
+				PointType center=boost::get(SkeletonPointPropertyTag<NumDimensions>(),m_TissueDescriptor->GetAJGraph(),v).position;
 				//std::cout << "Center: " << center << std::endl;
 				points.push_back(center);
 
-				meanPoint[0]+=center[0];
-				meanPoint[1]+=center[1];
-				meanPoint[2]+=center[2];
+				for(int d=0;d<NumDimensions;d++){
+					meanPoint[d]+=center[d];
+				}
 
 				int total=1;
 
-				typename boost::graph_traits<SkeletonGraph>::adjacency_iterator ai,  ai_end;
+				typename boost::graph_traits<typename TTissueDescriptor::PrimalGraphType>::adjacency_iterator ai,  ai_end;
 				//std::cout << "Neighbors: " <<  std::endl;
 
-				for (boost::tie(ai, ai_end) = boost::adjacent_vertices(v,*m_TissueDescriptor->m_SkeletonGraph); ai != ai_end; ++ai) {
+				for (boost::tie(ai, ai_end) = boost::adjacent_vertices(v,m_TissueDescriptor->GetAJGraph()); ai != ai_end; ++ai) {
 
-					itk::Point<double,3> position = boost::get(SkeletonPointPropertyTag(),*m_TissueDescriptor->m_SkeletonGraph,*ai).position;
+					itk::Point<double,NumDimensions> position = boost::get(SkeletonPointPropertyTag<NumDimensions>(),m_TissueDescriptor->GetAJGraph(),*ai).position;
 					std::cout << position << std::endl;
 
 					points.push_back(position);
 
-					meanPoint[0]+=position[0];
-					meanPoint[1]+=position[1];
-					meanPoint[2]+=position[2];
+					for(int d=0;d<NumDimensions;d++){
+						meanPoint[d]+=position[d];
+					}
+
 
 					total++;
 				}
+				for(int d=0;d<NumDimensions;d++){
+						meanPoint[d]/=total;
+				}
 
-				meanPoint[0]/=total;
-				meanPoint[1]/=total;
-				meanPoint[2]/=total;
+
 #if 0
 				vnl_matrix<double> A(total,3);
 				//std::cout << "Mean: " << meanPoint << std::endl;
@@ -467,7 +468,7 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 				assert(it==transformedPoints.end());
 				assert(ai==ai_end);
 #endif
-				std::vector<PointType >::iterator it =points.begin();
+				typename std::vector<PointType >::iterator it =points.begin();
 
 				PointType projectedCenter=*it;
 				it++;
@@ -475,20 +476,20 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 				PointType reference = *it;
 				it++;
 
-				typedef std::pair<double,SkeletonVertexType> AngleAndVertex;
+				typedef std::pair<double,typename ttt::TissueDescriptorTraits<TTissueDescriptor>::SkeletonVertexType> AngleAndVertex;
 
 				std::vector<AngleAndVertex> angles;
 
-				boost::tie(ai, ai_end) = boost::adjacent_vertices(v,*m_TissueDescriptor->m_SkeletonGraph);
+				boost::tie(ai, ai_end) = boost::adjacent_vertices(v,m_TissueDescriptor->GetAJGraph());
 
 				angles.push_back(AngleAndVertex(0,*ai));//FIRST NEIGHBOR
 				++ai;
 
-				itk::Vector<double,3> referenceVector=reference-projectedCenter;
+				itk::Vector<double,NumDimensions> referenceVector=reference-projectedCenter;
 
 				while(it!=points.end()){
 
-					itk::Vector<double,3> currentVector=*it-projectedCenter;
+					itk::Vector<double,NumDimensions> currentVector=*it-projectedCenter;
 
 
 					double angle=atan2(currentVector[1],currentVector[0])-atan2(referenceVector[1],referenceVector[0]);
@@ -500,9 +501,9 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 				std::sort(angles.begin(),angles.end());
 
-				for(std::vector<AngleAndVertex>::iterator it = angles.begin();it!=angles.end();++it){
-					std::cout << v << " To " << it->second << " angle " << it->first << std::endl;
-					myembedding[v].push_back(boost::edge(v,it->second,*m_TissueDescriptor->m_SkeletonGraph).first);
+				for(typename std::vector<AngleAndVertex>::iterator it = angles.begin();it!=angles.end();++it){
+					//std::cout << v << " To " << it->second << " angle " << it->first << std::endl;
+					myembedding[v].push_back(boost::edge(v,it->second,m_TissueDescriptor->GetAJGraph()).first);
 				}
 			}
 			assert(embedding[v].size()==myembedding[v].size());
@@ -512,29 +513,30 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 			while(itEmbedding!=embedding[v].end() && itMyEmbedding!=myembedding[v].end()){
 
-				std::cout << *itEmbedding << *itMyEmbedding << std::endl;
+				//std::cout << *itEmbedding << *itMyEmbedding << std::endl;
 				++itEmbedding;
 				++itMyEmbedding;
 			}
-			std::cout << std::endl;
+			//std::cout << std::endl;
 
 		}
 
 
 
-		create_dual_graph(*m_TissueDescriptor->m_SkeletonGraph,
-				*m_TissueDescriptor->m_CellGraph, &myembedding[0]);
+		create_dual_graph(m_TissueDescriptor->GetAJGraph(),
+				m_TissueDescriptor->GetCellGraph(), &myembedding[0]);
 
 		std::cout << "Num vertex/edges in dual: "
-				<< boost::num_vertices(*m_TissueDescriptor->m_CellGraph) << "/ "
-				<< boost::num_edges(*m_TissueDescriptor->m_CellGraph)
+				<< boost::num_vertices(m_TissueDescriptor->GetCellGraph()) << "/ "
+				<< boost::num_edges(m_TissueDescriptor->GetCellGraph())
 				<< std::endl;
+		if(boost::num_vertices(m_TissueDescriptor->GetCellGraph())==0) return;
 #if 1
 		{
 			int maxDegree = -1;
-			CellVertexType outFace;
-			BGL_FORALL_VERTICES_T(v,*m_TissueDescriptor->m_CellGraph,CellGraph){
-			int currentDegree=boost::degree(v,*m_TissueDescriptor->m_CellGraph);
+			typename ttt::TissueDescriptorTraits<TTissueDescriptor>::CellVertexType outFace;
+			BGL_FORALL_VERTICES_T(v,m_TissueDescriptor->GetCellGraph(),TTissueDescriptor::DualGraphType){
+			int currentDegree=boost::degree(v,m_TissueDescriptor->GetCellGraph());
 			if (currentDegree>maxDegree) {
 				maxDegree=currentDegree;
 				outFace=v;
@@ -542,14 +544,14 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 		}
 
-			ttt::Cell outerFace = boost::get(ttt::CellPropertyTag(),*m_TissueDescriptor->m_CellGraph,outFace);
+			ttt::Cell<NumDimensions> outerFace = boost::get(ttt::CellPropertyTag<NumDimensions>(),m_TissueDescriptor->GetCellGraph(),outFace);
 			m_TissueDescriptor->ClearPerimeter();
-			for(typename Cell::PerimeterIterator it = outerFace.PerimeterBegin();it!=outerFace.PerimeterEnd();++it){
+			for(typename Cell<NumDimensions>::PerimeterIterator it = outerFace.PerimeterBegin();it!=outerFace.PerimeterEnd();++it){
 				m_TissueDescriptor->AddVertexToPerimeter(*it);
 			}
 
-			boost::clear_vertex(outFace, *m_TissueDescriptor->m_CellGraph);
-			boost::remove_vertex(outFace, *m_TissueDescriptor->m_CellGraph);
+			boost::clear_vertex(outFace, m_TissueDescriptor->GetCellGraph());
+			boost::remove_vertex(outFace, m_TissueDescriptor->GetCellGraph());
 		}
 
 
@@ -557,13 +559,13 @@ template<class TCellGraph> void PrimalGraphToDualGraphFilter<TCellGraph>::Genera
 
 //		std::map<CellVertexType, int> dualEdgeBool;
 
-		boost::graph_traits<CellGraph>::vertex_iterator vi, vi_end, next;
-		boost::tie(vi, vi_end) = vertices(*m_TissueDescriptor->m_CellGraph);
+		typename boost::graph_traits<typename TTissueDescriptor::DualGraphType>::vertex_iterator vi, vi_end, next;
+		boost::tie(vi, vi_end) = vertices(m_TissueDescriptor->GetCellGraph());
 		for (next = vi; vi != vi_end; vi = next) {
 			++next;
-			if (boost::degree(*vi, *m_TissueDescriptor->m_CellGraph) == 0) {
-				clear_vertex(*vi, *m_TissueDescriptor->m_CellGraph);
-				remove_vertex(*vi, *m_TissueDescriptor->m_CellGraph);
+			if (boost::degree(*vi, m_TissueDescriptor->GetCellGraph()) == 0) {
+				clear_vertex(*vi, m_TissueDescriptor->GetCellGraph());
+				remove_vertex(*vi, m_TissueDescriptor->GetCellGraph());
 			}
 		}
 #endif

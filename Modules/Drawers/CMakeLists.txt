@@ -7,11 +7,12 @@ include_directories(../Features/include/)
 
 set(TTTDrawers_SRCS 
 	source/DiffusedImageDrawer.cpp
-	source/DomainStrainRatesDrawer.cpp
+	
+	#source/DomainStrainRatesDrawer.cpp
 	source/Drawer.cpp
 	
 	source/EllipseDrawer.cpp
-	source/GreetingsDrawer.cpp
+	#source/GreetingsDrawer.cpp
 	source/MotionVectorDrawer.cpp
 	source/PlatenessImageDrawer.cpp
 	#source/PrimalGraphDrawer.cpp

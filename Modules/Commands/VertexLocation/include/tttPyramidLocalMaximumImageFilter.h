@@ -65,7 +65,7 @@ public:
 
 
 
-  typedef typename ttt::AdherensJunctionVertices LocalMaximaContainerType;
+  typedef typename ttt::AdherensJunctionVertices<TInputImage::ImageDimension> LocalMaximaContainerType;
 
   typedef typename LocalMaximaContainerType::Pointer LocalMaximaContainerPointerType;
 
@@ -102,10 +102,13 @@ public:
   inline std::vector<LocalMaximaContainerPointerType> GetOutput(){
 	  return m_LocalMaxima;
   }
+
   virtual void  GenerateData ();
+
 protected:
   PyramidLocalMaximumImageFilter();
   virtual ~PyramidLocalMaximumImageFilter() {}
+
   void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
   /** LocalMaximumImageFilter can be implemented as a multithreaded filter.

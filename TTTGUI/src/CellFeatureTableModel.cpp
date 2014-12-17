@@ -7,7 +7,7 @@
 
 #include <CellFeatureTableModel.h>
 #include <QVector3D>
-CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingAbstractProject2 * project, unsigned int frame,QObject *parent) :QAbstractTableModel(parent) {
+CellFeatureTableModel::CellFeatureTableModel(ttt::TissueTrackingAbstractProject2<3> * project, unsigned int frame,QObject *parent) :QAbstractTableModel(parent) {
 	m_Project=project;
 	m_Frame=frame;
 
@@ -77,7 +77,7 @@ QVariant CellFeatureTableModel::data(const QModelIndex &index, int role) const
 
 		switch(index.column()){
 		case 0:
-			return QVariant(boost::get(ttt::TrackedCellPropertyTag(),*m_Descriptor->m_CellGraph,index.row()).GetID());
+			return QVariant(boost::get(ttt::TrackedCellPropertyTag<3>(),m_Descriptor->GetCellGraph(),index.row()).GetID());
 		case 1:
 		{
 			itk::Point<double,3> point=this->m_TrackedCentroids[index.row()].GetValue();

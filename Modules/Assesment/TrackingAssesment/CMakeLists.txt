@@ -24,24 +24,26 @@ target_link_libraries(TrackingAssesment ${VTK_LIBRARIES}
                                  
 					         ${ITK_LIBRARIES} 
 					         
-					         TTTDrawers 
-					         TTTPlateness 
-					         TTTVertexness 
-					         TTTDataCasting 
-					         TTTAnisotropicDiffusion 
-					         TTTVertexLocation
-					         TTTAdherensJunctionSegmentationDijkstra
-					         TTTCellGraph
-					         TTTTracking
-					         TTTTectonics
-					         
-					         TTTComputeDomains
-					         TTTIO
+#					         TTTDrawers 
+#					         TTTPlateness 
+#					         TTTVertexness 
+#					         TTTDataCasting 
+#					         TTTAnisotropicDiffusion 
+#					         TTTVertexLocation
+#					         TTTAdherensJunctionSegmentationDijkstra
+#					         TTTCellGraph
+#					         TTTTracking
+#					         TTTTectonics
+#					         
+#					         TTTComputeDomains
+#					         TTTIO
 					         
 					         ${COIN_CBC_LIBRARIES}  
 					         ${ZLIB_LIBRARIES}
 					          
 					         ${BZIP2_LIBRARIES} 
 					         ${LAPACK_LIBRARIES} 
+					         jsoncpp
 )
  
+

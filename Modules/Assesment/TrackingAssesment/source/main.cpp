@@ -17,51 +17,56 @@
 #include "TrackVolumeDrawer.hpp"
 #include "TrackingEvaluationCostFunction.h"
 
+
+
+
 int main(int argc,char ** argv){
 	vnl_vector<double> x0(11),x1(11);
-
+	static const int NumDimensions = 3;
 	//std::ofstream output(argv[1],std::ifstream::out);
 	//output << "w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,F1"<< std::endl;
 
 	//1. Read GT from DB
 
-	std::vector<ttt::TrackedTissueDescriptor::Pointer>  referenceNotum,referenceLeg,referenceMitosis,referenceApoptosis;
-	std::vector<ttt::TissueDescriptor::Pointer> observationNotum,observationLeg,observationMitosis,observationApoptosis;
+	int HOWMANYDROP = 1;
 
-	tracking_cost_function trackingFunction(argv[1]);
+	std::vector<ttt::TrackedTissueDescriptor<NumDimensions>::Pointer>  referenceNotum,referenceLeg,referenceMitosis,referenceApoptosis;
+	std::vector<ttt::TissueDescriptor<NumDimensions>::Pointer> observationNotum,observationLeg,observationMitosis,observationApoptosis;
+
+	tracking_cost_function<NumDimensions> trackingFunction(argv[1]);
 		//1. Read datasets
 
 	{
-	ttt::JSONTissueTrackingProject2 * projectJSONApoptosis = new ttt::JSONTissueTrackingProject2;
-	projectJSONApoptosis->SetDirectory("/home/morgan/TTTProjects/miniroi/");
-	ttt::TissueTrackingAbstractProject2 * projectApoptosis=projectJSONApoptosis;
+		ttt::JSONTissueTrackingProject2<NumDimensions> * projectJSONApoptosis = new ttt::JSONTissueTrackingProject2<NumDimensions>;
+		projectJSONApoptosis->SetDirectory("/home/morgan/TTTProjects/miniroi/");
+		ttt::TissueTrackingAbstractProject2<NumDimensions> * projectApoptosis=projectJSONApoptosis;
 
-	projectApoptosis->Open();
+		projectApoptosis->Open();
 
-	int numFrames=projectApoptosis->GetNumFrames();
+		int numFrames=projectApoptosis->GetNumFrames();
 
-	referenceApoptosis.resize(numFrames);
-	observationApoptosis.resize(numFrames);
+		referenceApoptosis.resize(numFrames);
+		observationApoptosis.resize(numFrames);
 
-	for(int t=0;t<numFrames;t++){
+		for(int t=0;t<numFrames;t++){
 
-		observationApoptosis[t]=projectApoptosis->GetTissueDescriptor(t);
-		referenceApoptosis[t]=projectApoptosis->GetTrackedTissueDescriptor(t);
+			observationApoptosis[t]=projectApoptosis->GetTissueDescriptor(t);
+			referenceApoptosis[t]=projectApoptosis->GetTrackedTissueDescriptor(t);
 		}
 
 
 
-		}
+	}
 
-		{
-		ttt::QTSQLTissueTrackingProject2 * projectqtNotum = new ttt::QTSQLTissueTrackingProject2;
+	{
+		ttt::QTSQLTissueTrackingProject2<NumDimensions> * projectqtNotum = new ttt::QTSQLTissueTrackingProject2<NumDimensions>;
 		projectqtNotum->SetDBName("TuftsTissueTracker");
 		projectqtNotum->SetHost("localhost");
 		projectqtNotum->SetUser("root");
 		projectqtNotum->SetPassword("ttt1Tracker");
 
 		projectqtNotum->SetProjectID(2);
-		ttt::TissueTrackingAbstractProject2 * projectNotum=projectqtNotum;
+		ttt::TissueTrackingAbstractProject2<3> * projectNotum=projectqtNotum;
 		projectNotum->Open();
 
 		int numFrames=projectNotum->GetNumFrames();
@@ -74,16 +79,16 @@ int main(int argc,char ** argv){
 			observationNotum[t]=projectNotum->GetTissueDescriptor(t);
 			referenceNotum[t]=projectNotum->GetTrackedTissueDescriptor(t);
 		}
-		}
-		{
-		ttt::QTSQLTissueTrackingProject2 * projectqtLeg = new ttt::QTSQLTissueTrackingProject2;
+	}
+	{
+		ttt::QTSQLTissueTrackingProject2<NumDimensions> * projectqtLeg = new ttt::QTSQLTissueTrackingProject2<NumDimensions>;
 		projectqtLeg->SetDBName("TuftsTissueTracker");
 		projectqtLeg->SetHost("localhost");
 		projectqtLeg->SetUser("root");
 		projectqtLeg->SetPassword("ttt1Tracker");
 
 		projectqtLeg->SetProjectID(16);
-		ttt::TissueTrackingAbstractProject2 * projectLeg=projectqtLeg;
+		ttt::TissueTrackingAbstractProject2<NumDimensions> * projectLeg=projectqtLeg;
 		projectLeg->Open();
 
 		int numFrames=projectLeg->GetNumFrames();
@@ -98,10 +103,10 @@ int main(int argc,char ** argv){
 
 
 
-		}
+	}
 
-		{
-		ttt::QTSQLTissueTrackingProject2 * projectMitosis = new ttt::QTSQLTissueTrackingProject2;
+	{
+		ttt::QTSQLTissueTrackingProject2<NumDimensions> * projectMitosis = new ttt::QTSQLTissueTrackingProject2<NumDimensions>;
 		projectMitosis->SetDBName("TuftsTissueTracker");
 		projectMitosis->SetHost("localhost");
 		projectMitosis->SetUser("root");
@@ -119,10 +124,18 @@ int main(int argc,char ** argv){
 			referenceMitosis[t]=projectMitosis->GetTrackedTissueDescriptor(t);
 		}
 
-		}
+	}
+	referenceNotum=Decimate(referenceNotum,HOWMANYDROP);
+	observationNotum=Decimate(observationNotum,HOWMANYDROP);
 
+	referenceMitosis=Decimate(referenceMitosis,HOWMANYDROP);
+	observationMitosis=Decimate(observationMitosis,HOWMANYDROP);
 
+	referenceLeg=Decimate(referenceLeg,HOWMANYDROP);
+	observationLeg=Decimate(observationLeg,HOWMANYDROP);
 
+	referenceApoptosis=Decimate(referenceApoptosis,HOWMANYDROP);
+	observationApoptosis=Decimate(observationApoptosis,HOWMANYDROP);
 
 		//trackingFunction.AddDataset(referenceMitosis,observationMitosis);
 		//trackingFunction.AddDataset(referenceLeg,observationLeg);

@@ -142,6 +142,11 @@ int main(int argc, char ** argv){
 		pointAndValue.first=(*it)->GetPosition();
 		pointAndValue.second=image->GetPixel(pointAndValue.first);
 		detections.push_back(pointAndValue);
+
+		double precision=(double)hit/retrieved;
+		double recall = (double)hit/total;
+		double f1= (2*precision*recall)/(precision+recall);
+		std::cout << precision << "," << recall << "," << f1;
 		//std::cout << "Detection " << pointAndValue.first << " " << pointAndValue.second << std::endl;
 	}
 

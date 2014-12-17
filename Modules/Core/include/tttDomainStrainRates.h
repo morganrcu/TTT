@@ -28,8 +28,8 @@ typedef struct{
 	int order;
 } DomainStrainRates;
 
-typedef std::map<typename ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >   DomainStrainRatesMapType;
-typedef std::map<typename ttt::TrackedTissueDescriptor::DualGraphVertexDescriptorType,DomainStrainRates >::iterator   DomainStrainRatesMapIteratorType;
+typedef std::map<typename ttt::TrackedTissueDescriptor<3>::DualGraphVertexDescriptorType,DomainStrainRates >   DomainStrainRatesMapType;
+typedef std::map<typename ttt::TrackedTissueDescriptor<3>::DualGraphVertexDescriptorType,DomainStrainRates >::iterator   DomainStrainRatesMapIteratorType;
 typedef boost::shared_ptr<DomainStrainRatesMapType > DomainStrainRatesMapTypePointer;
 
 

@@ -95,9 +95,17 @@ ScaleSpaceExplorer::ScaleSpaceExplorer(QWidget *parent) :
 	//m_Spacing[2]=0.3782843;
 
 
-	m_Spacing[0]=0.3107403;
-	m_Spacing[1]=0.3107403;
-	m_Spacing[2]=0.739833;
+	//m_Spacing[0]=0.3107403;
+	//m_Spacing[1]=0.3107403;
+	//m_Spacing[2]=0.739833;
+
+	//m_Spacing[0]=0.1240079;
+	//m_Spacing[1]=0.1240079;
+	//m_Spacing[2]=0.88;
+
+	m_Spacing[0]=0.1904762;
+	m_Spacing[1]=0.1904762;
+	m_Spacing[2]=1;
 }
 
 void ScaleSpaceExplorer::Open(){

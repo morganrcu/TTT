@@ -28,14 +28,15 @@ signals:
 private:
 
 
-    ttt::TissueDescriptor::Pointer m_TissueDescriptor;
-    vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor> > m_PrimalGraphDrawer;
+    ttt::TissueDescriptor<3>::Pointer m_TissueDescriptor;
+    vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3>> > m_PrimalGraphDrawer;
 
     vtkSmartPointer<vtkActor> m_AddedActor;
     vtkSmartPointer<vtkSphereSource> m_AddedSphere;
     vtkSmartPointer<vtkPolyDataMapper> m_AddedMapper;
 
-    ttt::SkeletonVertexType m_AddedVertex;
+    //ttt::SkeletonVertexType m_AddedVertex;
+    ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType m_AddedVertex;
 
 protected:
 	vtkSmartPointer<vtkRenderer> m_Renderer;
@@ -50,11 +51,11 @@ public:
 		m_Renderer=renderer;
 	}
 
-	inline void SetTissueDescriptor(const ttt::TissueDescriptor::Pointer & descriptor){
+	inline void SetTissueDescriptor(const ttt::TissueDescriptor<3>::Pointer & descriptor){
 		m_TissueDescriptor=descriptor;
 	}
 
-	inline void SetPrimalGraphDrawer(const vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor> > & primalGraphDrawer){
+	inline void SetPrimalGraphDrawer(const vtkSmartPointer<ttt::PrimalGraphDrawer<ttt::TissueDescriptor<3>> > & primalGraphDrawer){
 		m_PrimalGraphDrawer=primalGraphDrawer;
 	}
 

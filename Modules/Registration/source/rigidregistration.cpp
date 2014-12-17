@@ -1,4 +1,5 @@
 #include "itkImageRegistrationMethod.h"
+#include "itkLogImageAdaptor.h"
 //#include "itkQuaternionRigidTransform.h"
 //#include "itkVersor3DTransform.h"
 
@@ -428,12 +429,16 @@ public:
 template<class FixedImageType,class MovingImageType,class TransformType> void RegisterPair(const typename FixedImageType::Pointer & fixedImage, const typename MovingImageType::Pointer & movingImage, typename TransformType::Pointer & transform ){
 
 
+	typedef itk::LogImageAdaptor<FixedImageType,float> LogFixedImageType;
 
-	typedef itk::CenteredTransformInitializer< TransformType,FixedImageType,MovingImageType> TransformInitializerType;
+	typedef itk::CenteredTransformInitializer< TransformType,LogFixedImageType,MovingImageType> TransformInitializerType;
 	typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
 
+	typename LogFixedImageType::Pointer logAdaptor=LogFixedImageType::New();
+	logAdaptor->SetImage(fixedImage);
+
 	initializer->SetTransform( transform );
-	initializer->SetFixedImage( fixedImage );
+	initializer->SetFixedImage( logAdaptor );
 	initializer->SetMovingImage( movingImage);
 
 	initializer->MomentsOn();
@@ -448,9 +453,9 @@ template<class FixedImageType,class MovingImageType,class TransformType> void Re
 
 	  //itk::MutualInformationImageToImageMetric<FixedImageType,MovingImageType >
 			  //itk::GradientDifferenceImageToImageMetric<FixedImageType,MovingImageType>
-	//		  itk::NormalizedCorrelationImageToImageMetric< FixedImageType, MovingImageType >
+			  itk::NormalizedCorrelationImageToImageMetric< FixedImageType, MovingImageType >
 	//		  itk::KullbackLeiblerCompareHistogramImageToImageMetric< FixedImageType, MovingImageType >
-			  itk::MattesMutualInformationImageToImageMetric<FixedImageType,MovingImageType>
+			  //itk::MattesMutualInformationImageToImageMetric<FixedImageType,MovingImageType>
 			  //itk::MutualInformationHistogramImageToImageMetric<FixedImageType,MovingImageType>
 			  //itk::MeanSquaresImageToImageMetric< FixedImageType, MovingImageType >
 	  MetricType;
@@ -502,7 +507,7 @@ template<class FixedImageType,class MovingImageType,class TransformType> void Re
 	  	//optimizer->SetMaximumStepLength( 0.1 );
 	  	optimizer->SetMaximumStepLength( 1);
 	  	optimizer->SetMinimumStepLength( 0.000000001 );
-	  	optimizer->SetNumberOfIterations( 150 );
+	  	optimizer->SetNumberOfIterations( 10 );
 	  	optimizer->SetMinimize(true);
 
 

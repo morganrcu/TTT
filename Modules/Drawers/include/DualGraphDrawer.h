@@ -30,16 +30,20 @@ public:
 private:
 	typename TissueDescriptor::Pointer m_Descriptor;
 	SpacingType m_Spacing;
+	typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellVertexType CellVertexType;
+	typedef typename  ttt::TissueDescriptorTraits<TissueDescriptor>::CellEdgeType CellEdgeType;
+	typedef typename  ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonEdgeType  SkeletonEdgeType;
+	typedef typename  ttt::TissueDescriptorTraits<TissueDescriptor>::SkeletonVertexType SkeletonVertexType;
 
-	typedef boost::tuple<ttt::CellVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellVertexSphereMapperAndActor ;
-	typedef boost::tuple<ttt::CellEdgeType, vtkSmartPointer<vtkLineSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellEdgeLineMapperAndActor ;
+	typedef typename  boost::tuple<CellVertexType, vtkSmartPointer<vtkSphereSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellVertexSphereMapperAndActor ;
+	typedef typename  boost::tuple<CellEdgeType, vtkSmartPointer<vtkLineSource>, vtkSmartPointer<vtkPolyDataMapper>, vtkSmartPointer<vtkActor> > CellEdgeLineMapperAndActor ;
 
 
     std::list<CellVertexSphereMapperAndActor> m_CellVertexSphereMapperAndActorList;
     std::list<CellEdgeLineMapperAndActor> m_CellEdgeLineMapperAndActorList;
 
-	Colorer<ttt::SkeletonEdgeType> *  m_pEdgeColorer;
-	Colorer<ttt::SkeletonVertexType> *  m_pVertexColorer;
+	Colorer<SkeletonEdgeType> *  m_pEdgeColorer;
+	Colorer<SkeletonVertexType> *  m_pVertexColorer;
 
 public:
 	inline void SetEdgeColorer(Colorer<typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellEdgeType> * colorer){
@@ -68,11 +72,11 @@ public:
 	}
 	virtual void Draw(){
 		this->Reset();
-			BGL_FORALL_VERTICES_T(v,*m_Descriptor->m_CellGraph,typename TissueDescriptor::DualGraphType){
+			BGL_FORALL_VERTICES_T(v,m_Descriptor->GetCellGraph(),typename TissueDescriptor::DualGraphType){
 				typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType CellPropertyTag;
-				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,v).GetCentroid();
+				itk::Point<double,TissueDescriptor::NumDimensions> a= boost::get(CellPropertyTag(),m_Descriptor->GetCellGraph(),v).GetCentroid();
 				vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
-				newSphere->SetCenter(a[0],a[1],a[2]);
+				newSphere->SetCenter(a[0],a[1],TissueDescriptor::NumDimensions==3?a[2]:0);
 				newSphere->SetRadius(0.8);
 				vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
@@ -92,15 +96,15 @@ public:
 				m_CellVertexSphereMapperAndActorList.push_back(tuple);
 			}
 
-			BGL_FORALL_EDGES_T(e,*m_Descriptor->m_CellGraph,typename TissueDescriptor::DualGraphType){
+			BGL_FORALL_EDGES_T(e,m_Descriptor->GetCellGraph(),typename TissueDescriptor::DualGraphType){
 				vtkSmartPointer<vtkLineSource> newLine = vtkSmartPointer<vtkLineSource>::New();
 				typedef typename ttt::TissueDescriptorTraits<TissueDescriptor>::CellPropertyTagType CellPropertyTag;
-				itk::Point<double,3> a= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::source(e,*m_Descriptor->m_CellGraph)).GetCentroid();
-				newLine->SetPoint1(a[0],a[1],a[2]);
-				itk::Point<double,3> b= boost::get(CellPropertyTag(),*m_Descriptor->m_CellGraph,boost::target(e,*m_Descriptor->m_CellGraph)).GetCentroid();
+				itk::Point<double,TissueDescriptor::NumDimensions> a= boost::get(CellPropertyTag(),m_Descriptor->GetCellGraph(),boost::source(e,m_Descriptor->GetCellGraph())).GetCentroid();
+				newLine->SetPoint1(a[0],a[1],TissueDescriptor::NumDimensions==3?a[2]:0);
+				itk::Point<double,TissueDescriptor::NumDimensions> b= boost::get(CellPropertyTag(),m_Descriptor->GetCellGraph(),boost::target(e,m_Descriptor->GetCellGraph())).GetCentroid();
 
 			//IndexType b=m_SkeletonGraph[boost::target(e,m_SkeletonGraph)].position;
-				newLine->SetPoint2(b[0],b[1],b[2]);
+				newLine->SetPoint2(b[0],b[1],TissueDescriptor::NumDimensions==3?b[2]:0);
 
 				vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				mapper->SetInputConnection(newLine->GetOutputPort());
@@ -122,27 +126,27 @@ public:
 			}
 	}
 	virtual void Show(){
-		for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		for(typename std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
 			it->get<3>()->VisibilityOn();
 		}
 
-		for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+		for(typename std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
 			it->get<3>()->VisibilityOn();
 		}
 	}
 	virtual void Hide(){
-		for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		for(typename std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
 				it->get<3>()->VisibilityOff();
 			}
-			for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+			for(typename std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
 				it->get<3>()->VisibilityOff();
 			}
 	}
 	virtual void Reset(){
-		for(std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
+		for(typename std::list<CellVertexSphereMapperAndActor>::iterator it= m_CellVertexSphereMapperAndActorList.begin();it!=m_CellVertexSphereMapperAndActorList.end();it++){
 				m_Renderer->RemoveActor(it->get<3>());
 			}
-			for(std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
+			for(typename std::list<CellEdgeLineMapperAndActor>::iterator it= m_CellEdgeLineMapperAndActorList.begin();it!=m_CellEdgeLineMapperAndActorList.end();it++){
 				m_Renderer->RemoveActor(it->get<3>());
 			}
 			m_CellVertexSphereMapperAndActorList.clear();

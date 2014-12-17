@@ -18,7 +18,7 @@ void ttt::PyramidVertexLocationCommand::Do(){
 
 	m_PyramidVertexLocations=localMaximumFilter->GetOutput();
 
-	m_VertexLocations=ttt::AdherensJunctionVertices::New();
+	m_VertexLocations=ttt::AdherensJunctionVertices<3>::New();
 
 	for(unsigned int i=0;i<m_PyramidVertexLocations.size();i++){
 		m_VertexLocations->insert(m_VertexLocations->end(),m_PyramidVertexLocations[i]->begin(),m_PyramidVertexLocations[i]->end());

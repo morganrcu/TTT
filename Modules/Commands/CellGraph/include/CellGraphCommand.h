@@ -30,21 +30,21 @@ namespace ttt{
  * TODO
  * \class CellGraphCommand
  */
-class CellGraphCommand: public AppCommand {
+template<int dims> class CellGraphCommand: public AppCommand {
 private:
 	/**
 	 * TODO
 	 */
-    typedef PrimalGraphToDualGraphFilter<TissueDescriptor> DualFilterType;
+    typedef PrimalGraphToDualGraphFilter<TissueDescriptor<dims> > DualFilterType;
     /**
      * TODO
      */
-    DualFilterType::Pointer m_Dual;
+    typename DualFilterType::Pointer m_Dual;
 
     /**
      * TODO
      */
-   TissueDescriptor::Pointer m_Graphs;
+    typename TissueDescriptor<dims>::Pointer m_Graphs;
 
 public:
    /**
@@ -64,18 +64,19 @@ public:
 	 * TODO
 	 * @param graph
 	 */
-	inline void SetPrimalGraph(const TissueDescriptor::Pointer & graph){
+	inline void SetPrimalGraph(const typename TissueDescriptor<dims>::Pointer & graph){
 		m_Graphs=graph;
 	}
 	/**
 	 * TODO
 	 * @return
 	 */
-	inline TissueDescriptor::Pointer GetGraphs(){
+	inline typename TissueDescriptor<dims>::Pointer GetGraphs(){
 		return m_Graphs;
 	}
 };
 }
+#include "CellGraphCommand.hxx"
 #endif /* DUALGRAPHCOMMAND_H_ */
 
 /** @}*/

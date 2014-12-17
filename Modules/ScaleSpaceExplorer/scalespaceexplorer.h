@@ -59,7 +59,7 @@ private:
     ImageType::Pointer m_ReescaledImage;
 
     std::vector<VertexnessImageType::Pointer> m_VertexnessImages;
-    std::vector<typename ttt::AdherensJunctionVertices::Pointer > m_LocalMaxima;
+    std::vector<typename ttt::AdherensJunctionVertices<3>::Pointer > m_LocalMaxima;
 
     std::vector<VertexnessImageType::Pointer> m_PlatenessImages;
 

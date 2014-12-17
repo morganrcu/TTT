@@ -13,17 +13,19 @@
 #include <vector>
 namespace ttt{
 
-class TissueTrackingAbstractProject2{
+template<int dim> class TissueTrackingAbstractProject2{
 public:
 
-	typedef itk::Image<float,3> FloatImageType;
-	typedef FloatImageType::SpacingType SpacingType;
-	typedef FloatImageType::SizeType SizeType;
+	const static int NumDimensions=dim;
+
+	typedef itk::Image<float,dim> FloatImageType;
+	typedef typename FloatImageType::SpacingType SpacingType;
+	typedef typename FloatImageType::SizeType SizeType;
 	typedef FloatImageType RawImageType;
 	typedef FloatImageType DiffusedImageType;
 	typedef FloatImageType PlatenessImageType;
 	typedef FloatImageType VertexnessImageType;
-	typedef std::vector<FloatImageType::Pointer> PyramidVertexnessImageType;
+	typedef std::vector<typename FloatImageType::Pointer> PyramidVertexnessImageType;
 protected:
 	std::string m_ProjectName;
 	SpacingType m_Spacing;
@@ -61,8 +63,8 @@ public:
 	inline SpacingType GetSpacing(){
 		return m_Spacing;
 	}
-	inline void SetSpacing(int dim,double value){
-		m_Spacing[dim]=value;
+	inline void SetSpacing(int dimension,double value){
+		m_Spacing[dimension]=value;
 		this->StoreProjectInfo();
 	}
 	/**
@@ -227,6 +229,11 @@ public:
 		m_LowestVertexnessScale.resize(numFrames);
 		this->StoreProjectInfo();
 
+		for(int i=0;i<numFrames;i++){
+			this->StoreFrameInfo(i);
+		}
+
+
 	}
 
 	virtual typename RawImageType::Pointer GetRawImage(unsigned int frame)=0;
@@ -253,54 +260,54 @@ public:
 		m_PyramidVertexness=vertexnessPyramid;
 	}
 
-	virtual typename ttt::AdherensJunctionVertices::Pointer GetAdherensJunctionVertices(unsigned int frame)=0;
-	virtual void SetAdherensJunctionVertices(unsigned int frame,const typename ttt::AdherensJunctionVertices::Pointer & vertices)=0;
+	virtual typename ttt::AdherensJunctionVertices<dim>::Pointer GetAdherensJunctionVertices(unsigned int frame)=0;
+	virtual void SetAdherensJunctionVertices(unsigned int frame,const typename ttt::AdherensJunctionVertices<dim>::Pointer & vertices)=0;
 	virtual bool IsAdherensJunctionVerticesAvailable(unsigned int frame)=0;
 
-	virtual typename  ttt::TissueDescriptor::Pointer GetTissueDescriptor(unsigned int frame)=0;
-	virtual void SetTissueDescriptor(unsigned int frame,const typename ttt::TissueDescriptor::Pointer & descriptor)=0;
+	virtual typename  ttt::TissueDescriptor<dim>::Pointer GetTissueDescriptor(unsigned int frame)=0;
+	virtual void SetTissueDescriptor(unsigned int frame,const typename ttt::TissueDescriptor<dim>::Pointer & descriptor)=0;
 	virtual bool IsTissueDescriptorAvailable(unsigned int frame)=0;
 
-	virtual typename  ttt::TrackedTissueDescriptor::Pointer GetTrackedTissueDescriptor(unsigned int frame)=0;
-	virtual void SetTrackedTissueDescriptor(unsigned int frame,const typename ttt::TrackedTissueDescriptor::Pointer & descriptor)=0;
+	virtual typename  ttt::TrackedTissueDescriptor<dim>::Pointer GetTrackedTissueDescriptor(unsigned int frame)=0;
+	virtual void SetTrackedTissueDescriptor(unsigned int frame,const typename ttt::TrackedTissueDescriptor<dim>::Pointer & descriptor)=0;
 	virtual bool IsTrackedTissueDescriptorAvailable(unsigned int frame)=0;
 
-	virtual void SetCentroids(unsigned int frame, const   FeatureMap<CellVertexType,itk::Point<double,3> > & centroids)=0;
-	virtual FeatureMap<CellVertexType,itk::Point<double,3> >  GetCentroids(unsigned int frame)=0;
+	virtual void SetCentroids(unsigned int frame, const    FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,itk::Point<double,dim> > & centroids)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,itk::Point<double,dim> >  GetCentroids(unsigned int frame)=0;
 
-	virtual void SetAreas(unsigned int frame, const FeatureMap<CellVertexType,double> & areas)=0;
-	virtual FeatureMap<CellVertexType,double> GetAreas(unsigned int frame)=0;
+	virtual void SetAreas(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> & areas)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> GetAreas(unsigned int frame)=0;
 
-	virtual void SetPerimeter(unsigned int frame, const FeatureMap<CellVertexType,double> & perimeters)=0;
-	virtual FeatureMap<CellVertexType,double> GetPerimeter(unsigned int frame)=0;
+	virtual void SetPerimeter(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> & perimeters)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> GetPerimeter(unsigned int frame)=0;
 
-	virtual void SetXX(unsigned int frame, const FeatureMap<CellVertexType,double> & xx)=0;
-	virtual FeatureMap<CellVertexType,double> GetXX(unsigned int frame)=0;
+	virtual void SetXX(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> & xx)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> GetXX(unsigned int frame)=0;
 
-	virtual void SetXY(unsigned int frame, const FeatureMap<CellVertexType,double> & xy)=0;
-	virtual FeatureMap<CellVertexType,double> GetXY(unsigned int frame)=0;
+	virtual void SetXY(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> & xy)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> GetXY(unsigned int frame)=0;
 
-	virtual void SetYY(unsigned int frame, const FeatureMap<CellVertexType,double> & yy)=0;
-	virtual FeatureMap<CellVertexType,double> GetYY(unsigned int frame)=0;
+	virtual void SetYY(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> & yy)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TissueDescriptor<dim> >::CellVertexType,double> GetYY(unsigned int frame)=0;
 
 
-	virtual void SetTrackedCentroids(unsigned int frame, const   FeatureMap<TrackedCellVertexType,itk::Point<double,3> > & centroids)=0;
-	virtual FeatureMap<TrackedCellVertexType,itk::Point<double,3> >  GetTrackedCentroids(unsigned int frame)=0;
+	virtual void SetTrackedCentroids(unsigned int frame, const   FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,itk::Point<double,dim> > & centroids)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,itk::Point<double,dim> >  GetTrackedCentroids(unsigned int frame)=0;
 
-	virtual void SetTrackedAreas(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & areas)=0;
-	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedAreas(unsigned int frame)=0;
+	virtual void SetTrackedAreas(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> & areas)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> GetTrackedAreas(unsigned int frame)=0;
 
-	virtual void SetTrackedPerimeter(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & perimeters)=0;
-	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedPerimeter(unsigned int frame)=0;
+	virtual void SetTrackedPerimeter(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> & perimeters)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> GetTrackedPerimeter(unsigned int frame)=0;
 
-	virtual void SetTrackedXX(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xx)=0;
-	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXX(unsigned int frame)=0;
+	virtual void SetTrackedXX(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> & xx)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> GetTrackedXX(unsigned int frame)=0;
 
-	virtual void SetTrackedXY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & xy)=0;
-	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedXY(unsigned int frame)=0;
+	virtual void SetTrackedXY(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> & xy)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> GetTrackedXY(unsigned int frame)=0;
 
-	virtual void SetTrackedYY(unsigned int frame, const FeatureMap<TrackedCellVertexType,double> & yy)=0;
-	virtual FeatureMap<TrackedCellVertexType,double> GetTrackedYY(unsigned int frame)=0;
+	virtual void SetTrackedYY(unsigned int frame, const FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> & yy)=0;
+	virtual FeatureMap<typename ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<dim> >::CellVertexType,double> GetTrackedYY(unsigned int frame)=0;
 
 
 	/**

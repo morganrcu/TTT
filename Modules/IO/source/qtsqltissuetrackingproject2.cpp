@@ -56,10 +56,10 @@ bool QTSQLTissueTrackingProject2::IsVertexnessImageAvailable(
 	return this->IsImageAvailable("VertexnessImages",frame);
 }
 
-typename ttt::AdherensJunctionVertices::Pointer QTSQLTissueTrackingProject2::GetAdherensJunctionVertices(
+typename ttt::AdherensJunctionVertices<3>::Pointer QTSQLTissueTrackingProject2::GetAdherensJunctionVertices(
 		unsigned int frame) {
-	ttt::AdherensJunctionVertices::Pointer vertexLocations =
-			ttt::AdherensJunctionVertices::New();
+	ttt::AdherensJunctionVertices<3>::Pointer vertexLocations =
+			ttt::AdherensJunctionVertices<3>::New();
 			std::string selectQuery("SELECT pointX,pointY,pointZ FROM VertexLocations WHERE VertexLocations.idProject=? AND VertexLocations.t=?");
 
 			QSqlQuery prep_stmt(QString::fromStdString(selectQuery),m_DB);
@@ -69,9 +69,9 @@ typename ttt::AdherensJunctionVertices::Pointer QTSQLTissueTrackingProject2::Get
 			prep_stmt.exec();
 
 		while (prep_stmt.next()) {
-			ttt::AdherensJunctionVertex::Pointer p =
-					ttt::AdherensJunctionVertex::New();
-			typedef typename ttt::AdherensJunctionVertex::IndexType Index;
+			ttt::AdherensJunctionVertex<3>::Pointer p =
+					ttt::AdherensJunctionVertex<3>::New();
+			typedef typename ttt::AdherensJunctionVertex<3>::IndexType Index;
 			Index idx;
 
 			idx[0] = prep_stmt.value("pointX").toInt();
@@ -86,7 +86,7 @@ typename ttt::AdherensJunctionVertices::Pointer QTSQLTissueTrackingProject2::Get
 }
 void QTSQLTissueTrackingProject2::SetAdherensJunctionVertices(
 		unsigned int frame,
-		const typename ttt::AdherensJunctionVertices::Pointer & vertices) {
+		const typename ttt::AdherensJunctionVertices<3>::Pointer & vertices) {
 
 		std::string deleteString("DELETE from VertexLocations WHERE idProject=? AND t=?");
 
@@ -103,9 +103,9 @@ void QTSQLTissueTrackingProject2::SetAdherensJunctionVertices(
 		QSqlQuery transStatement(m_DB);
 		transStatement.exec("START TRANSACTION;");
 
-		for (ttt::AdherensJunctionVertices::const_iterator it =vertices->begin(); it != vertices->end(); it++) {
+		for (ttt::AdherensJunctionVertices<3>::const_iterator it =vertices->begin(); it != vertices->end(); it++) {
 
-			ttt::AdherensJunctionVertex::Pointer p = *it;
+			ttt::AdherensJunctionVertex<3>::Pointer p = *it;
 
 			insert_stmt.bindValue(0, QVariant(m_ProjectID));
 			insert_stmt.bindValue(1, QVariant(frame));

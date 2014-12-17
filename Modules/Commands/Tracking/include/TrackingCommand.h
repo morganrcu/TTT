@@ -26,15 +26,15 @@
 #include "TrackInitializationCommand.h"
 #include "MinCostMaxFlowTrackAssociationCommand.h"
 namespace ttt{
-class TrackingCommand: public AppCommand {
+template<int dim> class TrackingCommand: public AppCommand {
 private:
 
-	ttt::TrackInitializationCommand  m_Initializer;
-	ttt::MinCostMaxFlowTrackAssociationCommand m_Associator;
+	ttt::TrackInitializationCommand<dim>  m_Initializer;
+	ttt::MinCostMaxFlowTrackAssociationCommand<dim> m_Associator;
 
-	std::vector<TissueDescriptor::Pointer> m_Input;
+	std::vector<typename TissueDescriptor<dim>::Pointer> m_Input;
 
-    std::vector<TrackedTissueDescriptor::Pointer>  m_Output;
+    std::vector<typename TrackedTissueDescriptor<dim>::Pointer>  m_Output;
 
 public:
 	TrackingCommand();
@@ -76,18 +76,28 @@ public:
     inline void SetDistanceWeight(double weight){
     	m_Associator.SetDistanceWeight(weight);
     }
+    inline void SetK(unsigned int K){
+    	assert(K>0);
+    	m_Associator.SetK(K);
+    }
+
+    inline void SetKMitosis(unsigned int K){
+    	assert(K>0);
+    	m_Associator.SetKMitosis(K);
+    }
 
 	virtual ~TrackingCommand();
 
-	inline void SetObservedTissues(const std::vector<TissueDescriptor::Pointer> & input){
+	inline void SetObservedTissues(const std::vector<typename TissueDescriptor<dim>::Pointer> & input){
 		m_Input=input;
 	}
-	inline std::vector<TrackedTissueDescriptor::Pointer> GetTrackedTissue(){
+	inline std::vector<typename TrackedTissueDescriptor<dim>::Pointer> GetTrackedTissue(){
 		return m_Output;
 	}
 
 	virtual void Do();
 };
 }
+#include "TrackingCommand.hxx"
 #endif /* TRACKINGCOMMAND_H_ */
 /** @}*/

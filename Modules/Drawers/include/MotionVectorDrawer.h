@@ -26,13 +26,13 @@ class MotionVectorDrawer : public Drawer {
 
 private:
 
-	TrackedTissueDescriptor::Pointer m_Descriptor;
+	TrackedTissueDescriptor<3>::Pointer m_Descriptor;
 	std::vector<vtkSmartPointer<vtkActor> > m_Actors;
 public:
 	MotionVectorDrawer();
 	virtual void Draw();
 
-	inline void SetTrackedDescriptor(const TrackedTissueDescriptor::Pointer & descriptor){
+	inline void SetTrackedDescriptor(const TrackedTissueDescriptor<3>::Pointer & descriptor){
 		m_Descriptor=descriptor;
 	}
 	virtual void Show();

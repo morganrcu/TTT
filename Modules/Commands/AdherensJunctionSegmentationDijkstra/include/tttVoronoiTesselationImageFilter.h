@@ -131,7 +131,7 @@ public:
 
   /** Typedef support of level set method types. */
 
-  typedef itk::Image<double,3> LevelSetImageType;
+  typedef itk::Image<double,TClusterImage::ImageDimension> LevelSetImageType;
 
   typedef typename LevelSetImageType::Pointer LevelSetImagePointer;
 

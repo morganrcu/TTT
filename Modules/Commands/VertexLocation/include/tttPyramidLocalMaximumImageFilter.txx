@@ -155,8 +155,8 @@ template<class TInputImage> void PyramidLocalMaximumImageFilter<TInputImage>::Ge
 					}
 #endif
 					if (max) {
-						ttt::AdherensJunctionVertex::Pointer maxIndex =
-								ttt::AdherensJunctionVertex::New();
+						ttt::AdherensJunctionVertex<3>::Pointer maxIndex =
+								ttt::AdherensJunctionVertex<3>::New();
 						maxIndex->SetPosition(position);
 						m_LocalMaxima[level]->push_back(maxIndex);
 					}

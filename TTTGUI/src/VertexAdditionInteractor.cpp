@@ -16,7 +16,7 @@ void VertexAdditionInteractor::OnLeftButtonDown(){
 
 		std::cout << "ClickPosition " << clickPosition[0] << " "<< clickPosition[1] << " "<< clickPosition[2]<< std::endl;
 
-		m_AddedVertex = ttt::AdherensJunctionVertex::New() ;
+		m_AddedVertex = ttt::AdherensJunctionVertex<3>::New() ;
 
 		itk::Index<3> index;
 

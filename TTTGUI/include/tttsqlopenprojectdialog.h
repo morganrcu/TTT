@@ -31,7 +31,7 @@ public:
      * TODO
      * @return
      */
-    inline TissueTrackingAbstractProject2 * GetProject(){
+    inline TissueTrackingAbstractProject2<3> * GetProject(){
     	return m_Project;
     }
     /**
@@ -56,7 +56,7 @@ private:
     /**
      *
      */
-    QTSQLTissueTrackingProject2 * m_Project;
+    QTSQLTissueTrackingProject2<3> * m_Project;
 
     /**
      *

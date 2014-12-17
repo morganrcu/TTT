@@ -21,7 +21,7 @@ SQLNewProjectDialog::~SQLNewProjectDialog()
 }
 void SQLNewProjectDialog::accept(){
 
-	typedef typename TissueTrackingAbstractProject2::RawImageType ImageType;
+	typedef typename TissueTrackingAbstractProject2<3>::RawImageType ImageType;
 	typedef itk::ImageFileReader<ImageType> ReaderType;
 	ReaderType::Pointer reader=ReaderType::New();
 #if 0
@@ -42,7 +42,7 @@ void SQLNewProjectDialog::accept(){
 #endif
 		std::string projectPath = this->ui->wdLineEdit->text().toStdString();
 
-		ttt::JSONTissueTrackingProject2 * jsonProject= new ttt::JSONTissueTrackingProject2;
+		ttt::JSONTissueTrackingProject2<3> * jsonProject= new ttt::JSONTissueTrackingProject2<3>;
 		jsonProject->SetDirectory(projectPath);
 
 #if 0
@@ -65,6 +65,11 @@ void SQLNewProjectDialog::accept(){
     int sizeY= atoi(this->ui->selectedFilesTable->item(0,5)->text().toStdString().c_str());
     int sizeZ= atoi(this->ui->selectedFilesTable->item(0,6)->text().toStdString().c_str());
 
+    typename TissueTrackingAbstractProject2<3>::SpacingType spacing;
+    spacing[0]=spacingX;
+    spacing[1]=spacingY;
+    spacing[2]=spacingZ;
+    m_NewProject->SetSpacing(spacing);
     m_NewProject->SetProjectName(name);
     m_NewProject->SetSamplingPeriod(timeDelta);
     m_NewProject->SetNumFrames(this->ui->selectedFilesTable->rowCount());
@@ -85,7 +90,7 @@ void SQLNewProjectDialog::accept(){
 	QDialog::accept();
 }
 void SQLNewProjectDialog::selectWorkingDirectory(){
-	QString dir=QFileDialog::getExistingDirectory(this,tr("Select woking directory..."),QDir::currentPath(),QFileDialog::ShowDirsOnly);
+	QString dir=QFileDialog::getExistingDirectory(this,tr("Select working directory..."),QDir::currentPath(),QFileDialog::ShowDirsOnly);
 
 	this->ui->wdLineEdit->setText(dir);
 }

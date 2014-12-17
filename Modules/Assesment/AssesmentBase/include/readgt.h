@@ -6,7 +6,7 @@
 #include <stdlib.h>
 using namespace std;
 
-void readGT(const char * fileName, ttt::AdherensJunctionVertices::Pointer & gt){
+void readGT(const char * fileName, ttt::AdherensJunctionVertices<3>::Pointer & gt){
 	ifstream file ( fileName);
 	string value;
 	//Discard header
@@ -24,7 +24,7 @@ void readGT(const char * fileName, ttt::AdherensJunctionVertices::Pointer & gt){
 	    point[2]=atoi(value.c_str());
 
 	    if(file.good()){
-	    	ttt::AdherensJunctionVertex::Pointer vertex = ttt::AdherensJunctionVertex::New();
+	    	ttt::AdherensJunctionVertex<3>::Pointer vertex = ttt::AdherensJunctionVertex<3>::New();
 	    	vertex->SetPosition(point);
 	    	gt->push_back(vertex);
 

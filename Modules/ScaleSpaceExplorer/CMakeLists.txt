@@ -44,20 +44,34 @@ include_directories( ../../Modules/Commands/Base/include/)
 qt5_wrap_ui(UI_HDRS scalespaceexplorer.ui)
 
 add_executable(TTTScaleSpaceExplorer main.cpp scalespaceexplorer.cpp ${UI_HDRS})  
-qt5_use_modules(TTTScaleSpaceExplorer Widgets)
-qt5_use_modules(TTTScaleSpaceExplorer Sql)
+qt5_use_modules(TTTScaleSpaceExplorer Widgets Sql)
+#qt5_use_modules(TTTScaleSpaceExplorer )
 
 target_link_libraries(TTTScaleSpaceExplorer 
-					${VTK_LIBRARIES} 
-					${ITK_LIBRARIES} 
+
+					#${VTK_LIBRARIES} 
+
+					vtkGUISupportQt
+
+					vtkGUISupportQtOpenGL
+
+                    vtkRenderingAnnotation
+
+                    vtkInteractionWidgets
+
+                    vtkRenderingVolume
+
+                    vtkRenderingVolumeOpenGL
+
+                    vtkRenderingFreeType
+                    
+                    vtkRenderingCore vtkRenderingContext2D
+                    
+                    vtkRenderingFreeTypeOpenGL
 
 					TTTDrawers  
-					TTTVertexness 
-					TTTDataCasting 
+						
+					${ITK_LIBRARIES}  
 					 
-					TTTVertexLocation
-					
-					
-					
-					)
+)
 

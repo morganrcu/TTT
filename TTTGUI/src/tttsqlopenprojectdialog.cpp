@@ -46,7 +46,7 @@ SQLOpenProjectDialog::SQLOpenProjectDialog(const QString & host, unsigned int po
 void SQLOpenProjectDialog::accept(){
 	int projectID=atoi(ui->existingProjectsTableView->model()->data(ui->existingProjectsTableView->currentIndex()).toString().toStdString().c_str());
 
-	m_Project=new QTSQLTissueTrackingProject2;
+	m_Project=new QTSQLTissueTrackingProject2<3>;
 
 	m_Project->SetHost(m_Host.toStdString());
 	m_Project->SetPort(m_Port);

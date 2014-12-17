@@ -27,7 +27,7 @@ class DomainStrainRatesDrawer : public Drawer{
 
 private:
 	DomainStrainRatesMapTypePointer m_DomainStrainRates;
-	TrackedTissueDescriptor::Pointer m_TrackedTissueDescriptor;
+	TrackedTissueDescriptor<3>::Pointer m_TrackedTissueDescriptor;
 	std::vector<vtkSmartPointer<vtkActor> > m_Actors;
 	enum DrawMode{ CELL_SRT,TISSUE_SRT,INTERCALATION_SRT};
 	DrawMode m_DrawMode;
@@ -40,7 +40,7 @@ public:
 	inline void SetDomainStrainRates(const DomainStrainRatesMapTypePointer & domainStrainRates){
 		m_DomainStrainRates=domainStrainRates;
 	}
-	inline void SetTrackedTissueDescriptor(const TrackedTissueDescriptor::Pointer & trackedTissueDescriptor){
+	inline void SetTrackedTissueDescriptor(const TrackedTissueDescriptor<3>::Pointer & trackedTissueDescriptor){
 		m_TrackedTissueDescriptor=trackedTissueDescriptor;
 	}
 	virtual void Draw();

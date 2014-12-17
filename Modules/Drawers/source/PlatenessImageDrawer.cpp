@@ -15,8 +15,9 @@ ttt::PlatenessImageDrawer::PlatenessImageDrawer() {
 
 	compositeOpacity->AddPoint(0.0, 0.0);
 	//compositeOpacity->AddPoint(0.01, 1.0);
-	//compositeOpacity->AddPoint(0.1, 1.0);
+	compositeOpacity->AddPoint(0.1, 1.0);
 	compositeOpacity->AddPoint(1.0, 1.0);
+
 
 //	compositeOpacity->AddPoint(0.0, 0.0);
 //	compositeOpacity->AddPoint(0.01, 1.0);

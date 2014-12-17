@@ -19,7 +19,7 @@ class SQLNewProjectDialog : public QDialog
 public:
     explicit SQLNewProjectDialog(QWidget *parent = 0);
     ~SQLNewProjectDialog();
-    TissueTrackingAbstractProject2 * GetNewProject(){
+    TissueTrackingAbstractProject2<3> * GetNewProject(){
     	return m_NewProject;
 
     }
@@ -37,7 +37,7 @@ private:
 
     bool m_Accepted;
 
-    TissueTrackingAbstractProject2 * m_NewProject;
+    TissueTrackingAbstractProject2<3> * m_NewProject;
 };
 
 

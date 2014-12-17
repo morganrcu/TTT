@@ -27,8 +27,8 @@
 #include "TrackInitializationCommand.h"
 #include "MinCostMaxFlowTrackAssociationCommand.h"
 #include "EllipsesCommand.h"
-#include "ComputeDomainsCommand.h"
-#include "TectonicsCommand.h"
+//#include "ComputeDomainsCommand.h"
+//#include "TectonicsCommand.h"
 #include <vtkAxesActor.h>
 #include <vtkCubeSource.h>
 
@@ -600,10 +600,10 @@ void TTTMainWindow::OpenJSON(){
 	if(dialog.exec()){
 		QString dir=dialog.selectedFiles()[0];
 
-		ttt::JSONTissueTrackingProject2 * project = new ttt::JSONTissueTrackingProject2;
+		ttt::JSONTissueTrackingProject2<3> * project = new ttt::JSONTissueTrackingProject2<3>;
 
 		project->SetDirectory(dir.toStdString());
-		this->m_Project=std::shared_ptr<ttt::TissueTrackingAbstractProject2> (project);
+		this->m_Project=std::shared_ptr<ttt::TissueTrackingAbstractProject2<3> > (project);
 		this->m_Project->Open();
 
 		this->m_pUI->stepsTabs->setEnabled(true);
@@ -619,7 +619,7 @@ void TTTMainWindow::New(){
 	dialog.exec();
 
 	if(dialog.IsAccepted()){
-		this->m_Project=std::shared_ptr<ttt::TissueTrackingAbstractProject2>(dialog.GetNewProject());
+		this->m_Project=std::shared_ptr<ttt::TissueTrackingAbstractProject2<3> >(dialog.GetNewProject());
 		this->m_pUI->stepsTabs->setEnabled(true);
     }
 }
@@ -664,7 +664,7 @@ void TTTMainWindow::SetupSliders(unsigned int length){
 }
 void TTTMainWindow::SetupProjectTab(){
 
-    typename ttt::TissueTrackingAbstractProject2::SpacingType spacing=m_Project->GetSpacing();
+    typename ttt::TissueTrackingAbstractProject2<3>::SpacingType spacing=m_Project->GetSpacing();
 
     this->m_pUI->xDoubleSpinBox->blockSignals(true);
     this->m_pUI->xDoubleSpinBox->setValue(spacing[0]);
@@ -1020,8 +1020,8 @@ void TTTMainWindow::DoVertexLocation(){
 void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
 	std::cout << "->VertexSelected" << std::endl;
 	vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-	TissueTrackingAbstractProject2::SpacingType spacing=m_Project->GetSpacing();
-	TissueTrackingAbstractProject2::SizeType size =m_Project->GetSize();
+	TissueTrackingAbstractProject2<3>::SpacingType spacing=m_Project->GetSpacing();
+	TissueTrackingAbstractProject2<3>::SizeType size =m_Project->GetSize();
   	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
   	cube->Update();
 
@@ -1034,7 +1034,7 @@ void TTTMainWindow::VertexSelected(vtkSmartPointer<vtkActor> & actor){
     vtkSmartPointer<vtkSphereSource> sphereSource=m_VertexLocationsDrawer.GetSphereSourceFromActor(pickedVertexActor);
     myCallback->SetSphereSource(sphereSource);
 
-    ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
+    ttt::AdherensJunctionVertex<3>::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
 
 
     myCallback->SetVertex(vertex);
@@ -1084,7 +1084,7 @@ void TTTMainWindow::VertexAdded(vtkSmartPointer<vtkActor> & actor){
 
     vtkSmartPointer<vtkSphereSource> sphereSource=m_VertexLocationsDrawer.GetSphereSourceFromActor(pickedVertexActor);
 
-    ttt::AdherensJunctionVertex::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
+    ttt::AdherensJunctionVertex<3>::Pointer vertex = m_VertexLocationsDrawer.GetVertexFromActor(pickedVertexActor);
 
   	m_Project->SetAdherensJunctionVertices(m_CurrentFrame,this->m_VertexAdditionInteractor->GetAdherensJunctionVertices());
 
@@ -1171,10 +1171,10 @@ void TTTMainWindow::DeleteVertex(){
 		this->m_VertexLocationPointWidget->Off();
 		this->m_VertexLocationPointWidget->RemoveAllObservers();
 
-		ttt::AdherensJunctionVertices::Pointer vertices=this->m_DrawnAJVertices;
-		ttt::AdherensJunctionVertex::Pointer toRemoveVertex=this->m_VertexLocationsDrawer.GetVertexFromActor(toRemove);
+		ttt::AdherensJunctionVertices<3>::Pointer vertices=this->m_DrawnAJVertices;
+		ttt::AdherensJunctionVertex<3>::Pointer toRemoveVertex=this->m_VertexLocationsDrawer.GetVertexFromActor(toRemove);
 		m_VertexLocationsDrawer.EraseAdherensJunctionVertex(toRemoveVertex);
-		ttt::AdherensJunctionVertices::iterator toRemoveIt= std::find(vertices->begin(),vertices->end(),toRemoveVertex);
+		ttt::AdherensJunctionVertices<3>::iterator toRemoveIt= std::find(vertices->begin(),vertices->end(),toRemoveVertex);
 		vertices->erase(toRemoveIt);
 		m_Project->SetAdherensJunctionVertices(m_CurrentFrame,this->m_DrawnAJVertices);
 		this->m_VertexLocationRenderWindow->Render();
@@ -1323,7 +1323,7 @@ void TTTMainWindow::DrawSegmentation(){
 }
 void TTTMainWindow::DoSegmentation(){
 
-	AdherensJunctionSegmentationDijkstraCommand segmentationCommand;
+	AdherensJunctionSegmentationDijkstraCommand<3> segmentationCommand;
 
 	segmentationCommand.SetLimit(this->m_pUI->horizonDoubleSpinBox->value());
 	segmentationCommand.SetVertexLocations(m_Project->GetAdherensJunctionVertices(m_CurrentFrame));
@@ -1353,15 +1353,15 @@ void TTTMainWindow::AddEdge(){
 void TTTMainWindow::DeleteEdge(){
 
 	vtkSmartPointer<vtkActor> selected=this->m_EdgeSelectionInteractor->GetSelectedEdgeActor();
-	ttt::TissueDescriptor::Pointer descriptor=this->m_Project->GetTissueDescriptor(m_CurrentFrame);
+	typename ttt::TissueDescriptor<3>::Pointer descriptor=this->m_Project->GetTissueDescriptor(m_CurrentFrame);
 
 	if(selected && m_PrimalGraphDrawer.IsEdge(selected)){
 
-		ttt::SkeletonEdgeType toDelete = m_PrimalGraphDrawer.GetActorSkeletonEdge(selected);
+		ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonEdgeType toDelete = m_PrimalGraphDrawer.GetActorSkeletonEdge(selected);
 
 		bool found=false;
-		boost::tie(toDelete,found)=boost::edge(boost::source(toDelete,*descriptor->m_SkeletonGraph),boost::target(toDelete,*descriptor->m_SkeletonGraph),*descriptor->m_SkeletonGraph);
-		boost::remove_edge(toDelete,*descriptor->m_SkeletonGraph);
+		boost::tie(toDelete,found)=boost::edge(boost::source(toDelete,descriptor->GetAJGraph()),boost::target(toDelete,descriptor->GetAJGraph()),descriptor->GetAJGraph());
+		boost::remove_edge(toDelete,descriptor->GetAJGraph());
 
 
 
@@ -1369,11 +1369,11 @@ void TTTMainWindow::DeleteEdge(){
 	}else if(selected && m_PrimalGraphDrawer.IsVertex(selected)){
 		m_PrimalGraphVertexPointWidget->Off();
 		m_PrimalGraphVertexPointWidget->RemoveAllObservers();
-		ttt::SkeletonVertexType toDelete = m_PrimalGraphDrawer.GetActorSkeletonVertex(selected);
+		ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType toDelete = m_PrimalGraphDrawer.GetActorSkeletonVertex(selected);
 		descriptor->InvalidateDual();
 
-		boost::clear_vertex(toDelete,*descriptor->m_SkeletonGraph);
-		boost::remove_vertex(toDelete,*descriptor->m_SkeletonGraph);
+		boost::clear_vertex(toDelete,descriptor->GetAJGraph());
+		boost::remove_vertex(toDelete,descriptor->GetAJGraph());
 
 
 	}else{
@@ -1396,8 +1396,8 @@ void TTTMainWindow::EdgeSelected(vtkSmartPointer<vtkActor>& actor){
 	if(m_PrimalGraphDrawer.IsVertex(actor)){
 
 		vtkSmartPointer<vtkCubeSource> cube=vtkSmartPointer<vtkCubeSource>::New();
-		TissueTrackingAbstractProject2::SpacingType spacing=m_Project->GetSpacing();
-		TissueTrackingAbstractProject2::SizeType size =m_Project->GetSize();
+		TissueTrackingAbstractProject2<3>::SpacingType spacing=m_Project->GetSpacing();
+		TissueTrackingAbstractProject2<3>::SizeType size =m_Project->GetSize();
 	  	cube->SetBounds(0,spacing[0]*size[0],0,spacing[1]*size[1],0,spacing[2]*size[2]);
 	  	cube->Update();
 
@@ -1410,7 +1410,7 @@ void TTTMainWindow::EdgeSelected(vtkSmartPointer<vtkActor>& actor){
 	    vtkSmartPointer<vtkSphereSource> sphereSource= m_PrimalGraphDrawer.GetSphereSource(actor);
 	    myCallback->SetSphereSource(sphereSource);
 
-	    ttt::SkeletonVertexType vertex = m_PrimalGraphDrawer.GetActorSkeletonVertex(actor);
+	    ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType vertex = m_PrimalGraphDrawer.GetActorSkeletonVertex(actor);
 
 
 	    myCallback->SetVertex(vertex);
@@ -1458,10 +1458,10 @@ void TTTMainWindow::EdgeUnselected(vtkSmartPointer<vtkActor>& actor){
 void TTTMainWindow::EdgeAdded(vtkSmartPointer<vtkActor>& a, vtkSmartPointer<vtkActor> & b){
 	//TODO
 
-	ttt::SkeletonVertexType aVertex= m_PrimalGraphDrawer.GetActorSkeletonVertex(a);
-	ttt::SkeletonVertexType bVertex= m_PrimalGraphDrawer.GetActorSkeletonVertex(b);
+	ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType aVertex= m_PrimalGraphDrawer.GetActorSkeletonVertex(a);
+	ttt::TissueDescriptorTraits<ttt::TissueDescriptor<3> >::SkeletonVertexType bVertex= m_PrimalGraphDrawer.GetActorSkeletonVertex(b);
 
-	boost::add_edge(aVertex,bVertex,*this->m_DrawnTissueDescriptor->m_SkeletonGraph);
+	boost::add_edge(aVertex,bVertex,this->m_DrawnTissueDescriptor->GetAJGraph());
 
 	this->m_Project->SetTissueDescriptor(m_CurrentFrame,this->m_DrawnTissueDescriptor); //TODO
 
@@ -1489,16 +1489,16 @@ void TTTMainWindow::DualAndDraw(){
 	//this->DrawDual();
 }
 void TTTMainWindow::DoDual(){
-	CellGraphCommand cellGraphCommand;
+	CellGraphCommand<3> cellGraphCommand;
 
 	cellGraphCommand.SetPrimalGraph(this->m_Project->GetTissueDescriptor(m_CurrentFrame));
 	cellGraphCommand.Do();
 
-	ttt::TissueDescriptor::Pointer descriptor = cellGraphCommand.GetGraphs();
+	ttt::TissueDescriptor<3>::Pointer descriptor = cellGraphCommand.GetGraphs();
 	this->m_Project->SetTissueDescriptor(m_CurrentFrame,descriptor);
 
 
-	CellMomentCalculator<ttt::TissueDescriptor> calculator;
+	CellMomentCalculator<ttt::TissueDescriptor<3> > calculator;
 	calculator.SetTissueDescriptor(descriptor);
 	calculator.Compute();
 	this->m_Project->SetCentroids(m_CurrentFrame,calculator.GetCentroid());
@@ -1536,10 +1536,10 @@ void TTTMainWindow::DoTracking(){
 	trackingCommand.SetZMax(zMax);
 	;
 #endif
-	TrackingCommand trackingCommand;
+	TrackingCommand<3> trackingCommand;
 	int numFrames= m_Project->GetNumFrames();
 
-	std::vector<TissueDescriptor::Pointer> observations;
+	std::vector<TissueDescriptor<3>::Pointer> observations;
 	observations.resize(numFrames);
 
 	for(int i=0;i<numFrames;i++){
@@ -1550,10 +1550,10 @@ void TTTMainWindow::DoTracking(){
 	trackingCommand.SetObservedTissues(observations);
 	trackingCommand.Do();
 
-	std::vector<TrackedTissueDescriptor::Pointer> tracked =trackingCommand.GetTrackedTissue();
+	std::vector<TrackedTissueDescriptor<3>::Pointer> tracked =trackingCommand.GetTrackedTissue();
 
 	int frame=0;
-	for(std::vector<TrackedTissueDescriptor::Pointer>::iterator it = tracked.begin(); it!=tracked.end();it++){
+	for(std::vector<TrackedTissueDescriptor<3>::Pointer>::iterator it = tracked.begin(); it!=tracked.end();it++){
 
 		m_Project->SetTrackedTissueDescriptor(frame++,*it);
 	}
@@ -1572,10 +1572,10 @@ void TTTMainWindow::DrawTracking(){
 
 		//TrackedCellId::Pointer idFeature=TrackedCellId::New();
 
-		FeatureMap<CellVertexType,unsigned int> idFeature;
+		FeatureMap<ttt::TissueDescriptorTraits<ttt::TrackedTissueDescriptor<3> >::CellVertexType,unsigned int> idFeature;
 
-		BGL_FORALL_VERTICES_T(v,*m_DrawnTrackedTissueDescriptor->m_CellGraph,ttt::TrackedCellGraph){
-			idFeature[v]=boost::get(ttt::TrackedCellPropertyTag(),*m_DrawnTrackedTissueDescriptor->m_CellGraph,v).GetID();
+		BGL_FORALL_VERTICES_T(v,m_DrawnTrackedTissueDescriptor->GetCellGraph(),ttt::TrackedCellGraph<3>){
+			idFeature[v]=boost::get(ttt::TrackedCellPropertyTag<3>(),m_DrawnTrackedTissueDescriptor->GetCellGraph(),v).GetID();
 		}
 
 		m_TrackingVertexColorer.SetFeatureMap(idFeature);
@@ -1597,7 +1597,7 @@ void TTTMainWindow::DrawTracking(){
 	}
 }
 void TTTMainWindow::DoInitTracking(){
-	TrackInitializationCommand initializationCommand;
+	TrackInitializationCommand<3> initializationCommand;
 
 	initializationCommand.SetTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame));
 	initializationCommand.Do();
@@ -1606,7 +1606,7 @@ void TTTMainWindow::DoInitTracking(){
 }
 void TTTMainWindow::DoTrackingInteractive(){
 
-	MinCostMaxFlowTrackAssociationCommand trackingCommand;
+	MinCostMaxFlowTrackAssociationCommand<3> trackingCommand;
 	trackingCommand.SetPreviousTrackedTissueDescriptor(m_Project->GetTrackedTissueDescriptor(m_CurrentFrame));
 
 	trackingCommand.SetObservedTissueDescriptor(m_Project->GetTissueDescriptor(m_CurrentFrame+1));
@@ -1644,24 +1644,31 @@ void TTTMainWindow::DrawInspection(){
 }
 
 void TTTMainWindow::ShowCellStrainRates(){
+#ifdef TECTONICS
 	m_DomainStrainRatesDrawer.SetDrawModeToCellSRT();
 	m_DomainStrainRatesDrawer.Draw();
 	m_DomainStrainRatesDrawer.Show();
 	this->m_TectonicsRenderWindow->Render();
+#endif
 }
 
+
 void TTTMainWindow::ShowTissueStrainRates(){
+#ifdef TECTONICS
 	m_DomainStrainRatesDrawer.SetDrawModeToTissueSRT();
 	m_DomainStrainRatesDrawer.Draw();
 	m_DomainStrainRatesDrawer.Show();
 	this->m_TectonicsRenderWindow->Render();
+#endif
 }
 
 void TTTMainWindow::ShowIntercalationStrainRates(){
+#ifdef TECTONICS
 	m_DomainStrainRatesDrawer.SetDrawModeToIntercalationSRT();
 	m_DomainStrainRatesDrawer.Draw();
 	m_DomainStrainRatesDrawer.Show();
 	this->m_TectonicsRenderWindow->Render();
+#endif
 }
 
 void TTTMainWindow::DoEllipses(){

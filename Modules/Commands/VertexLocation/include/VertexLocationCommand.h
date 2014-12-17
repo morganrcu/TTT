@@ -40,7 +40,7 @@ private:
     /**
      * TODO
      */
-    ttt::AdherensJunctionVertices::Pointer m_VertexLocations;
+    ttt::AdherensJunctionVertices<3>::Pointer m_VertexLocations;
     /**
      * TODO
      */
@@ -75,7 +75,7 @@ public:
 	 * TODO
 	 * @return
 	 */
-	virtual ttt::AdherensJunctionVertices::Pointer GetLocalMaxima(){
+	virtual ttt::AdherensJunctionVertices<3>::Pointer GetLocalMaxima(){
 		return m_VertexLocations;
 	}
 	/**

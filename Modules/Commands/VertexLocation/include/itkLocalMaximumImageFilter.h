@@ -65,7 +65,7 @@ public:
   typedef ImageRegionConstIteratorWithIndex<InputImageType> InputImageIterator;
 
 
-  typedef typename ttt::AdherensJunctionVertices LocalMaximaContainerType;
+  typedef typename ttt::AdherensJunctionVertices<InputImageDimension> LocalMaximaContainerType;
 
   typedef typename LocalMaximaContainerType::Pointer LocalMaximaContainerPointerType;
 
@@ -105,11 +105,12 @@ public:
   inline LocalMaximaContainerPointerType GetOutput(){
 	  return m_LocalMaxima;
   }
-  void  GenerateData ();
+  virtual void  GenerateData ();
 protected:
   LocalMaximumImageFilter();
   virtual ~LocalMaximumImageFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
+
 
   /** LocalMaximumImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
