@@ -1,3 +1,8 @@
+NOTICE: TTT is currently broken. 
+
+Plos Computational Biology paper got published earlier than we expected. We are working non-stop to have it ready as soon as possible. 
+If you want us to send you a mail whenever the software is ready (early May 2015) write us to rodrigo.cilla AT tufts.edu
+
 Welcome to TTT! Please visit http://sites.google.com/site/tttisatissuetracker
 
 Important. Currently TTT does not compile with ITK versions greater than ITK 4.6 and VTK versions greater than 6.1. We are working to fix it as soon as possible.
